@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
-  "main": "./index",
+  "main": "./formbuilder.js",
   "dependencies": {
     "coffee-script": "1.7.1",
     "backbone": "1.2.1",

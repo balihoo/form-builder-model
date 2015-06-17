@@ -1,5 +1,5 @@
 assert = require('assert')
-formbuilder = require('../lib/formbuilder')
+formbuilder = require('../formbuilder')
 describe 'fromCoffee', ->
   it 'can build a simple model', (done) ->
     model = formbuilder.fromCoffee('field "a"')

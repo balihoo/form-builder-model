@@ -10,7 +10,7 @@ gulp.task 'compile', ->
     coffee({bare:true})
     .on 'error', console.log
   )
-  .pipe gulp.dest('./lib/')
+  .pipe gulp.dest('./')
 
 gulp.task 'test', ['compile'], ->
   gulp.src 'test/*.coffee'

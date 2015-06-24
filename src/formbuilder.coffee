@@ -1,20 +1,11 @@
-### istanbul ignore next ###
-root = exports ? (window.formbuilder = {})
 
-###
-istanbul ignore else
-###
-if require?
-  CoffeeScript = require 'coffee-script'
-  Backbone     = require 'backbone'
-  _            = require 'underscore'
-  Mustache     = require 'mustache'
-  vm           = require 'vm'
-else
-  CoffeeScript ?= window.CoffeeScript
-  Backbone     ?= window.Backbone
-  _            ?= window._
-  Mustache     ?= window.Mustache
+window?.formbuilder = exports
+
+CoffeeScript = require 'coffee-script'
+Backbone     = require 'backbone'
+_            = require 'underscore'
+Mustache     = require 'mustache'
+vm           = require 'vm'
 
 #These can be modified by model code to provide new values
 globalOptions =
@@ -50,35 +41,38 @@ if alert?
   throttledAlert = _.throttle alert, 500
 
   
-# Apply initialization data to the model
-root.applyData = applyData = (modelObject, data) ->
-  if modelObject instanceof ModelField and data?
-    modelObject.value = data
-  else if modelObject instanceof RepeatingModelGroup
-    #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
-    #add a new repeating group to value for each in data, and apply data like with a model group
-    for obj in data
-      added = modelObject.add()
-      for key,value of obj
-        applyData added.child(key), value
-  else if modelObject instanceof ModelGroup
-    for key, value of data
-      applyData modelObject.child(key), value
+# Apply initialization data to the model.
+exports.applyData = (modelObject, data) ->
+  console.log 'This method is deprecated.  Please use model.applyData(data) instead.'
+  modelObject.applyData data
+#exports.applyData = applyData = (modelObject, data) ->
+#  if modelObject instanceof ModelField and data?
+#    modelObject.value = data
+#  else if modelObject instanceof RepeatingModelGroup
+#    #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
+#    #add a new repeating group to value for each in data, and apply data like with a model group
+#    for obj in data
+#      added = modelObject.add()
+#      for key,value of obj
+#        applyData added.child(key), value
+#  else if modelObject instanceof ModelGroup
+#    for key, value of data
+#      applyData modelObject.child(key), value
 
 # Merge data objects together.  Should have the same result
 # as if applyData was called sequentially.
-root.mergeData = (a, b)->
+exports.mergeData = (a, b)->
   if b.constructor is Object
     for key, value of b
       if a[key]? and a[key].constructor is Object and value.constructor is Object
-        root.mergeData a[key], value
+        exports.mergeData a[key], value
       else
         a[key] = value
   else
     throw new Error 'mergeData: The object to merge in is not an object'
 
 runtime = false
-root.modelTests= []
+exports.modelTests= []
 
 # Creates a Model object from JS code.  The executed code will execute in a
 # root ModelGroup
@@ -86,12 +80,12 @@ root.modelTests= []
 # data - initialization data (optional). Object or stringified object
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
-root.fromCode = (code, data, element, imports)->
+exports.fromCode = (code, data, element, imports)->
   if typeof data is 'string'
     data = JSON.parse data
   runtime = false
-  root.modelTests = []
-  test = (func) -> root.modelTests.push func
+  exports.modelTests = []
+  test = (func) -> exports.modelTests.push func
   assert = (bool, message="A model test has failed") ->
     if not bool then throw new Error(message)
 
@@ -107,7 +101,8 @@ root.fromCode = (code, data, element, imports)->
     root     = newRoot.root
     validate = newRoot.validate
 
-    if vm?
+    #running in a vm is safer, but slower.  Let the browser do plain eval, but not server.
+    if not window?
       sandbox = #hooks available in form code
         field: field
         group: group
@@ -127,7 +122,7 @@ root.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
-  applyData newRoot, data
+  newRoot.applyData data
 
   newRoot.setDirty newRoot.id, 'multiple'
   newRoot.recalculateRelativeProperties = oldRecalculate
@@ -150,8 +145,8 @@ root.fromCode = (code, data, element, imports)->
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
 # and passes it to fromCode.
-root.fromCoffee = (code, data, element, imports)->
-  return root.fromCode (CoffeeScript.compile code), data, element, imports
+exports.fromCoffee = (code, data, element, imports)->
+  return exports.fromCode (CoffeeScript.compile code), data, element, imports
 
 # Build a model from a package object, consisting of
 # - formid (int or string)
@@ -165,7 +160,7 @@ root.fromCoffee = (code, data, element, imports)->
 # data may also be supplied as the second parameter to the function. Data in this parameter
 #   will override any matching keys provided in the package data
 # element to which to bind validation and change messages, also optional
-root.fromPackage = (pkg, data, element) ->
+exports.fromPackage = (pkg, data, element) ->
   buildModelWithRecursiveImports = (p, el) ->
     form = (f for f in p.forms when f.formid is p.formid)[0]
     return if !form?
@@ -181,7 +176,7 @@ root.fromPackage = (pkg, data, element) ->
     if form.imports #in case imports left off the package
       form.imports.forEach(buildImport)
 
-    return root.fromCoffee form.model, p.data, el, builtImports
+    return exports.fromCoffee form.model, p.data, el, builtImports
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
@@ -498,6 +493,10 @@ class ModelGroup extends ModelBase
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
 
+  applyData: (data) ->
+    for key, value of data
+      @child(key)?.applyData value
+
 ###
   Encapsulates a group of form objects that can be added or removed to the form together multiple times
 ###
@@ -522,6 +521,14 @@ class RepeatingModelGroup extends ModelGroup
   buildOutputData: ->
     @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
+  
+  applyData: (data) ->
+    #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
+    #add a new repeating group to value for each in data, and apply data like with a model group
+    for obj in data
+      added = @add()
+      for key,value of obj
+        added.child(key)?.applyData value
 
   add: ->
     clone = @cloneModel @root, ModelGroup
@@ -710,6 +717,10 @@ class ModelField extends ModelBase
   buildOutputData: ->
     if @type isnt 'info'
       @value
+      
+  applyData: (data) ->
+    if data?
+      @value = data
 
 class ModelTree extends ModelField
   initialize: ->
@@ -821,7 +832,7 @@ class ModelOption extends ModelBase
         @parent.removeOptionValue @value
 
 #Call this method before output data is needed.
-root.buildOutputData = (model) ->
+exports.buildOutputData = (model) ->
   model.buildOutputData()
 
 

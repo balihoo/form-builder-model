@@ -1,38 +1,22 @@
-
-/* istanbul ignore next */
-var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, applyData, empty, getVisible, globalOptions, makeErrorMessage, newid, root, runtime, throttledAlert, vm,
+var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, empty, getVisible, globalOptions, makeErrorMessage, newid, runtime, throttledAlert, vm,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-root = typeof exports !== "undefined" && exports !== null ? exports : (window.formbuilder = {});
-
-
-/*
-istanbul ignore else
- */
-
-if (typeof require !== "undefined" && require !== null) {
-  CoffeeScript = require('coffee-script');
-  Backbone = require('backbone');
-  _ = require('underscore');
-  Mustache = require('mustache');
-  vm = require('vm');
-} else {
-  if (CoffeeScript == null) {
-    CoffeeScript = window.CoffeeScript;
-  }
-  if (Backbone == null) {
-    Backbone = window.Backbone;
-  }
-  if (_ == null) {
-    _ = window._;
-  }
-  if (Mustache == null) {
-    Mustache = window.Mustache;
-  }
+if (typeof window !== "undefined" && window !== null) {
+  window.formbuilder = exports;
 }
+
+CoffeeScript = require('coffee-script');
+
+Backbone = require('backbone');
+
+_ = require('underscore');
+
+Mustache = require('mustache');
+
+vm = require('vm');
 
 globalOptions = {
   marketerUrl: "http://accounts.dev.balihoo.com"
@@ -68,44 +52,19 @@ if (typeof alert !== "undefined" && alert !== null) {
   throttledAlert = _.throttle(alert, 500);
 }
 
-root.applyData = applyData = function(modelObject, data) {
-  var added, i, key, len, obj, results, results1, value;
-  if (modelObject instanceof ModelField && (data != null)) {
-    return modelObject.value = data;
-  } else if (modelObject instanceof RepeatingModelGroup) {
-    results = [];
-    for (i = 0, len = data.length; i < len; i++) {
-      obj = data[i];
-      added = modelObject.add();
-      results.push((function() {
-        var results1;
-        results1 = [];
-        for (key in obj) {
-          value = obj[key];
-          results1.push(applyData(added.child(key), value));
-        }
-        return results1;
-      })());
-    }
-    return results;
-  } else if (modelObject instanceof ModelGroup) {
-    results1 = [];
-    for (key in data) {
-      value = data[key];
-      results1.push(applyData(modelObject.child(key), value));
-    }
-    return results1;
-  }
+exports.applyData = function(modelObject, data) {
+  console.log('This method is deprecated.  Please use model.applyData(data) instead.');
+  return modelObject.applyData(data);
 };
 
-root.mergeData = function(a, b) {
+exports.mergeData = function(a, b) {
   var key, results, value;
   if (b.constructor === Object) {
     results = [];
     for (key in b) {
       value = b[key];
       if ((a[key] != null) && a[key].constructor === Object && value.constructor === Object) {
-        results.push(root.mergeData(a[key], value));
+        results.push(exports.mergeData(a[key], value));
       } else {
         results.push(a[key] = value);
       }
@@ -118,17 +77,17 @@ root.mergeData = function(a, b) {
 
 runtime = false;
 
-root.modelTests = [];
+exports.modelTests = [];
 
-root.fromCode = function(code, data, element, imports) {
+exports.fromCode = function(code, data, element, imports) {
   var assert, newRoot, oldRecalculate, test;
   if (typeof data === 'string') {
     data = JSON.parse(data);
   }
   runtime = false;
-  root.modelTests = [];
+  exports.modelTests = [];
   test = function(func) {
-    return root.modelTests.push(func);
+    return exports.modelTests.push(func);
   };
   assert = function(bool, message) {
     if (message == null) {
@@ -147,7 +106,7 @@ root.fromCode = function(code, data, element, imports) {
     group = newRoot.group.bind(newRoot);
     root = newRoot.root;
     validate = newRoot.validate;
-    if (vm != null) {
+    if (typeof window === "undefined" || window === null) {
       sandbox = {
         field: field,
         group: group,
@@ -170,7 +129,7 @@ root.fromCode = function(code, data, element, imports) {
       return eval('"use strict";' + code);
     }
   })(null);
-  applyData(newRoot, data);
+  newRoot.applyData(data);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateRelativeProperties = oldRecalculate;
   newRoot.recalculateRelativeProperties();
@@ -193,11 +152,11 @@ root.fromCode = function(code, data, element, imports) {
   return newRoot;
 };
 
-root.fromCoffee = function(code, data, element, imports) {
-  return root.fromCode(CoffeeScript.compile(code), data, element, imports);
+exports.fromCoffee = function(code, data, element, imports) {
+  return exports.fromCode(CoffeeScript.compile(code), data, element, imports);
 };
 
-root.fromPackage = function(pkg, data, element) {
+exports.fromPackage = function(pkg, data, element) {
   var buildModelWithRecursiveImports;
   buildModelWithRecursiveImports = function(p, el) {
     var buildImport, builtImports, f, form;
@@ -227,7 +186,7 @@ root.fromPackage = function(pkg, data, element) {
     if (form.imports) {
       form.imports.forEach(buildImport);
     }
-    return root.fromCoffee(form.model, p.data, el, builtImports);
+    return exports.fromCoffee(form.model, p.data, el, builtImports);
   };
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
@@ -689,6 +648,16 @@ ModelGroup = (function(superClass) {
     return JSON.stringify(this.buildOutputData());
   };
 
+  ModelGroup.prototype.applyData = function(data) {
+    var key, ref, results, value;
+    results = [];
+    for (key in data) {
+      value = data[key];
+      results.push((ref = this.child(key)) != null ? ref.applyData(value) : void 0);
+    }
+    return results;
+  };
+
   return ModelGroup;
 
 })(ModelBase);
@@ -742,6 +711,25 @@ RepeatingModelGroup = (function(superClass) {
     return this.value.map(function(instance) {
       return RepeatingModelGroup.__super__.buildOutputData.call(this, instance);
     });
+  };
+
+  RepeatingModelGroup.prototype.applyData = function(data) {
+    var added, i, key, len, obj, results, value;
+    results = [];
+    for (i = 0, len = data.length; i < len; i++) {
+      obj = data[i];
+      added = this.add();
+      results.push((function() {
+        var ref, results1;
+        results1 = [];
+        for (key in obj) {
+          value = obj[key];
+          results1.push((ref = added.child(key)) != null ? ref.applyData(value) : void 0);
+        }
+        return results1;
+      })());
+    }
+    return results;
   };
 
   RepeatingModelGroup.prototype.add = function() {
@@ -1000,6 +988,12 @@ ModelField = (function(superClass) {
     }
   };
 
+  ModelField.prototype.applyData = function(data) {
+    if (data != null) {
+      return this.value = data;
+    }
+  };
+
   return ModelField;
 
 })(ModelBase);
@@ -1162,7 +1156,7 @@ ModelOption = (function(superClass) {
 
 })(ModelBase);
 
-root.buildOutputData = function(model) {
+exports.buildOutputData = function(model) {
   return model.buildOutputData();
 };
 

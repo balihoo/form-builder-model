@@ -45,19 +45,6 @@ if alert?
 exports.applyData = (modelObject, data) ->
   console.log 'This method is deprecated.  Please use model.applyData(data) instead.'
   modelObject.applyData data
-#exports.applyData = applyData = (modelObject, data) ->
-#  if modelObject instanceof ModelField and data?
-#    modelObject.value = data
-#  else if modelObject instanceof RepeatingModelGroup
-#    #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
-#    #add a new repeating group to value for each in data, and apply data like with a model group
-#    for obj in data
-#      added = modelObject.add()
-#      for key,value of obj
-#        applyData added.child(key), value
-#  else if modelObject instanceof ModelGroup
-#    for key, value of data
-#      applyData modelObject.child(key), value
 
 # Merge data objects together.  Should have the same result
 # as if applyData was called sequentially.
@@ -180,7 +167,7 @@ exports.fromPackage = (pkg, data, element) ->
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
-  _.extend pkg.data, data
+  pkg.data = _.extend pkg.data or {}, data
   return buildModelWithRecursiveImports pkg, element
 
 

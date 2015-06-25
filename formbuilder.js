@@ -191,7 +191,7 @@ exports.fromPackage = function(pkg, data, element) {
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
   }
-  _.extend(pkg.data, data);
+  pkg.data = _.extend(pkg.data || {}, data);
   return buildModelWithRecursiveImports(pkg, element);
 };
 

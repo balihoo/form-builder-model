@@ -6,6 +6,7 @@ Backbone     = require 'backbone'
 _            = require 'underscore'
 Mustache     = require 'mustache'
 vm           = require 'vm'
+jiff         = require 'jiff'
 
 #These can be modified by model code to provide new values
 globalOptions =
@@ -170,6 +171,35 @@ exports.fromPackage = (pkg, data, element) ->
   pkg.data = _.extend pkg.data or {}, data
   return buildModelWithRecursiveImports pkg, element
 
+exports.getChanges = (modelAfter, beforeData) ->
+  modelBefore = modelAfter.cloneModel()
+  modelBefore.applyData(beforeData, true)
+
+
+  patch = jiff.diff beforeData, modelAfter.buildOutputData()
+  changedPaths = (o.path for o in patch when o.op isnt 'test')
+  #unique that. Only want each diff once, no matter how many times changed
+  changedPathsUniqObject = {}
+  changedPathsUniqObject[val] = val for val in changedPaths
+  changedPathsUnique = (key for key of changedPathsUniqObject)
+
+  changes = []
+  for origPath in changedPathsUnique
+    path = origPath[1..-1] #don't need that initial separator
+    before = modelBefore.child path
+    after = modelAfter.child path
+    if before.value isnt after.value
+      changes.push
+        name:origPath
+        title:after.title
+        before:before.value
+        after:after.value
+  {
+    changes:changes
+    patch: patch
+  }
+
+
 
 ###
 # Attributes common to groups and fields.
@@ -182,6 +212,8 @@ class ModelBase extends Backbone.Model
     @set 'id', newid()
     @setDefault 'parent', undefined
     @setDefault 'root', undefined
+    @setDefault 'name', @get 'title'
+    @setDefault 'title', @get 'name'
 
     #add accessors for each name access instead of get/set
     for key,val of @attributes
@@ -389,8 +421,6 @@ class ModelBase extends Backbone.Model
 class ModelGroup extends ModelBase
   initialize: ->
     @setDefault 'children', []
-    @setDefault 'title', @get 'name'
-    @setDefault 'name', @get 'title'
     @setDefault 'root', @
     @set 'isValid', true
 
@@ -480,7 +510,11 @@ class ModelGroup extends ModelBase
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
 
-  applyData: (data) ->
+  clear: () ->
+    child.clear() for child in @children
+
+  applyData: (data, clear=false) ->
+    @clear() if clear
     for key, value of data
       @child(key)?.applyData value
 
@@ -508,8 +542,12 @@ class RepeatingModelGroup extends ModelGroup
   buildOutputData: ->
     @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
+
+  clear: () ->
+    @value = []
   
-  applyData: (data) ->
+  applyData: (data, clear=false) ->
+    @clear() if clear
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data
@@ -535,16 +573,13 @@ class RepeatingModelGroup extends ModelGroup
 ###
 class ModelField extends ModelBase
   initialize: ->
-    @setDefault 'name', @get 'title'
-    @setDefault 'title', @get 'name'
     @setDefault 'type', 'text'
     @setDefault 'options', []
     @setDefault 'defaultValue', @get 'value' #determines control type, so keep separate from current value
-    @set 'value', #value may be overwritten by input data, so set even if exists
-      (@get 'defaultValue') ?
-        if (@get 'type') is 'multiselect' then []
-        else if (@get 'type') is 'bool' then false
-        else ''
+    if @get('defaultValue')?
+      @set('value', @get 'defaultValue')  #value may be overwritten by input data, so set even if exists
+    else
+      @clear() #clears value
     @set 'isValid', true
     @setDefault 'validators', []
     @set validityMessage: undefined
@@ -704,8 +739,15 @@ class ModelField extends ModelBase
   buildOutputData: ->
     if @type isnt 'info'
       @value
-      
-  applyData: (data) ->
+
+  clear: () ->
+    @set 'value',
+      if (@get 'type') is 'multiselect' then []
+      else if (@get 'type') is 'bool' then false
+      else ''
+
+  applyData: (data, clear=false) ->
+    @clear() if clear
     if data?
       @value = data
 
@@ -755,6 +797,9 @@ class ModelTree extends ModelField
       @value.splice index, 1
       @trigger 'change'
 
+  clear: () ->
+    @value = []
+
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
   initialize: ->
@@ -801,6 +846,9 @@ class ModelFieldImage extends ModelField
     val.fileID is @value.fileID and
       val.thumbnailUrl is @value.thumbnailUrl and
       val.fileUrl is @value.fileUrl
+
+  clear: () ->
+    @value = {}
 
 class ModelOption extends ModelBase
   initialize: ->

@@ -1,4 +1,4 @@
-var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, empty, getVisible, globalOptions, makeErrorMessage, newid, runtime, throttledAlert, vm,
+var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, empty, getVisible, globalOptions, jiff, makeErrorMessage, newid, runtime, throttledAlert, vm,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice,
@@ -17,6 +17,8 @@ _ = require('underscore');
 Mustache = require('mustache');
 
 vm = require('vm');
+
+jiff = require('jiff');
 
 globalOptions = {
   marketerUrl: "http://accounts.dev.balihoo.com"
@@ -195,6 +197,56 @@ exports.fromPackage = function(pkg, data, element) {
   return buildModelWithRecursiveImports(pkg, element);
 };
 
+exports.getChanges = function(modelAfter, beforeData) {
+  var after, before, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, o, origPath, patch, path, val;
+  modelBefore = modelAfter.cloneModel();
+  modelBefore.applyData(beforeData, true);
+  patch = jiff.diff(beforeData, modelAfter.buildOutputData());
+  changedPaths = (function() {
+    var i, len, results;
+    results = [];
+    for (i = 0, len = patch.length; i < len; i++) {
+      o = patch[i];
+      if (o.op !== 'test') {
+        results.push(o.path);
+      }
+    }
+    return results;
+  })();
+  changedPathsUniqObject = {};
+  for (i = 0, len = changedPaths.length; i < len; i++) {
+    val = changedPaths[i];
+    changedPathsUniqObject[val] = val;
+  }
+  changedPathsUnique = (function() {
+    var results;
+    results = [];
+    for (key in changedPathsUniqObject) {
+      results.push(key);
+    }
+    return results;
+  })();
+  changes = [];
+  for (j = 0, len1 = changedPathsUnique.length; j < len1; j++) {
+    origPath = changedPathsUnique[j];
+    path = origPath.slice(1);
+    before = modelBefore.child(path);
+    after = modelAfter.child(path);
+    if (before.value !== after.value) {
+      changes.push({
+        name: origPath,
+        title: after.title,
+        before: before.value,
+        after: after.value
+      });
+    }
+  }
+  return {
+    changes: changes,
+    patch: patch
+  };
+};
+
 
 /*
  * Attributes common to groups and fields.
@@ -215,6 +267,8 @@ ModelBase = (function(superClass) {
     this.set('id', newid());
     this.setDefault('parent', void 0);
     this.setDefault('root', void 0);
+    this.setDefault('name', this.get('title'));
+    this.setDefault('title', this.get('name'));
     ref = this.attributes;
     fn = (function(_this) {
       return function(key) {
@@ -511,8 +565,6 @@ ModelGroup = (function(superClass) {
 
   ModelGroup.prototype.initialize = function() {
     this.setDefault('children', []);
-    this.setDefault('title', this.get('name'));
-    this.setDefault('name', this.get('title'));
     this.setDefault('root', this);
     this.set('isValid', true);
     return ModelGroup.__super__.initialize.apply(this, arguments);
@@ -648,8 +700,25 @@ ModelGroup = (function(superClass) {
     return JSON.stringify(this.buildOutputData());
   };
 
-  ModelGroup.prototype.applyData = function(data) {
+  ModelGroup.prototype.clear = function() {
+    var child, i, len, ref, results;
+    ref = this.children;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
+      results.push(child.clear());
+    }
+    return results;
+  };
+
+  ModelGroup.prototype.applyData = function(data, clear) {
     var key, ref, results, value;
+    if (clear == null) {
+      clear = false;
+    }
+    if (clear) {
+      this.clear();
+    }
     results = [];
     for (key in data) {
       value = data[key];
@@ -713,8 +782,18 @@ RepeatingModelGroup = (function(superClass) {
     });
   };
 
-  RepeatingModelGroup.prototype.applyData = function(data) {
+  RepeatingModelGroup.prototype.clear = function() {
+    return this.value = [];
+  };
+
+  RepeatingModelGroup.prototype.applyData = function(data, clear) {
     var added, i, key, len, obj, results, value;
+    if (clear == null) {
+      clear = false;
+    }
+    if (clear) {
+      this.clear();
+    }
     results = [];
     for (i = 0, len = data.length; i < len; i++) {
       obj = data[i];
@@ -764,13 +843,15 @@ ModelField = (function(superClass) {
   }
 
   ModelField.prototype.initialize = function() {
-    var ref, ref1;
-    this.setDefault('name', this.get('title'));
-    this.setDefault('title', this.get('name'));
+    var ref;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
     this.setDefault('defaultValue', this.get('value'));
-    this.set('value', (ref = this.get('defaultValue')) != null ? ref : (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    if (this.get('defaultValue') != null) {
+      this.set('value', this.get('defaultValue'));
+    } else {
+      this.clear();
+    }
     this.set('isValid', true);
     this.setDefault('validators', []);
     this.set({
@@ -779,7 +860,7 @@ ModelField = (function(superClass) {
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
     ModelField.__super__.initialize.apply(this, arguments);
-    if ((ref1 = this.type) !== 'info' && ref1 !== 'text' && ref1 !== 'url' && ref1 !== 'email' && ref1 !== 'tel' && ref1 !== 'time' && ref1 !== 'date' && ref1 !== 'textarea' && ref1 !== 'bool' && ref1 !== 'tree' && ref1 !== 'color' && ref1 !== 'select' && ref1 !== 'multiselect' && ref1 !== 'image') {
+    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
       throw new Error("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
@@ -798,22 +879,22 @@ ModelField = (function(superClass) {
     this.bindPropFunctions('onChangeHandlers');
     this.updateOptionsSelected();
     this.on('change:value', function() {
-      var changeFunc, i, len, ref2;
-      ref2 = this.onChangeHandlers;
-      for (i = 0, len = ref2.length; i < len; i++) {
-        changeFunc = ref2[i];
+      var changeFunc, i, len, ref1;
+      ref1 = this.onChangeHandlers;
+      for (i = 0, len = ref1.length; i < len; i++) {
+        changeFunc = ref1[i];
         changeFunc();
       }
       return this.updateOptionsSelected();
     });
     return this.on('change:type', function() {
-      var ref2;
+      var ref1;
       if (this.type === 'multiselect') {
         this.value = this.value.length > 0 ? [this.value] : [];
       } else if (this.previousAttributes().type === 'multiselect') {
         this.value = this.value.length > 0 ? this.value[0] : '';
       }
-      if (this.options.length > 0 && !((ref2 = this.type) === 'select' || ref2 === 'multiselect')) {
+      if (this.options.length > 0 && !((ref1 = this.type) === 'select' || ref1 === 'multiselect')) {
         return this.type = 'select';
       }
     });
@@ -988,7 +1069,17 @@ ModelField = (function(superClass) {
     }
   };
 
-  ModelField.prototype.applyData = function(data) {
+  ModelField.prototype.clear = function() {
+    return this.set('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+  };
+
+  ModelField.prototype.applyData = function(data, clear) {
+    if (clear == null) {
+      clear = false;
+    }
+    if (clear) {
+      this.clear();
+    }
     if (data != null) {
       return this.value = data;
     }
@@ -1059,6 +1150,10 @@ ModelTree = (function(superClass) {
     }
   };
 
+  ModelTree.prototype.clear = function() {
+    return this.value = [];
+  };
+
   return ModelTree;
 
 })(ModelField);
@@ -1125,6 +1220,10 @@ ModelFieldImage = (function(superClass) {
 
   ModelFieldImage.prototype.hasValue = function(val) {
     return val.fileID === this.value.fileID && val.thumbnailUrl === this.value.thumbnailUrl && val.fileUrl === this.value.fileUrl;
+  };
+
+  ModelFieldImage.prototype.clear = function() {
+    return this.value = {};
   };
 
   return ModelFieldImage;

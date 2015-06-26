@@ -55,7 +55,6 @@ if (typeof alert !== "undefined" && alert !== null) {
 }
 
 exports.applyData = function(modelObject, data) {
-  console.log('This method is deprecated.  Please use model.applyData(data) instead.');
   return modelObject.applyData(data);
 };
 

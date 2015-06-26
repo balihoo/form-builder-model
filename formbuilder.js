@@ -198,18 +198,18 @@ exports.fromPackage = function(pkg, data, element) {
 };
 
 exports.getChanges = function(modelAfter, beforeData) {
-  var after, before, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, o, origPath, patch, path, val;
+  var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, p, patch, path, val;
   modelBefore = modelAfter.cloneModel();
   modelBefore.applyData(beforeData, true);
-  patch = jiff.diff(beforeData, modelAfter.buildOutputData());
+  patch = jiff.diff(beforeData, modelAfter.buildOutputData(), {
+    invertible: false
+  });
   changedPaths = (function() {
     var i, len, results;
     results = [];
     for (i = 0, len = patch.length; i < len; i++) {
-      o = patch[i];
-      if (o.op !== 'test') {
-        results.push(o.path);
-      }
+      p = patch[i];
+      results.push(p.path.replace(/\/[0-9]+$/, ''));
     }
     return results;
   })();
@@ -228,16 +228,16 @@ exports.getChanges = function(modelAfter, beforeData) {
   })();
   changes = [];
   for (j = 0, len1 = changedPathsUnique.length; j < len1; j++) {
-    origPath = changedPathsUnique[j];
-    path = origPath.slice(1);
+    changedPath = changedPathsUnique[j];
+    path = changedPath.slice(1);
     before = modelBefore.child(path);
     after = modelAfter.child(path);
-    if (before.value !== after.value) {
+    if ((before != null ? before.value : void 0) !== (after != null ? after.value : void 0)) {
       changes.push({
-        name: origPath,
+        name: changedPath,
         title: after.title,
-        before: before.value,
-        after: after.value
+        before: before.buildOutputData(),
+        after: after.buildOutputData()
       });
     }
   }

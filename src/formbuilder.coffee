@@ -41,7 +41,7 @@ makeErrorMessage = (model, propName, err)->
 if alert?
   throttledAlert = _.throttle alert, 500
 
-  
+
 # Apply initialization data to the model.
 exports.applyData = (modelObject, data) ->
   console.log 'This method is deprecated.  Please use model.applyData(data) instead.'
@@ -175,30 +175,29 @@ exports.getChanges = (modelAfter, beforeData) ->
   modelBefore = modelAfter.cloneModel()
   modelBefore.applyData(beforeData, true)
 
-
-  patch = jiff.diff beforeData, modelAfter.buildOutputData()
-  changedPaths = (o.path for o in patch when o.op isnt 'test')
-  #unique that. Only want each diff once, no matter how many times changed
+  patch = jiff.diff beforeData, modelAfter.buildOutputData(), invertible:false
+  #array paths end in an index #. We only want the field, not the index of the value
+  changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in patch)
+  #get distinct field names. Arrays for example might appear multiple times
   changedPathsUniqObject = {}
   changedPathsUniqObject[val] = val for val in changedPaths
   changedPathsUnique = (key for key of changedPathsUniqObject)
 
   changes = []
-  for origPath in changedPathsUnique
-    path = origPath[1..-1] #don't need that initial separator
+  for changedPath in changedPathsUnique
+    path = changedPath[1..-1] #don't need that initial separator
     before = modelBefore.child path
     after = modelAfter.child path
-    if before.value isnt after.value
+    if before?.value isnt after?.value
       changes.push
-        name:origPath
+        name:changedPath
         title:after.title
-        before:before.value
-        after:after.value
+        before:before.buildOutputData()
+        after:after.buildOutputData()
   {
     changes:changes
     patch: patch
   }
-
 
 
 ###
@@ -220,7 +219,7 @@ class ModelBase extends Backbone.Model
       do (key) =>
         Object.defineProperty @, key, {
           get: ->
-            @get key,
+            @get key
           set: (newValue) ->
             if (@get key) isnt newValue #save an onChange event if value isnt different
               @set key, newValue
@@ -240,7 +239,7 @@ class ModelBase extends Backbone.Model
       ch = @changedAttributes()
       if ch is false #no changes, manual trigger meant to fire everything
         ch = 'multiple'
-      
+
       @root.setDirty @id, ch
       @root.recalculateRelativeProperties()
 
@@ -305,7 +304,7 @@ class ModelBase extends Backbone.Model
       else
         keys = Object.keys(whatChanged)
         if keys.length is 1 then "#{id}:#{keys[0]}" else 'multiple'
-      
+
     drt = if @dirty is ch or @dirty is '' then ch else "multiple"
     @dirty = drt
   setClean: ->
@@ -477,8 +476,8 @@ class ModelGroup extends ModelBase
       child
     else
       child.child path
-      
-      
+
+
   setDirty: (id, whatChanged) ->
     child.setDirty id, whatChanged for child in @children
     super id, whatChanged
@@ -529,7 +528,7 @@ class RepeatingModelGroup extends ModelGroup
   setDirty: (id, whatChanged) ->
     val.setDirty id, whatChanged for val in @value
     super id, whatChanged
-    
+
   setClean: (all) ->
     super
     if all
@@ -545,7 +544,7 @@ class RepeatingModelGroup extends ModelGroup
 
   clear: () ->
     @value = []
-  
+
   applyData: (data, clear=false) ->
     @clear() if clear
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
@@ -687,7 +686,7 @@ class ModelField extends ModelBase
     super
     if all
       opt.setClean all for opt in @options
-    
+
   recalculateRelativeProperties: ->
     dirty = @dirty
     super

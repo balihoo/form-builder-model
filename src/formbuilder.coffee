@@ -44,7 +44,6 @@ if alert?
 
 # Apply initialization data to the model.
 exports.applyData = (modelObject, data) ->
-  console.log 'This method is deprecated.  Please use model.applyData(data) instead.'
   modelObject.applyData data
 
 # Merge data objects together.  Should have the same result

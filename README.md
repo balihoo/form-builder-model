@@ -1,19 +1,18 @@
-# form-builder-model
+# [form-builder-model](https://github.com/balihoo/form-builder-model)
 
 Standalone code for building form builder models without any UI bindings.
 This project is intended to build a model and produce a Backbone object hierarchy.
-This model can then be rendered with ui components in the main form-builder package.
+This model can then be rendered with ui components in the main form-builder package, or used by itself for processing input and generating JSON or HTML output.
 
 # Installation
-
-For now, installation can be done manually.
 
 1. git clone this repo
 2. from your project, npm install [this project directory]
 3. require('form-builder-model')
 
-In the near future, you should be able to put an entry in your package.json with 
-credentials to pull this private repo directly.
+You will then want to bundle this node_module with your deployment.
+
+
 
 ## Bundling for the browser
 
@@ -28,14 +27,20 @@ The main purpose of the form-builder-model package is to take form code in some 
 
 ## fromCoffee(code, data, element, imports)
 Build a single model object from Coffeescript code
-### code - model code in Coffeescript.
-### data (optional) - initialization data for the model.  Supplying this is equivalent to building without data, then calling applyData.
-### element (optional) - if rendering, this element will receive validation and recalculating events as the state of the model chagnes.
-### imports (optional) - an object whose keys are the namespace of any imports, and the value is the build model for that namespace.  Supplying this parameter will require fetching and building each import for this form before building this form.
+
+**code** - model code in Coffeescript.
+
+**data (optional)** - initialization data for the model.  Supplying this is equivalent to building without data, then calling applyData.
+
+**element (optional)** - if rendering, this element will receive validation and recalculating events as the state of the model changes.
+
+**imports (optional)** - an object whose keys are the namespace of any imports, and the value is the build model for that namespace.  Supplying this parameter will require fetching and building each import for this form before building this form.
 
 ## fromPackage(package, data, element)
-Build a model from a pacakge containing all forms that will be needed.  This method has the advantange of not requiring several fetches to the server to retrieve and build imports prior to building this model.
-### package
+Build a model from a package containing all forms that will be needed.  This method has the advantage of not requiring several fetches to the server to retrieve and build imports prior to building this model.
+
+**package**
+
 * formid (int or string)
 * forms (array of object).  Each object contains
 	* formid (int)
@@ -44,20 +49,35 @@ Build a model from a pacakge containing all forms that will be needed.  This met
 		* importformid (int)
 		* namespace (string)
 * data (object, optional) - may be supplied in the package or as a separate parameter
-### data (optional) - initialization data for the model.  Supplying this is equivalent to building without data, then calling applyData.
-### element (optional) - if rendering, this element will receive validation and recalculating events as the state of the model chagnes.
+
+**data (optional)** - initialization data for the model.  Supplying this is equivalent to building without data, then calling applyData.
+
+**element (optional)** - if rendering, this element will receive validation and recalculating events as the state of the model chagnes.
 
 ## fromCode(code, data, element, imports)
 The same as fromCoffee, except code is supplied in JavaScript format.
 
 ## applyData(model, data)
 
-Apply input data to a built model object
+Apply input data to a built model object.  Also available as a property of the root object.
+
+	var formbuilder = require('form-builder-model');
+    var model = from...
+    
+    //the following are equivalent
+    formbuilder.applyData(model, data);
+    model.applyData(data);
 
 ## buildOutputData(model)
 
-Product output data for the build model.
-Also available as a property function of the build model.
+Produce output data for the built model as a javascript object.  Also available as a property function of the build model.
+    
+    var formbuilder = require('form-builder-model');
+    var model = from...
+    
+    //the following are equivalent
+    formbuilder.buildOutputData(model);
+    model.buildOutputData();
 
 # Typical Use
 

@@ -78,6 +78,17 @@ Produce output data for the built model as a javascript object.  Also available 
     //the following are equivalent
     formbuilder.buildOutputData(model);
     model.buildOutputData();
+    
+## getChanges(model, initialData)
+
+Create a list of changes that occurred between the initial form data and the current form state.  Returned will be an object with the following properties.
+
+* changes - array of objects.  Each contains
+	* name - path to the field
+	* title - title of the field
+	* before - before value
+	* after - after value
+* patch - the raw [JSON patch](https://tools.ietf.org/html/rfc6902) (via [jiff](https://github.com/cujojs/jiff)) between total before and after data.  Does not include test operations.
 
 # Typical Use
 

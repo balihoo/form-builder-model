@@ -6,6 +6,7 @@ Backbone     = require 'backbone'
 _            = require 'underscore'
 Mustache     = require 'mustache'
 vm           = require 'vm'
+jiff         = require 'jiff'
 
 #These can be modified by model code to provide new values
 globalOptions =
@@ -40,10 +41,9 @@ makeErrorMessage = (model, propName, err)->
 if alert?
   throttledAlert = _.throttle alert, 500
 
-  
+
 # Apply initialization data to the model.
 exports.applyData = (modelObject, data) ->
-  console.log 'This method is deprecated.  Please use model.applyData(data) instead.'
   modelObject.applyData data
 
 # Merge data objects together.  Should have the same result
@@ -170,6 +170,34 @@ exports.fromPackage = (pkg, data, element) ->
   pkg.data = _.extend pkg.data or {}, data
   return buildModelWithRecursiveImports pkg, element
 
+exports.getChanges = (modelAfter, beforeData) ->
+  modelBefore = modelAfter.cloneModel()
+  modelBefore.applyData(beforeData, true)
+
+  patch = jiff.diff beforeData, modelAfter.buildOutputData(), invertible:false
+  #array paths end in an index #. We only want the field, not the index of the value
+  changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in patch)
+  #get distinct field names. Arrays for example might appear multiple times
+  changedPathsUniqObject = {}
+  changedPathsUniqObject[val] = val for val in changedPaths
+  changedPathsUnique = (key for key of changedPathsUniqObject)
+
+  changes = []
+  for changedPath in changedPathsUnique
+    path = changedPath[1..-1] #don't need that initial separator
+    before = modelBefore.child path
+    after = modelAfter.child path
+    if before?.value isnt after?.value
+      changes.push
+        name:changedPath
+        title:after.title
+        before:before.buildOutputData()
+        after:after.buildOutputData()
+  {
+    changes:changes
+    patch: patch
+  }
+
 
 ###
 # Attributes common to groups and fields.
@@ -182,13 +210,15 @@ class ModelBase extends Backbone.Model
     @set 'id', newid()
     @setDefault 'parent', undefined
     @setDefault 'root', undefined
+    @setDefault 'name', @get 'title'
+    @setDefault 'title', @get 'name'
 
     #add accessors for each name access instead of get/set
     for key,val of @attributes
       do (key) =>
         Object.defineProperty @, key, {
           get: ->
-            @get key,
+            @get key
           set: (newValue) ->
             if (@get key) isnt newValue #save an onChange event if value isnt different
               @set key, newValue
@@ -208,7 +238,7 @@ class ModelBase extends Backbone.Model
       ch = @changedAttributes()
       if ch is false #no changes, manual trigger meant to fire everything
         ch = 'multiple'
-      
+
       @root.setDirty @id, ch
       @root.recalculateRelativeProperties()
 
@@ -273,7 +303,7 @@ class ModelBase extends Backbone.Model
       else
         keys = Object.keys(whatChanged)
         if keys.length is 1 then "#{id}:#{keys[0]}" else 'multiple'
-      
+
     drt = if @dirty is ch or @dirty is '' then ch else "multiple"
     @dirty = drt
   setClean: ->
@@ -389,8 +419,6 @@ class ModelBase extends Backbone.Model
 class ModelGroup extends ModelBase
   initialize: ->
     @setDefault 'children', []
-    @setDefault 'title', @get 'name'
-    @setDefault 'name', @get 'title'
     @setDefault 'root', @
     @set 'isValid', true
 
@@ -447,8 +475,8 @@ class ModelGroup extends ModelBase
       child
     else
       child.child path
-      
-      
+
+
   setDirty: (id, whatChanged) ->
     child.setDirty id, whatChanged for child in @children
     super id, whatChanged
@@ -480,7 +508,11 @@ class ModelGroup extends ModelBase
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
 
-  applyData: (data) ->
+  clear: () ->
+    child.clear() for child in @children
+
+  applyData: (data, clear=false) ->
+    @clear() if clear
     for key, value of data
       @child(key)?.applyData value
 
@@ -495,7 +527,7 @@ class RepeatingModelGroup extends ModelGroup
   setDirty: (id, whatChanged) ->
     val.setDirty id, whatChanged for val in @value
     super id, whatChanged
-    
+
   setClean: (all) ->
     super
     if all
@@ -508,8 +540,12 @@ class RepeatingModelGroup extends ModelGroup
   buildOutputData: ->
     @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
-  
-  applyData: (data) ->
+
+  clear: () ->
+    @value = []
+
+  applyData: (data, clear=false) ->
+    @clear() if clear
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data
@@ -535,16 +571,13 @@ class RepeatingModelGroup extends ModelGroup
 ###
 class ModelField extends ModelBase
   initialize: ->
-    @setDefault 'name', @get 'title'
-    @setDefault 'title', @get 'name'
     @setDefault 'type', 'text'
     @setDefault 'options', []
     @setDefault 'defaultValue', @get 'value' #determines control type, so keep separate from current value
-    @set 'value', #value may be overwritten by input data, so set even if exists
-      (@get 'defaultValue') ?
-        if (@get 'type') is 'multiselect' then []
-        else if (@get 'type') is 'bool' then false
-        else ''
+    if @get('defaultValue')?
+      @set('value', @get 'defaultValue')  #value may be overwritten by input data, so set even if exists
+    else
+      @clear() #clears value
     @set 'isValid', true
     @setDefault 'validators', []
     @set validityMessage: undefined
@@ -652,7 +685,7 @@ class ModelField extends ModelBase
     super
     if all
       opt.setClean all for opt in @options
-    
+
   recalculateRelativeProperties: ->
     dirty = @dirty
     super
@@ -704,8 +737,15 @@ class ModelField extends ModelBase
   buildOutputData: ->
     if @type isnt 'info'
       @value
-      
-  applyData: (data) ->
+
+  clear: () ->
+    @set 'value',
+      if (@get 'type') is 'multiselect' then []
+      else if (@get 'type') is 'bool' then false
+      else ''
+
+  applyData: (data, clear=false) ->
+    @clear() if clear
     if data?
       @value = data
 
@@ -755,6 +795,9 @@ class ModelTree extends ModelField
       @value.splice index, 1
       @trigger 'change'
 
+  clear: () ->
+    @value = []
+
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
   initialize: ->
@@ -801,6 +844,9 @@ class ModelFieldImage extends ModelField
     val.fileID is @value.fileID and
       val.thumbnailUrl is @value.thumbnailUrl and
       val.fileUrl is @value.fileUrl
+
+  clear: () ->
+    @value = {}
 
 class ModelOption extends ModelBase
   initialize: ->

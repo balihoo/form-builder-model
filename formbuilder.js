@@ -131,6 +131,7 @@ exports.fromCode = function(code, data, element, imports) {
     }
   })(null);
   newRoot.applyData(data);
+  newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateRelativeProperties = oldRecalculate;
   newRoot.recalculateRelativeProperties();

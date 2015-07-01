@@ -292,6 +292,16 @@ group 'container'
       }
     ]
     done()
+  it 'is callable from the model root', (done) ->
+    model = formbuilder.fromCoffee "field 'a', value:'after'"
+    result = model.getChanges({a:'before'})
+    assert.deepEqual result.changes, [{
+      name:'/a'
+      title:'a'
+      before:'before'
+      after:'after'
+    }]
+    done()
 
 describe 'clear', ->
   it 'clears a text field', (done) ->

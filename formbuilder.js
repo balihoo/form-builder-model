@@ -1,4 +1,4 @@
-var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, empty, getVisible, globalOptions, jiff, makeErrorMessage, newid, runtime, throttledAlert, vm,
+var Backbone, CoffeeScript, ModelBase, ModelField, ModelFieldImage, ModelGroup, ModelOption, ModelTree, Mustache, RepeatingModelGroup, _, empty, getVisible, jiff, makeErrorMessage, newid, runtime, throttledAlert, vm,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice,
@@ -19,10 +19,6 @@ Mustache = require('mustache');
 vm = require('vm');
 
 jiff = require('jiff');
-
-globalOptions = {
-  marketerUrl: "http://accounts.dev.balihoo.com"
-};
 
 empty = function(o) {
   return !o || ((o.length != null) && o.length === 0) || (typeof o === 'object' && Object.keys(o).length === 0);
@@ -498,7 +494,7 @@ ModelBase = (function(superClass) {
       if (field == null) {
         field = this;
       }
-      ref = this.options;
+      ref = field.options;
       for (i = 0, len = ref.length; i < len; i++) {
         opt = ref[i];
         if (opt.selected && !opt.isVisible) {
@@ -1044,11 +1040,9 @@ ModelField = (function(superClass) {
   ModelField.prototype.removeOptionValue = function(val) {
     if (this.type === 'multiselect') {
       if (indexOf.call(this.value, val) >= 0) {
-        return this.value = this.value.filter((function(_this) {
-          return function(v) {
-            return v !== val;
-          };
-        })(this));
+        return this.value = this.value.filter(function(v) {
+          return v !== val;
+        });
       }
     } else if (this.value === val) {
       return this.value = '';

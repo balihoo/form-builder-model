@@ -8,10 +8,6 @@ Mustache     = require 'mustache'
 vm           = require 'vm'
 jiff         = require 'jiff'
 
-#These can be modified by model code to provide new values
-globalOptions =
-  marketerUrl: "http://accounts.dev.balihoo.com" #todo: pull from some environment specific config at build time.
-
 empty = (o)->
   not o or (o.length? and o.length is 0) or (typeof o is 'object' and Object.keys(o).length is 0)
 
@@ -382,7 +378,7 @@ class ModelBase extends Backbone.Model
       if value.length > n
         return "Please select at most #{n} options"
     selectedIsVisible: (field = @) ->
-      for opt in @options
+      for opt in field.options
         if opt.selected and not opt.isVisible
           return "A selected option is not currently available.  Please make a new choice from available options."
 
@@ -725,7 +721,7 @@ class ModelField extends ModelBase
   removeOptionValue: (val) ->
     if @type is 'multiselect'
       if val in @value
-        @value = @value.filter (v) => v isnt val
+        @value = @value.filter (v) -> v isnt val
     else if @value is val #single-select
       @value = ''
 

@@ -1,0 +1,6 @@
+src
+test
+gulpfile.coffee
+.idea
+.npmignore
+coffeelint.json

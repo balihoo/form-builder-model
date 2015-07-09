@@ -135,7 +135,7 @@ describe 'triggered changes', ->
 
   #  #more like we usually do, with a input and rendered output form
   #  #demonstrates that number of calls still does climb more rapidly than number of fields
-    it 'limits calls several dynamic functions', (done) ->
+    it 'limits calls of several dynamic functions', (done) ->
       model = fb.fromCoffee """
         root.count = 0
 
@@ -152,15 +152,26 @@ describe 'triggered changes', ->
           root.count += 1
           'f has changed'
       """
-      ### should be 6
+      ### should be 6 (OLD, SEE BELOW)
       #3 - initial trigger
       #0 - b does not trigger itself, and d and f are already queued
       #1 - d causes b to trigger again
       #0 - b fires but returns the same value
       #2 - f fires and re-triggers b and d
       #0 - b and d result in no change
-      ####
-      assert.strictEqual model.count, 6,
+
+      # IMPROVEMENT, should be 5. 2n-1 where n = # of dynamicValue functions
+        Start with root dirty multiple.  Each is queued to run.
+        First pass: Dirty state:  b=multile, d=multiple, f=multiple
+      1 B fires.  Dirty state: b='', d=multiple, f=multiple. root=b:value
+      1 D fires.  Dirty state: b=d:value, d='', f=multiple. root=multiple
+      1 F fires.  Dirty state: b=multiple, d='f:value', f=''. root=multiple
+        Root is dirty again, second pass
+      1 B fires.  Dirty state: b='', d='f:value', f=''. root='' (no change!)
+      1 D fires.  Dirty state: b='', d='', f=''. root='' (no change!)
+      0 F skipped because its flag is still clean
+      ###
+      assert.strictEqual model.count, 5,
         "Dynamic value function calls grow faster than fields, but still restricted to min required"
       model.count = 0
       model.child('a').value = 'new'
@@ -168,6 +179,20 @@ describe 'triggered changes', ->
       # and this update won't trigger itself to run again.
       assert.strictEqual model.count, 3,
         "Dynamic value functions call correctly on update"
+      done()
+
+    it 'only fires dynamicValue functions 2n-1 times', (done) ->
+      numDynVals = 10
+      model = fb.fromCoffee """
+        root.count = 0
+
+        for n in [0...#{numDynVals}]
+          field "fld\#{2*n}"
+          field "fld\#{2*n+1}", dynamicValue: ->
+            root.count += 1
+            'same val'
+      """
+      assert.strictEqual model.count, 2 * numDynVals - 1
       done()
 
     it 'dynamicValue triggers once, then doesnt trigger itself', (done) ->

@@ -1002,6 +1002,9 @@ ModelField = (function(superClass) {
         if (typeof validator === 'function') {
           validityMessage = validator.call(this);
         }
+        if (typeof validityMessage === 'function') {
+          throw new Error("A validator on field '" + this.name + "' returned a function");
+        }
         if (validityMessage) {
           break;
         }
@@ -1014,7 +1017,7 @@ ModelField = (function(superClass) {
     if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
       value = this.dynamicValue();
       if (typeof value === 'function') {
-        throw new Error('dynamicValue cannot return a function');
+        throw new Error("dynamicValue on field '" + this.name + "' returned a function");
       }
       this.set('value', value);
     }

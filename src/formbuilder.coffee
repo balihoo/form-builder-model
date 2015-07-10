@@ -695,6 +695,8 @@ class ModelField extends ModelBase
       for validator in @validators
         if typeof validator is 'function'
           validityMessage = validator.call @
+        if typeof validityMessage is 'function'
+          throw new Error "A validator on field '#{@name}' returned a function"
         if validityMessage then break
       @set isValid: not validityMessage?, validityMessage: validityMessage #set both at once for single chagne event
 
@@ -703,7 +705,7 @@ class ModelField extends ModelBase
       value = @dynamicValue()
 
       if typeof value is 'function'
-        throw new Error 'dynamicValue cannot return a function'
+        throw new Error "dynamicValue on field '#{@name}' returned a function"
 
       @set 'value', value
 

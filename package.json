@@ -1,6 +1,6 @@
 {
   "name": "form-builder-model",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",

@@ -31,6 +31,17 @@ describe 'validation', ->
     
     done()
     
+  it 'errors when validation returns a function', (done) ->
+    try
+      model = fb.fromCoffee """
+        field 'one'
+        .validator validate.maxLength
+      """
+    catch error
+      caught = error
+    assert.strictEqual caught?.message, "A validator on field 'one' returned a function"
+    done()
+    
   describe 'built-in validation functions', ->
     validate = (fb.fromCoffee '').validate
     valid = undefined

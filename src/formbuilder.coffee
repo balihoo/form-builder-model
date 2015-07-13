@@ -74,8 +74,8 @@ exports.fromCode = (code, data, element, imports)->
 
   newRoot = new ModelGroup()
   #dont recalculate until model is done creating
-  oldRecalculate = newRoot.recalculateRelativeProperties
-  newRoot.recalculateRelativeProperties = ->
+  newRoot.recalculating = false
+  newRoot.recalculateCycle = ->
 
   do (root = null) -> #new scope for root variable name
 
@@ -108,10 +108,15 @@ exports.fromCode = (code, data, element, imports)->
   newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
-  
+
   newRoot.setDirty newRoot.id, 'multiple'
-  newRoot.recalculateRelativeProperties = oldRecalculate
-  newRoot.recalculateRelativeProperties()
+
+  newRoot.recalculateCycle = ->
+    while !@recalculating and @dirty
+      @recalculating = true
+      @recalculateRelativeProperties()
+      @recalculating = false
+  newRoot.recalculateCycle()
 
   newRoot.on 'change:isValid', ->
     if element
@@ -238,7 +243,7 @@ class ModelBase extends Backbone.Model
         ch = 'multiple'
 
       @root.setDirty @id, ch
-      @root.recalculateRelativeProperties()
+      @root.recalculateCycle()
 
   setDefault: (field, val) ->
     if not @get(field)?
@@ -578,7 +583,6 @@ class ModelField extends ModelBase
       @clear() #clears value
     @set 'isValid', true
     @setDefault 'validators', []
-    @set validityMessage: undefined
     @setDefault 'onChangeHandlers', []
     @setDefault 'dynamicValue', null
 
@@ -627,6 +631,7 @@ class ModelField extends ModelBase
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
 
+  validityMessage: undefined
   field: (obj...) ->
     @parent.field obj...
 
@@ -674,8 +679,6 @@ class ModelField extends ModelBase
     @
 
   setDirty: (id, whatChanged) ->
-    #valid<->invalid already triggers. Don't trigger if invalid->invalid with different message.
-    delete whatChanged.validityMessage
     opt.setDirty id, whatChanged for opt in @options
     super id, whatChanged
 
@@ -698,7 +701,8 @@ class ModelField extends ModelBase
         if typeof validityMessage is 'function'
           throw new Error "A validator on field '#{@name}' returned a function"
         if validityMessage then break
-      @set isValid: not validityMessage?, validityMessage: validityMessage #set both at once for single chagne event
+      @validityMessage = validityMessage
+      @set isValid: not validityMessage?
 
     #dynamic value
     if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'

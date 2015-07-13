@@ -77,7 +77,7 @@ runtime = false;
 exports.modelTests = [];
 
 exports.fromCode = function(code, data, element, imports) {
-  var assert, newRoot, oldRecalculate, test;
+  var assert, newRoot, test;
   if (typeof data === 'string') {
     data = JSON.parse(data);
   }
@@ -95,8 +95,8 @@ exports.fromCode = function(code, data, element, imports) {
     }
   };
   newRoot = new ModelGroup();
-  oldRecalculate = newRoot.recalculateRelativeProperties;
-  newRoot.recalculateRelativeProperties = function() {};
+  newRoot.recalculating = false;
+  newRoot.recalculateCycle = function() {};
   (function(root) {
     var field, group, sandbox, validate;
     field = newRoot.field.bind(newRoot);
@@ -129,8 +129,17 @@ exports.fromCode = function(code, data, element, imports) {
   newRoot.applyData(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
-  newRoot.recalculateRelativeProperties = oldRecalculate;
-  newRoot.recalculateRelativeProperties();
+  newRoot.recalculateCycle = function() {
+    var results;
+    results = [];
+    while (!this.recalculating && this.dirty) {
+      this.recalculating = true;
+      this.recalculateRelativeProperties();
+      results.push(this.recalculating = false);
+    }
+    return results;
+  };
+  newRoot.recalculateCycle();
   newRoot.on('change:isValid', function() {
     var e;
     if (element) {
@@ -299,7 +308,7 @@ ModelBase = (function(superClass) {
         ch = 'multiple';
       }
       this.root.setDirty(this.id, ch);
-      return this.root.recalculateRelativeProperties();
+      return this.root.recalculateCycle();
     });
   };
 
@@ -850,9 +859,6 @@ ModelField = (function(superClass) {
     }
     this.set('isValid', true);
     this.setDefault('validators', []);
-    this.set({
-      validityMessage: void 0
-    });
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
     ModelField.__super__.initialize.apply(this, arguments);
@@ -895,6 +901,8 @@ ModelField = (function(superClass) {
       }
     });
   };
+
+  ModelField.prototype.validityMessage = void 0;
 
   ModelField.prototype.field = function() {
     var obj, ref;
@@ -967,7 +975,6 @@ ModelField = (function(superClass) {
 
   ModelField.prototype.setDirty = function(id, whatChanged) {
     var i, len, opt, ref;
-    delete whatChanged.validityMessage;
     ref = this.options;
     for (i = 0, len = ref.length; i < len; i++) {
       opt = ref[i];
@@ -1009,9 +1016,9 @@ ModelField = (function(superClass) {
           break;
         }
       }
+      this.validityMessage = validityMessage;
       this.set({
-        isValid: validityMessage == null,
-        validityMessage: validityMessage
+        isValid: validityMessage == null
       });
     }
     if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {

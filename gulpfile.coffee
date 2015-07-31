@@ -4,7 +4,6 @@ coffeelint = require 'gulp-coffeelint'
 mocha = require 'gulp-mocha'
 istanbul = require 'gulp-istanbul'
 argv = require('yargs').argv
-coffeelint = require 'gulp-coffeelint'
 
 src = './src/*.coffee'
 
@@ -28,3 +27,4 @@ gulp.task 'test', ['compile'], ->
   gulp.src src
     .pipe mocha()
   
+gulp.task 'default', ['test']

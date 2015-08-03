@@ -177,7 +177,7 @@ exports.getChanges = (modelAfter, beforeData) ->
   modelBefore = modelAfter.cloneModel()
   modelBefore.applyData(beforeData, true)
 
-  patch = jiff.diff beforeData, modelAfter.buildOutputData(), invertible:false
+  patch = jiff.diff modelBefore.buildOutputData(), modelAfter.buildOutputData(), invertible:false
   #array paths end in an index #. We only want the field, not the index of the value
   changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in patch)
   #get distinct field names. Arrays for example might appear multiple times
@@ -548,7 +548,7 @@ class RepeatingModelGroup extends ModelGroup
     @value = []
 
   applyData: (data, clear=false) ->
-    @clear() if clear
+    @clear() if clear or data?.length
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data

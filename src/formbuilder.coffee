@@ -105,7 +105,8 @@ exports.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
-  newRoot.applyData data
+  if data?
+    newRoot.applyData data, true
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
@@ -170,7 +171,8 @@ exports.fromPackage = (pkg, data, element) ->
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
-  pkg.data = _.extend pkg.data or {}, data
+  if data?
+    pkg.data = _.extend pkg.data or {}, data
   return buildModelWithRecursiveImports pkg, element
 
 exports.getChanges = (modelAfter, beforeData) ->

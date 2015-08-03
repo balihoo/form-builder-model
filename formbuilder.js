@@ -126,7 +126,9 @@ exports.fromCode = function(code, data, element, imports) {
       return eval('"use strict";' + code);
     }
   })(null);
-  newRoot.applyData(data);
+  if (data != null) {
+    newRoot.applyData(data, true);
+  }
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -198,7 +200,9 @@ exports.fromPackage = function(pkg, data, element) {
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
   }
-  pkg.data = _.extend(pkg.data || {}, data);
+  if (data != null) {
+    pkg.data = _.extend(pkg.data || {}, data);
+  }
   return buildModelWithRecursiveImports(pkg, element);
 };
 

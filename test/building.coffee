@@ -33,6 +33,16 @@ describe 'fromCoffee', ->
     assert.strictEqual model.child('b').value, 'second', 'applied second datum'
     done()
     
+  it 'uses default if no data is provided', (done) ->
+    model = fb.fromCoffee "field 'a', value:'b'"
+    assert.strictEqual model.child('a').value, 'b', 'uses default value'
+    done()
+    
+  it 'overwrites defaults if data provided', (done) ->
+    model = fb.fromCoffee "field 'a', value:'b'", {some:'thing'}
+    assert.strictEqual model.child('a').value, '', 'clears default values when data applied'
+    done()
+    
 describe 'fromPackage', ->
   it 'can build a model with no data', (done) ->
     pkg =

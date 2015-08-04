@@ -248,13 +248,4 @@ describe 'getChanges', ->
       after: 'def'
     }]
     done()
-  it "doesn't detect default values as change if form created with data", (done) ->
-    model = fb.fromCoffee "field 'a', value: 'defa'\nfield 'b', value:'defb'", b:'after'
-    assert.deepEqual model.getChanges(b:'before').changes, [{
-      name: '/b'
-      title: 'b'
-      before: 'before'
-      after: 'after'
-    }]
-    done()
     

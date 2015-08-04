@@ -105,8 +105,7 @@ exports.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
-  if data?
-    newRoot.applyData data, true
+  newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 

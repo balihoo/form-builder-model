@@ -198,7 +198,9 @@ exports.fromPackage = function(pkg, data, element) {
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
   }
-  pkg.data = _.extend(pkg.data || {}, data);
+  if (data != null) {
+    pkg.data = _.extend(pkg.data || {}, data);
+  }
   return buildModelWithRecursiveImports(pkg, element);
 };
 
@@ -206,7 +208,7 @@ exports.getChanges = function(modelAfter, beforeData) {
   var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, p, patch, path, val;
   modelBefore = modelAfter.cloneModel();
   modelBefore.applyData(beforeData, true);
-  patch = jiff.diff(beforeData, modelAfter.buildOutputData(), {
+  patch = jiff.diff(modelBefore.buildOutputData(), modelAfter.buildOutputData(), {
     invertible: false
   });
   changedPaths = (function() {
@@ -796,7 +798,7 @@ RepeatingModelGroup = (function(superClass) {
     if (clear == null) {
       clear = false;
     }
-    if (clear) {
+    if (clear || (data != null ? data.length : void 0)) {
       this.clear();
     }
     results = [];

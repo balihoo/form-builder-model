@@ -73,21 +73,15 @@ describe 'getChanges', ->
       }
     ].sort(sortChangeFunc)
     done()
-  it 'handles values not present in initial', (done) ->
-    model = fb.fromCoffee "field name:'foo', title:'foo title'", foo: 'current'
-    result = fb.getChanges model, {}
-    assert.deepEqual result.changes, [
-      {
-        name: '/foo'
-        title: 'foo title'
-        before: ''
-        after: 'current'
-      }
-    ]
-    done()
-  it 'handles values not present in current', (done) ->
+    
+  it 'shows no changes with initial data is empty and no changes are made', (done) ->
     model = fb.fromCoffee "field name:'foo', title:'foo title'"
-    result = fb.getChanges model, {foo:'initial'}
+    result = fb.getChanges model, {}
+    assert.deepEqual result.changes, []
+    done()
+  it 'doesnt show diff for initial values that have no field', (done) ->
+    model = fb.fromCoffee "field name:'foo', title:'foo title'"
+    result = fb.getChanges model, {foo:'initial', bar:'ignored'}
     assert.deepEqual result.changes, [
       {
         name: '/foo'
@@ -113,7 +107,19 @@ describe 'getChanges', ->
         before: ''
         after: 'two'
       }
-    ].sort(sortChangeFunc)
+    ]
+    done()
+  it 'displays only changed fields', (done) ->
+    model = fb.fromCoffee "field 'first', value:'one'\nfield 'second', value:'two'"
+    result = fb.getChanges model, {first:'one'}
+    assert.deepEqual result.changes, [
+      {
+        name: '/second'
+        title: 'second'
+        before: ''
+        after: 'two'
+      }
+    ]
     done()
   it 'handles fields not present in final', (done) ->
     model = fb.fromCoffee "field 'first', value:'one'\nfield 'second', value:'two'"
@@ -125,7 +131,7 @@ describe 'getChanges', ->
         before: 'one initial'
         after: 'one'
       }
-    ].sort(sortChangeFunc)
+    ]
     done()
   it 'handles multiselects (with array values)', (done) ->
     model = fb.fromCoffee "field 'sel', type:'multiselect'", sel:['one','two']
@@ -195,3 +201,51 @@ describe 'getChanges', ->
       after:'after'
     }]
     done()
+  it 'direct test for model changes', (done) ->
+    model = fb.fromCoffee "field 'a'\nfield 'b'"
+    initial = model.buildOutputData()
+    model.child('b').value = 'changed'
+    result = model.getChanges initial
+    assert.deepEqual result.changes, [{
+      name: '/b'
+      title: 'b'
+      before: ''
+      after: 'changed'
+    }]
+    done()
+  it "detects changes to a field with a default value", (done) ->
+    model = fb.fromCoffee "field 'a', value:'def'"
+    model.child('a').value = 'changed'
+    assert.deepEqual model.getChanges(a:'init').changes, [{
+      name: '/a'
+      title: 'a'
+      before: 'init'
+      after: 'changed'
+    }]
+    assert.deepEqual model.getChanges(b:'ignored').changes, [{
+      name: '/a'
+      title: 'a'
+      before: ''
+      after: 'changed'
+    }]
+    done()
+  it 'detects default values as changes if different', (done) ->
+    model = fb.fromCoffee "field 'a', value:'def'"
+    assert.deepEqual model.getChanges(a:'init').changes, [{
+      name: '/a'
+      title: 'a'
+      before: 'init'
+      after: 'def'
+    }]
+    done()
+  it "detects default values as changes if no changes", (done) ->
+    #Note: this is because initial data clears even default values
+    model = fb.fromCoffee "field 'a', value: 'def'"
+    assert.deepEqual model.getChanges(b:'ignored').changes, [{
+      name: '/a'
+      title: 'a'
+      before: ''
+      after: 'def'
+    }]
+    done()
+    

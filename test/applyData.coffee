@@ -68,3 +68,23 @@ describe 'applyData', ->
         third: 'new three'
     }
     done()
+  it 'sets the value of repeating groups', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating:true
+      .field 'f'
+      """, {g:[
+        {f:'initial'}
+        {f:'starting'}
+      ]}
+    model.applyData {g:[
+      {f:'ending'}
+      {f:'final'}
+    ]}
+    assert.deepEqual model.buildOutputData(), {
+      g: [
+        {f:'ending'}
+        {f:'final'}
+      ]
+    }
+    done()
+    

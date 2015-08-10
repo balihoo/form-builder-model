@@ -591,17 +591,17 @@ class ModelField extends ModelBase
 
     #difficult to catch bad types at render time.  error here instead
     if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
-                     'bool', 'tree', 'color', 'select', 'multiselect', 'image']
+                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'days']
       throw new Error "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
 
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
-    while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
+    while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree') and (@type isnt 'days')
       @value = @value[0]
 
-    if typeof @value is 'string' and @type is 'multiselect'
+    if typeof @value is 'string' and (@type is 'multiselect' or @type is 'days')
       @value = [@value]
 
     #bools are special too.
@@ -624,12 +624,12 @@ class ModelField extends ModelBase
 
     # if type changes, need to update value
     @on 'change:type', ->
-      if @type is 'multiselect'
+      if @type is 'multiselect' or @type is 'days'
         @value = if @value.length > 0 then [@value] else []
-      else if @previousAttributes().type is 'multiselect'
+      else if @previousAttributes().type is 'multiselect' or @previousAttributes().type is 'days'
         @value = if @value.length > 0 then @value[0] else ''
       # must be *select if options present
-      if @options.length > 0 and not (@type in ['select', 'multiselect'])
+      if @options.length > 0 and not (@type in ['select', 'multiselect', 'days'])
         @type = 'select'
 
   validityMessage: undefined
@@ -643,7 +643,7 @@ class ModelField extends ModelBase
     optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
 
     # when adding an option to a field, make sure it is a *select type
-    if not (@type in ['select','multiselect'])
+    if not (@type in ['select','multiselect', 'days'])
       @type = 'select'
 
     @options.push new ModelOption optionObject
@@ -719,14 +719,14 @@ class ModelField extends ModelBase
 
 
   addOptionValue: (val) ->
-    if @type is 'multiselect'
+    if @type is 'multiselect' or @type is 'days'
       if not (val in @value)
         @value.push val
     else #single-select
       @value = val
 
   removeOptionValue: (val) ->
-    if @type is 'multiselect'
+    if @type is 'multiselect' or @type is 'days'
       if val in @value
         @value = @value.filter (v) -> v isnt val
     else if @value is val #single-select
@@ -734,7 +734,7 @@ class ModelField extends ModelBase
 
   #determine if the value is or contains the provided value.
   hasValue: (val) ->
-    if @type is 'multiselect'
+    if @type is 'multiselect' or @type is 'days'
       val in @value
     else
       val is @value
@@ -745,7 +745,7 @@ class ModelField extends ModelBase
 
   clear: () ->
     @set 'value',
-      if (@get 'type') is 'multiselect' then []
+      if (@get 'type') is 'multiselect' or (@get 'type') is 'days' then []
       else if (@get 'type') is 'bool' then false
       else ''
 

@@ -161,7 +161,7 @@ exports.fromPackage = (pkg, data, element) ->
         formid: impObj.importformid
         data: p.data
         forms: p.forms
-    #no element, don't want to bind triggers for imports.
+        #no element, don't want to bind triggers for imports.
 
     if form.imports #in case imports left off the package
       form.imports.forEach(buildImport)
@@ -198,8 +198,8 @@ exports.getChanges = (modelAfter, beforeData) ->
         before:before.buildOutputData()
         after:after.buildOutputData()
   {
-  changes:changes
-  patch: patch
+    changes:changes
+    patch: patch
   }
 
 
@@ -235,7 +235,7 @@ class ModelBase extends Backbone.Model
     # Other fields may need to update visibility, validity, etc when this field changes.
     # Fire an event on change, and catch those events fired by others.
     @on 'change', ->
-# model onChangePropertiesHandlers functions
+      # model onChangePropertiesHandlers functions
       for changeFunc in @onChangePropertiesHandlers
         changeFunc()
 
@@ -268,7 +268,7 @@ class ModelBase extends Backbone.Model
         else
           throw new Error message
 
-# bind properties that are functions to this object's context. Single functions or arrays of functions
+  # bind properties that are functions to this object's context. Single functions or arrays of functions
   bindPropFunctions: (propName) ->
     if Array.isArray @[propName]
       for index in [0...@[propName].length]
@@ -276,14 +276,14 @@ class ModelBase extends Backbone.Model
     else if typeof @[propName] is 'function'
       @set propName, @bindPropFunction(propName, @[propName]), silent:true
 
-# ensure a property is array type, for when a single value is supplied where an array is needed.
+  # ensure a property is array type, for when a single value is supplied where an array is needed.
   makePropArray: (propName) ->
     if not Array.isArray @get propName
       @set propName, [@get propName]
 
-# convert list of params, either object(s) or positional strings (or both), into an object
-# and add a few common properties
-# assumes always called by creator of child objects, and thus sets parent to this
+  # convert list of params, either object(s) or positional strings (or both), into an object
+  # and add a few common properties
+  # assumes always called by creator of child objects, and thus sets parent to this
   buildParamObject: (params, paramPositions) ->
     paramObject = {}
     paramIndex = 0
@@ -298,8 +298,8 @@ class ModelBase extends Backbone.Model
     paramObject
 
   dirty: '' #do as a local string not attribute so it is not included in @changed
-# set the dirty flag according to an object with all current changes
-# or, whatChanged could be a string to set as the dirty value
+  # set the dirty flag according to an object with all current changes
+  # or, whatChanged could be a string to set as the dirty value
   setDirty: (id, whatChanged) ->
     ch =
       if typeof whatChanged is 'string'
@@ -316,7 +316,7 @@ class ModelBase extends Backbone.Model
   shouldCallTriggerFunctionFor: (dirty, attrName) ->
     dirty and dirty isnt "#{@id}:#{attrName}"
 
-# Any local properties that may need to recalculate if a foreign field changes.
+  # Any local properties that may need to recalculate if a foreign field changes.
   recalculateRelativeProperties: ->
     dirty = @dirty
     @setClean()
@@ -327,15 +327,15 @@ class ModelBase extends Backbone.Model
 
     @trigger 'recalculate'
 
-# Add a new change properties handler to this object.
-# This change itself will trigger on change properties functions to run, including the just-added one!
-# If this trigger is not desired, set the second property to false
+  # Add a new change properties handler to this object.
+  # This change itself will trigger on change properties functions to run, including the just-added one!
+  # If this trigger is not desired, set the second property to false
   onChangeProperties: (f, trigger = true) ->
     @onChangePropertiesHandlers.push @bindPropFunction 'onChangeProperties', f
     @trigger 'change' if trigger
     @
 
-# Built-in functions for checking validity.
+  # Built-in functions for checking validity.
   validate:
     required: (value = @value or '')->
       if empty value
@@ -388,14 +388,14 @@ class ModelBase extends Backbone.Model
         if opt.selected and not opt.isVisible
           return "A selected option is not currently available.  Please make a new choice from available options."
 
-#Deep copy this backbone model by creating a new one with the same attributes.
-#Overwrite each root attribute with the new root in the cloning form.
+  #Deep copy this backbone model by creating a new one with the same attributes.
+  #Overwrite each root attribute with the new root in the cloning form.
   cloneModel: (newRoot = @root, constructor = @constructor) ->
     myClone = new constructor(@attributes)
 
     #some attributes need to be deep copied
     for key,val of myClone.attributes
-#attributes that are form model objects need to themselves be cloned
+      #attributes that are form model objects need to themselves be cloned
       if key is 'root'
         myClone.set(key, newRoot)
       else if val instanceof ModelBase and key not in ['root','parent']
@@ -466,10 +466,10 @@ class ModelGroup extends ModelBase
     @trigger 'change'
     return grp
 
-# find a child by name.
-# can also find descendants multiple levels down by supplying one of
-# * an array of child names (in order) eg: group.child(['childname','grandchildname','greatgrandchildname'])
-# * a dot or slash delimited string. eg: group.child('childname.grandchildname.greatgrandchildname')
+  # find a child by name.
+  # can also find descendants multiple levels down by supplying one of
+  # * an array of child names (in order) eg: group.child(['childname','grandchildname','greatgrandchildname'])
+  # * a dot or slash delimited string. eg: group.child('childname.grandchildname.greatgrandchildname')
   child: (path) ->
     if not (Array.isArray path)
       path = path.split /[./]/
@@ -538,7 +538,7 @@ class RepeatingModelGroup extends ModelGroup
       val.setClean all for val in @value
 
   recalculateRelativeProperties: ->
-#ignore validity/visibility of children, only value instances
+    #ignore validity/visibility of children, only value instances
     super @value
 
   buildOutputData: ->
@@ -661,19 +661,19 @@ class ModelField extends ModelBase
     for opt in @options
       opt.selected = @hasValue opt.value
 
-# find an option by name.  Uses the same child method as groups and fields to find constituent objects
+  # find an option by name.  Uses the same child method as groups and fields to find constituent objects
   child: (value) ->
     if Array.isArray value
       value = value.shift()
     return o for o in @options when o.value is value
 
-# add a new validator function
+  # add a new validator function
   validator: (func) ->
     @validators.push @bindPropFunction 'validator', func
     @trigger 'change'
     @
 
-# add a new onChangeHandler function that triggers when the field's value changes
+  # add a new onChangeHandler function that triggers when the field's value changes
   onChange: (f) ->
     @onChangeHandlers.push @bindPropFunction 'onChange', f
     @trigger 'change'
@@ -817,7 +817,7 @@ class ModelFieldImage extends ModelField
     if @allowUpload and !@companyID?
       throw new Error "required property 'companyID' missing for image field '#{@name}'"
 
-# Override behaviors different from other fields.
+  # Override behaviors different from other fields.
 
   option: (optionParams...) ->
     optionObject = @buildParamObject optionParams, ['fileID', 'fileUrl', 'thumbnailUrl']
@@ -833,7 +833,7 @@ class ModelFieldImage extends ModelField
     @trigger 'change'
     @
 
-# image values are objects, so lookup children by fileid instead
+  # image values are objects, so lookup children by fileid instead
   child: (fileID) ->
     if Array.isArray fileID
       fileID = fileID.shift()

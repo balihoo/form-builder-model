@@ -864,14 +864,14 @@ ModelField = (function(superClass) {
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
     ModelField.__super__.initialize.apply(this, arguments);
-    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image' && ref !== 'days') {
+    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
       throw new Error("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
-    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree') && (this.type !== 'days')) {
+    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
       this.value = this.value[0];
     }
-    if (typeof this.value === 'string' && (this.type === 'multiselect' || this.type === 'days')) {
+    if (typeof this.value === 'string' && (this.type === 'multiselect')) {
       this.value = [this.value];
     }
     if (this.type === 'bool' && typeof this.value !== 'bool') {
@@ -893,12 +893,12 @@ ModelField = (function(superClass) {
     });
     return this.on('change:type', function() {
       var ref1;
-      if (this.type === 'multiselect' || this.type === 'days') {
+      if (this.type === 'multiselect') {
         this.value = this.value.length > 0 ? [this.value] : [];
-      } else if (this.previousAttributes().type === 'multiselect' || this.previousAttributes().type === 'days') {
+      } else if (this.previousAttributes().type === 'multiselect') {
         this.value = this.value.length > 0 ? this.value[0] : '';
       }
-      if (this.options.length > 0 && !((ref1 = this.type) === 'select' || ref1 === 'multiselect' || ref1 === 'days')) {
+      if (this.options.length > 0 && !((ref1 = this.type) === 'select' || ref1 === 'multiselect')) {
         return this.type = 'select';
       }
     });
@@ -922,7 +922,7 @@ ModelField = (function(superClass) {
     var i, len, opt, optionObject, optionParams, ref, ref1;
     optionParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     optionObject = this.buildParamObject(optionParams, ['title', 'value', 'selected']);
-    if (!((ref = this.type) === 'select' || ref === 'multiselect' || ref === 'days')) {
+    if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
       this.type = 'select';
     }
     this.options.push(new ModelOption(optionObject));
@@ -1040,7 +1040,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.addOptionValue = function(val) {
-    if (this.type === 'multiselect' || this.type === 'days') {
+    if (this.type === 'multiselect') {
       if (!(indexOf.call(this.value, val) >= 0)) {
         return this.value.push(val);
       }
@@ -1050,7 +1050,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.removeOptionValue = function(val) {
-    if (this.type === 'multiselect' || this.type === 'days') {
+    if (this.type === 'multiselect') {
       if (indexOf.call(this.value, val) >= 0) {
         return this.value = this.value.filter(function(v) {
           return v !== val;
@@ -1062,7 +1062,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.hasValue = function(val) {
-    if (this.type === 'multiselect' || this.type === 'days') {
+    if (this.type === 'multiselect') {
       return indexOf.call(this.value, val) >= 0;
     } else {
       return val === this.value;
@@ -1076,7 +1076,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.clear = function() {
-    return this.set('value', (this.get('type')) === 'multiselect' || (this.get('type')) === 'days' ? [] : (this.get('type')) === 'bool' ? false : '');
+    return this.set('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
   };
 
   ModelField.prototype.applyData = function(data, clear) {

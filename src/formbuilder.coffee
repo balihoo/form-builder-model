@@ -51,6 +51,7 @@ exports.mergeData = (a, b)->
         exports.mergeData a[key], value
       else
         a[key] = value
+    a
   else
     throw new Error 'mergeData: The object to merge in is not an object'
 

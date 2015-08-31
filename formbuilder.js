@@ -55,18 +55,9 @@ exports.applyData = function(modelObject, data) {
 };
 
 exports.mergeData = function(a, b) {
-  var key, results, value;
-  if (b.constructor === Object) {
-    results = [];
-    for (key in b) {
-      value = b[key];
-      if ((a[key] != null) && a[key].constructor === Object && value.constructor === Object) {
-        results.push(exports.mergeData(a[key], value));
-      } else {
-        results.push(a[key] = value);
-      }
-    }
-    return results;
+  var ref;
+  if ((ref = b.constructor) === Object || ref === Array) {
+    return _.extend(a, b);
   } else {
     throw new Error('mergeData: The object to merge in is not an object');
   }

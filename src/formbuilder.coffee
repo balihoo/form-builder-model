@@ -347,6 +347,9 @@ class ModelBase extends Backbone.Model
     maxLength: (n)-> (value = @value or '')->
       if value.length > n
         return "Can be at most #{n} characters long"
+    number: (value = @value or '')->
+      if not value.match /^-?[0-9]\d*(\.\d+)?$/
+        return "Must be an integer or decimal number. (ex. 42 or 1.618)"
     email: (value = @value or '')->
       if not value.match /// ^
         [a-z0-9!\#$%&'*+/=?^_`{|}~-]+

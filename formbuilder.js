@@ -55,9 +55,17 @@ exports.applyData = function(modelObject, data) {
 };
 
 exports.mergeData = function(a, b) {
-  var ref;
-  if ((ref = b.constructor) === Object || ref === Array) {
-    return _.extend(a, b);
+  var key, value;
+  if (b.constructor === Object) {
+    for (key in b) {
+      value = b[key];
+      if ((a[key] != null) && a[key].constructor === Object && value.constructor === Object) {
+        exports.mergeData(a[key], value);
+      } else {
+        a[key] = value;
+      }
+    }
+    return a;
   } else {
     throw new Error('mergeData: The object to merge in is not an object');
   }
@@ -446,6 +454,14 @@ ModelBase = (function(superClass) {
           return "Can be at most " + n + " characters long";
         }
       };
+    },
+    number: function(value) {
+      if (value == null) {
+        value = this.value || '';
+      }
+      if (!value.match(/^-?[0-9]\d*(\.\d+)?$/)) {
+        return "Must be an integer or decimal number. (ex. 42 or 1.618)";
+      }
     },
     email: function(value) {
       if (value == null) {

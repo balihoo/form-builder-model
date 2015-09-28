@@ -459,7 +459,7 @@ ModelBase = (function(superClass) {
       if (value == null) {
         value = this.value || '';
       }
-      if (!value.match(/^-?[0-9]\d*(\.\d+)?$/)) {
+      if (!value.match(/^[-+]?\d*(\.?\d*)?$/)) {
         return "Must be an integer or decimal number. (ex. 42 or 1.618)";
       }
     },

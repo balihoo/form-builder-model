@@ -60,6 +60,19 @@ describe 'validation', ->
       assert.strictEqual validate.maxLength(3)('ab'), valid
       assert.strictEqual validate.maxLength(3)('abcd'), 'Can be at most 3 characters long'
       done()
+    it 'number', (done) ->
+      assert.strictEqual validate.number("42"), valid
+      assert.strictEqual validate.number("1.618"), valid
+      assert.strictEqual validate.number("-1024"), valid
+      assert.strictEqual validate.number("-3.14"), valid
+      assert.strictEqual validate.number("500."), valid
+      assert.strictEqual validate.number(".5"), valid
+      assert.strictEqual validate.number("-.75"), valid
+      assert.strictEqual validate.number("ABC"), "Must be an integer or decimal number. (ex. 42 or 1.618)"
+      assert.strictEqual validate.number("?"), "Must be an integer or decimal number. (ex. 42 or 1.618)"
+      assert.strictEqual validate.number("007!"), "Must be an integer or decimal number. (ex. 42 or 1.618)"
+      assert.strictEqual validate.number("600.1.2"), "Must be an integer or decimal number. (ex. 42 or 1.618)"
+      done()
     it 'email', (done) ->
       assert.strictEqual validate.email('test@example.com'), valid
       assert.strictEqual validate.email('test@example'), 'Must be a valid email'

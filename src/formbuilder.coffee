@@ -530,6 +530,7 @@ class ModelGroup extends ModelBase
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
     @setDefault 'value', []
+
     super
 
   setDirty: (id, whatChanged) ->
@@ -550,7 +551,7 @@ class RepeatingModelGroup extends ModelGroup
       super instance #build output data of each value as a group, not repeating group
 
   clear: () ->
-    @value = []
+    child.clear() for child in @children
 
   applyData: (data, clear=false) ->
     @clear() if clear or data?.length
@@ -600,7 +601,6 @@ class ModelField extends ModelBase
 
     @bindPropFunctions 'dynamicValue'
 
-
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
     while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
       @value = @value[0]
@@ -611,6 +611,8 @@ class ModelField extends ModelBase
     #bools are special too.
     if @type is 'bool' and typeof @value isnt 'bool'
       @value = not not @value #convert to bool
+
+    @initialValue = @value
 
     @makePropArray 'validators'
     @bindPropFunctions 'validators'
@@ -736,7 +738,7 @@ class ModelField extends ModelBase
     else if @value is val #single-select
       @value = ''
 
-#determine if the value is or contains the provided value.
+  #determine if the value is or contains the provided value.
   hasValue: (val) ->
     if @type is 'multiselect'
       val in @value
@@ -749,7 +751,8 @@ class ModelField extends ModelBase
 
   clear: () ->
     @set 'value',
-      if (@get 'type') is 'multiselect' then []
+      if @initialValue then @initialValue
+      else if (@get 'type') is 'multiselect' then []
       else if (@get 'type') is 'bool' then false
       else ''
 
@@ -761,6 +764,8 @@ class ModelField extends ModelBase
 class ModelTree extends ModelField
   initialize: ->
     @setDefault 'value', []
+    @initialValue = @value
+
     super
     @get('value').sort()
 
@@ -805,7 +810,7 @@ class ModelTree extends ModelField
       @trigger 'change'
 
   clear: () ->
-    @value = []
+    @value = @initialValue
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
@@ -816,6 +821,8 @@ class ModelFieldImage extends ModelField
     @set 'optionsChanged', false #React needs to know if the number of options changed,
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super
+
+    @initialValue = @value
 
     #companyID is required.  If it doesn't exist, throw an error
     if @allowUpload and !@companyID?
@@ -855,7 +862,7 @@ class ModelFieldImage extends ModelField
       val.fileUrl is @value.fileUrl
 
   clear: () ->
-    @value = {}
+    @value = @initialValue
 
 class ModelOption extends ModelBase
   initialize: ->

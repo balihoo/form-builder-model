@@ -530,6 +530,7 @@ class ModelGroup extends ModelBase
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
     @setDefault 'value', []
+    @setDefault('defaultValue', @get 'value')
 
     super
 
@@ -551,12 +552,10 @@ class RepeatingModelGroup extends ModelGroup
       super instance #build output data of each value as a group, not repeating group
 
   clear: () ->
-    child.clear() for child in @children
+    @set('value', @get 'defaultValue')
 
   applyData: (data, clear=false) ->
-    if clear or data?.length
-      @value = []
-      @clear()
+    @set('value', []) if clear or data?.length
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data
@@ -613,8 +612,6 @@ class ModelField extends ModelBase
     #bools are special too.
     if @type is 'bool' and typeof @value isnt 'bool'
       @value = not not @value #convert to bool
-
-    @initialValue = @value
 
     @makePropArray 'validators'
     @bindPropFunctions 'validators'
@@ -753,7 +750,7 @@ class ModelField extends ModelBase
 
   clear: () ->
     @set 'value',
-      if @initialValue then @initialValue
+      if (@get 'defaultValue') then (@get 'defaultValue')
       else if (@get 'type') is 'multiselect' then []
       else if (@get 'type') is 'bool' then false
       else ''
@@ -766,7 +763,6 @@ class ModelField extends ModelBase
 class ModelTree extends ModelField
   initialize: ->
     @setDefault 'value', []
-    @initialValue = @value
 
     super
     @get('value').sort()
@@ -812,7 +808,7 @@ class ModelTree extends ModelField
       @trigger 'change'
 
   clear: () ->
-    @value = @initialValue
+    @set('value', @get 'defaultValue')
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
@@ -823,8 +819,6 @@ class ModelFieldImage extends ModelField
     @set 'optionsChanged', false #React needs to know if the number of options changed,
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super
-
-    @initialValue = @value
 
     #companyID is required.  If it doesn't exist, throw an error
     if @allowUpload and !@companyID?
@@ -864,7 +858,7 @@ class ModelFieldImage extends ModelField
       val.fileUrl is @value.fileUrl
 
   clear: () ->
-    @value = @initialValue
+    @set('value', @get 'defaultValue')
 
 class ModelOption extends ModelBase
   initialize: ->

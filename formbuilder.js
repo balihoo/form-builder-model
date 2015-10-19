@@ -759,6 +759,7 @@ RepeatingModelGroup = (function(superClass) {
 
   RepeatingModelGroup.prototype.initialize = function() {
     this.setDefault('value', []);
+    this.setDefault('defaultValue', this.get('value'));
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
   };
 
@@ -797,14 +798,7 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.clear = function() {
-    var child, i, len, ref, results;
-    ref = this.children;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      child = ref[i];
-      results.push(child.clear());
-    }
-    return results;
+    return this.set('value', this.get('defaultValue'));
   };
 
   RepeatingModelGroup.prototype.applyData = function(data, clear) {
@@ -813,8 +807,7 @@ RepeatingModelGroup = (function(superClass) {
       clear = false;
     }
     if (clear || (data != null ? data.length : void 0)) {
-      this.value = [];
-      this.clear();
+      this.set('value', []);
     }
     results = [];
     for (i = 0, len = data.length; i < len; i++) {
@@ -892,7 +885,6 @@ ModelField = (function(superClass) {
     if (this.type === 'bool' && typeof this.value !== 'bool') {
       this.value = !!this.value;
     }
-    this.initialValue = this.value;
     this.makePropArray('validators');
     this.bindPropFunctions('validators');
     this.makePropArray('onChangeHandlers');
@@ -1092,7 +1084,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.clear = function() {
-    return this.set('value', this.initialValue ? this.initialValue : (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    return this.set('value', this.get('defaultValue') ? this.get('defaultValue') : (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
   };
 
   ModelField.prototype.applyData = function(data, clear) {
@@ -1120,7 +1112,6 @@ ModelTree = (function(superClass) {
 
   ModelTree.prototype.initialize = function() {
     this.setDefault('value', []);
-    this.initialValue = this.value;
     ModelTree.__super__.initialize.apply(this, arguments);
     return this.get('value').sort();
   };
@@ -1174,7 +1165,7 @@ ModelTree = (function(superClass) {
   };
 
   ModelTree.prototype.clear = function() {
-    return this.value = this.initialValue;
+    return this.set('value', this.get('defaultValue'));
   };
 
   return ModelTree;
@@ -1194,7 +1185,6 @@ ModelFieldImage = (function(superClass) {
     this.setDefault('imagesPerPage', 4);
     this.set('optionsChanged', false);
     ModelFieldImage.__super__.initialize.apply(this, arguments);
-    this.initialValue = this.value;
     if (this.allowUpload && (this.companyID == null)) {
       throw new Error("required property 'companyID' missing for image field '" + this.name + "'");
     }
@@ -1247,7 +1237,7 @@ ModelFieldImage = (function(superClass) {
   };
 
   ModelFieldImage.prototype.clear = function() {
-    return this.value = this.initialValue;
+    return this.set('value', this.get('defaultValue'));
   };
 
   return ModelFieldImage;

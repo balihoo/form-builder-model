@@ -554,7 +554,9 @@ class RepeatingModelGroup extends ModelGroup
     child.clear() for child in @children
 
   applyData: (data, clear=false) ->
-    @clear() if clear or data?.length
+    if clear or data?.length
+      @value = []
+      @clear()
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data

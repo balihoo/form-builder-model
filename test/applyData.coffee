@@ -8,7 +8,7 @@ describe 'applyData', ->
     model.applyData {first:'new one'}
     assert.deepEqual model.buildOutputData(), {first:'new one', second:'two'}
     done()
-  it 'clears all when clear=true', (done) ->
+  it 'restores all initial values when clear=true', (done) ->
     model = fb.fromCoffee "field 'first'\nfield 'second'", {first:'one',second:'two'}
     assert.deepEqual model.buildOutputData(), {first:'one', second:'two'}
     model.applyData {first:'new one'}, true
@@ -49,7 +49,7 @@ describe 'applyData', ->
         third: 'new three'
     }
     done()
-  it 'clears nested when clear=true', (done) ->
+  it 'restores nested to initial value when clear=true', (done) ->
     model = fb.fromCoffee """
         field 'first', value:'one'
         group 'container'
@@ -64,8 +64,17 @@ describe 'applyData', ->
     assert.deepEqual model.buildOutputData(), {
       first: 'new one'
       container:
-        second:''
+        second:'two'
         third: 'new three'
+    }
+    model.applyData {
+      first: 'newer one'
+    }, true
+    assert.deepEqual model.buildOutputData(), {
+      first: 'newer one'
+      container:
+        second:'two'
+        third: 'three'
     }
     done()
   it 'sets the value of repeating groups', (done) ->
@@ -87,4 +96,3 @@ describe 'applyData', ->
       ]
     }
     done()
-    

@@ -530,6 +530,8 @@ class ModelGroup extends ModelBase
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
     @setDefault 'value', []
+    @setDefault('defaultValue', @get 'value')
+
     super
 
   setDirty: (id, whatChanged) ->
@@ -550,10 +552,10 @@ class RepeatingModelGroup extends ModelGroup
       super instance #build output data of each value as a group, not repeating group
 
   clear: () ->
-    @value = []
+    @value = @defaultValue
 
   applyData: (data, clear=false) ->
-    @clear() if clear or data?.length
+    @set('value', []) if clear or data?.length
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data
@@ -599,7 +601,6 @@ class ModelField extends ModelBase
       throw new Error "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
-
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
     while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
@@ -736,7 +737,7 @@ class ModelField extends ModelBase
     else if @value is val #single-select
       @value = ''
 
-#determine if the value is or contains the provided value.
+  #determine if the value is or contains the provided value.
   hasValue: (val) ->
     if @type is 'multiselect'
       val in @value
@@ -749,7 +750,8 @@ class ModelField extends ModelBase
 
   clear: () ->
     @set 'value',
-      if (@get 'type') is 'multiselect' then []
+      if @defaultValue then @defaultValue
+      else if (@get 'type') is 'multiselect' then []
       else if (@get 'type') is 'bool' then false
       else ''
 
@@ -761,6 +763,7 @@ class ModelField extends ModelBase
 class ModelTree extends ModelField
   initialize: ->
     @setDefault 'value', []
+
     super
     @get('value').sort()
 
@@ -805,7 +808,7 @@ class ModelTree extends ModelField
       @trigger 'change'
 
   clear: () ->
-    @value = []
+    @value = @defaultValue
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
@@ -855,7 +858,7 @@ class ModelFieldImage extends ModelField
       val.fileUrl is @value.fileUrl
 
   clear: () ->
-    @value = {}
+    @value = @defaultValue
 
 class ModelOption extends ModelBase
   initialize: ->

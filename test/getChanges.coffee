@@ -101,24 +101,6 @@ describe 'getChanges', ->
         before: 'one initial'
         after: 'one'
       }
-      {
-        name: '/second'
-        title: 'second'
-        before: ''
-        after: 'two'
-      }
-    ]
-    done()
-  it 'displays only changed fields', (done) ->
-    model = fb.fromCoffee "field 'first', value:'one'\nfield 'second', value:'two'"
-    result = fb.getChanges model, {first:'one'}
-    assert.deepEqual result.changes, [
-      {
-        name: '/second'
-        title: 'second'
-        before: ''
-        after: 'two'
-      }
     ]
     done()
   it 'handles fields not present in final', (done) ->
@@ -225,7 +207,7 @@ describe 'getChanges', ->
     assert.deepEqual model.getChanges(b:'ignored').changes, [{
       name: '/a'
       title: 'a'
-      before: ''
+      before: 'def'
       after: 'changed'
     }]
     done()
@@ -238,14 +220,8 @@ describe 'getChanges', ->
       after: 'def'
     }]
     done()
-  it "detects default values as changes if no changes", (done) ->
+  it "does not detect default values as changes if no changes", (done) ->
     #Note: this is because initial data clears even default values
     model = fb.fromCoffee "field 'a', value: 'def'"
-    assert.deepEqual model.getChanges(b:'ignored').changes, [{
-      name: '/a'
-      title: 'a'
-      before: ''
-      after: 'def'
-    }]
+    assert.deepEqual model.getChanges(b:'ignored').changes, []
     done()
-    

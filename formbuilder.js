@@ -759,6 +759,7 @@ RepeatingModelGroup = (function(superClass) {
 
   RepeatingModelGroup.prototype.initialize = function() {
     this.setDefault('value', []);
+    this.setDefault('defaultValue', this.get('value'));
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
   };
 
@@ -797,7 +798,7 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.clear = function() {
-    return this.value = [];
+    return this.value = this.defaultValue;
   };
 
   RepeatingModelGroup.prototype.applyData = function(data, clear) {
@@ -806,7 +807,7 @@ RepeatingModelGroup = (function(superClass) {
       clear = false;
     }
     if (clear || (data != null ? data.length : void 0)) {
-      this.clear();
+      this.set('value', []);
     }
     results = [];
     for (i = 0, len = data.length; i < len; i++) {
@@ -1083,7 +1084,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.clear = function() {
-    return this.set('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    return this.set('value', this.defaultValue ? this.defaultValue : (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
   };
 
   ModelField.prototype.applyData = function(data, clear) {
@@ -1164,7 +1165,7 @@ ModelTree = (function(superClass) {
   };
 
   ModelTree.prototype.clear = function() {
-    return this.value = [];
+    return this.value = this.defaultValue;
   };
 
   return ModelTree;
@@ -1236,7 +1237,7 @@ ModelFieldImage = (function(superClass) {
   };
 
   ModelFieldImage.prototype.clear = function() {
-    return this.value = {};
+    return this.value = this.defaultValue;
   };
 
   return ModelFieldImage;

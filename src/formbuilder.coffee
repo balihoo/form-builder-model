@@ -552,7 +552,7 @@ class RepeatingModelGroup extends ModelGroup
       super instance #build output data of each value as a group, not repeating group
 
   clear: () ->
-    @set('value', @get 'defaultValue')
+    @value = @defaultValue
 
   applyData: (data, clear=false) ->
     @set('value', []) if clear or data?.length
@@ -750,7 +750,7 @@ class ModelField extends ModelBase
 
   clear: () ->
     @set 'value',
-      if (@get 'defaultValue') then (@get 'defaultValue')
+      if @defaultValue then @defaultValue
       else if (@get 'type') is 'multiselect' then []
       else if (@get 'type') is 'bool' then false
       else ''
@@ -808,7 +808,7 @@ class ModelTree extends ModelField
       @trigger 'change'
 
   clear: () ->
-    @set('value', @get 'defaultValue')
+    @value = @defaultValue
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
@@ -858,7 +858,7 @@ class ModelFieldImage extends ModelField
       val.fileUrl is @value.fileUrl
 
   clear: () ->
-    @set('value', @get 'defaultValue')
+    @value = @defaultValue
 
 class ModelOption extends ModelBase
   initialize: ->

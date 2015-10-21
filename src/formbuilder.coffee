@@ -433,7 +433,7 @@ class ModelGroup extends ModelBase
     super
 
   field: (fieldParams...) ->
-    fieldObject = @buildParamObject fieldParams, ['title', 'name', 'type', 'value']
+    fieldObject = @buildParamObject fieldParams, ['title', 'name', 'type', 'value', 'description']
 
     #Could move this to a factory, but fields should only be created here so probably not necessary.
     fld = switch fieldObject.type

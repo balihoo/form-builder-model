@@ -37,6 +37,14 @@ makeErrorMessage = (model, propName, err)->
 if alert?
   throttledAlert = _.throttle alert, 500
 
+# Determine what to do in the case of any error, including during compile, build and dynamic function calls.
+# Any client may overwrite this method to handle errors differently, for example displaying them to the user
+exports.handleError = (err) ->
+  console.log 'handling error'
+  if not err instanceof Error
+    err = new Error err
+  throw err
+
 
 # Apply initialization data to the model.
 exports.applyData = (modelObject, data) ->
@@ -53,7 +61,7 @@ exports.mergeData = (a, b)->
         a[key] = value
     a
   else
-    throw new Error 'mergeData: The object to merge in is not an object'
+    exports.handleError 'mergeData: The object to merge in is not an object'
 
 runtime = false
 exports.modelTests= []
@@ -71,7 +79,7 @@ exports.fromCode = (code, data, element, imports)->
   exports.modelTests = []
   test = (func) -> exports.modelTests.push func
   assert = (bool, message="A model test has failed") ->
-    if not bool then throw new Error(message)
+    if not bool then exports.handleError message
 
   newRoot = new ModelGroup()
   #dont recalculate until model is done creating
@@ -254,6 +262,7 @@ class ModelBase extends Backbone.Model
   text: (message)->
     @field message, type: 'info'
 
+  #note: doesn't set the variable locally, just creates a bound version of it
   bindPropFunction: (propName, func)->
     model = @
     ->
@@ -264,10 +273,11 @@ class ModelBase extends Backbone.Model
       catch err
         message = makeErrorMessage model, propName, err
 
-        if runtime
-          throttledAlert "A fatal error occurred. #{message}"
-        else
-          throw new Error message
+#        if runtime
+#          throttledAlert "A fatal error occurred. #{message}"
+#        else
+#          throw new Error message
+        exports.handleError message
 
   # bind properties that are functions to this object's context. Single functions or arrays of functions
   bindPropFunctions: (propName) ->
@@ -598,7 +608,7 @@ class ModelField extends ModelBase
     #difficult to catch bad types at render time.  error here instead
     if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
                      'bool', 'tree', 'color', 'select', 'multiselect', 'image']
-      throw new Error "Bad field type: #{@type}"
+      return exports.handleError "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
 
@@ -619,6 +629,16 @@ class ModelField extends ModelBase
     #onChangeHandlers functions for field value changes only.  For any property change, use onChangePropertiesHandlers
     @makePropArray 'onChangeHandlers'
     @bindPropFunctions 'onChangeHandlers'
+    
+    if @optionsFrom?
+      if !@optionsFrom.url? or !@optionsFrom.parseResults?
+        return exports.handleError 'When fetching options remotely, both url and parseResults properties are required'
+      if typeof @optionsFrom?.url is 'function'
+        @optionsFrom.url = @bindPropFunction 'optionsFrom.url', @optionsFrom.url
+      if typeof @optionsFrom.parseResults isnt 'function'
+        return exports.handleError 'optionsFrom.parseResults must be a function'
+      @optionsFrom.parseResults = @bindPropFunction 'optionsFrom.parseResults', @optionsFrom.parseResults
+      @getOptionsFrom()
 
     @updateOptionsSelected()
 
@@ -636,6 +656,26 @@ class ModelField extends ModelBase
       # must be *select if options present
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
+
+  getOptionsFrom: _.memoize _.debounce ->
+    return if !@optionsFrom?
+    url =
+      if typeof @optionsFrom.url is 'function'
+        @optionsFrom.url()
+      else
+        @optionsFrom.url
+    
+    window?.formbuilderui?.getFromProxy {
+      url: url
+      method: 'get'
+    }, (data) =>
+      mappedResults = @optionsFrom.parseResults data
+      if not Array.isArray mappedResults
+        return exports.handleError 'results of parseResults must be an array of option parameters'
+      @options = []
+      @option opt for i, opt of mappedResults
+  , 1000
+
 
   validityMessage: undefined
   field: (obj...) ->
@@ -705,7 +745,7 @@ class ModelField extends ModelBase
         if typeof validator is 'function'
           validityMessage = validator.call @
         if typeof validityMessage is 'function'
-          throw new Error "A validator on field '#{@name}' returned a function"
+          return exports.handleError "A validator on field '#{@name}' returned a function"
         if validityMessage then break
       @validityMessage = validityMessage
       @set isValid: not validityMessage?
@@ -715,9 +755,12 @@ class ModelField extends ModelBase
       value = @dynamicValue()
 
       if typeof value is 'function'
-        throw new Error "dynamicValue on field '#{@name}' returned a function"
+        return exports.handleError "dynamicValue on field '#{@name}' returned a function"
 
       @set 'value', value
+
+    if typeof @optionsFrom?.url is 'function' and @shouldCallTriggerFunctionFor dirty, 'options'
+      @getOptionsFrom()
 
     for opt in @options
       opt.recalculateRelativeProperties()
@@ -822,7 +865,7 @@ class ModelFieldImage extends ModelField
 
     #companyID is required.  If it doesn't exist, throw an error
     if @allowUpload and !@companyID?
-      throw new Error "required property 'companyID' missing for image field '#{@name}'"
+      return exports.handleError "required property 'companyID' missing for image field '#{@name}'"
 
   # Override behaviors different from other fields.
 

@@ -50,6 +50,14 @@ if (typeof alert !== "undefined" && alert !== null) {
   throttledAlert = _.throttle(alert, 500);
 }
 
+exports.handleError = function(err) {
+  console.log('handling error');
+  if (!err instanceof Error) {
+    err = new Error(err);
+  }
+  throw err;
+};
+
 exports.applyData = function(modelObject, data) {
   return modelObject.applyData(data);
 };
@@ -67,7 +75,7 @@ exports.mergeData = function(a, b) {
     }
     return a;
   } else {
-    throw new Error('mergeData: The object to merge in is not an object');
+    return exports.handleError('mergeData: The object to merge in is not an object');
   }
 };
 
@@ -90,7 +98,7 @@ exports.fromCode = function(code, data, element, imports) {
       message = "A model test has failed";
     }
     if (!bool) {
-      throw new Error(message);
+      return exports.handleError(message);
     }
   };
   newRoot = new ModelGroup();
@@ -167,11 +175,11 @@ exports.fromPackage = function(pkg, data, element) {
   buildModelWithRecursiveImports = function(p, el) {
     var buildImport, builtImports, f, form;
     form = ((function() {
-      var i, len, ref, results;
+      var j, len, ref, results;
       ref = p.forms;
       results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        f = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        f = ref[j];
         if (f.formid === p.formid) {
           results.push(f);
         }
@@ -204,24 +212,24 @@ exports.fromPackage = function(pkg, data, element) {
 };
 
 exports.getChanges = function(modelAfter, beforeData) {
-  var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, p, patch, path, val;
+  var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, j, k, key, len, len1, modelBefore, p, patch, path, val;
   modelBefore = modelAfter.cloneModel();
   modelBefore.applyData(beforeData, true);
   patch = jiff.diff(modelBefore.buildOutputData(), modelAfter.buildOutputData(), {
     invertible: false
   });
   changedPaths = (function() {
-    var i, len, results;
+    var j, len, results;
     results = [];
-    for (i = 0, len = patch.length; i < len; i++) {
-      p = patch[i];
+    for (j = 0, len = patch.length; j < len; j++) {
+      p = patch[j];
       results.push(p.path.replace(/\/[0-9]+$/, ''));
     }
     return results;
   })();
   changedPathsUniqObject = {};
-  for (i = 0, len = changedPaths.length; i < len; i++) {
-    val = changedPaths[i];
+  for (j = 0, len = changedPaths.length; j < len; j++) {
+    val = changedPaths[j];
     changedPathsUniqObject[val] = val;
   }
   changedPathsUnique = (function() {
@@ -233,8 +241,8 @@ exports.getChanges = function(modelAfter, beforeData) {
     return results;
   })();
   changes = [];
-  for (j = 0, len1 = changedPathsUnique.length; j < len1; j++) {
-    changedPath = changedPathsUnique[j];
+  for (k = 0, len1 = changedPathsUnique.length; k < len1; k++) {
+    changedPath = changedPathsUnique[k];
     path = changedPath.slice(1);
     before = modelBefore.child(path);
     after = modelAfter.child(path);
@@ -298,10 +306,10 @@ ModelBase = (function(superClass) {
     this.makePropArray('onChangePropertiesHandlers');
     this.bindPropFunctions('onChangePropertiesHandlers');
     return this.on('change', function() {
-      var ch, changeFunc, i, len, ref1;
+      var ch, changeFunc, j, len, ref1;
       ref1 = this.onChangePropertiesHandlers;
-      for (i = 0, len = ref1.length; i < len; i++) {
-        changeFunc = ref1[i];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        changeFunc = ref1[j];
         changeFunc();
       }
       ch = this.changedAttributes();
@@ -338,20 +346,16 @@ ModelBase = (function(superClass) {
       } catch (_error) {
         err = _error;
         message = makeErrorMessage(model, propName, err);
-        if (runtime) {
-          return throttledAlert("A fatal error occurred. " + message);
-        } else {
-          throw new Error(message);
-        }
+        return exports.handleError(message);
       }
     };
   };
 
   ModelBase.prototype.bindPropFunctions = function(propName) {
-    var i, index, ref, results;
+    var index, j, ref, results;
     if (Array.isArray(this[propName])) {
       results = [];
-      for (index = i = 0, ref = this[propName].length; 0 <= ref ? i < ref : i > ref; index = 0 <= ref ? ++i : --i) {
+      for (index = j = 0, ref = this[propName].length; 0 <= ref ? j < ref : j > ref; index = 0 <= ref ? ++j : --j) {
         results.push(this[propName][index] = this.bindPropFunction(propName, this[propName][index]));
       }
       return results;
@@ -369,11 +373,11 @@ ModelBase = (function(superClass) {
   };
 
   ModelBase.prototype.buildParamObject = function(params, paramPositions) {
-    var i, key, len, param, paramIndex, paramObject, ref, val;
+    var j, key, len, param, paramIndex, paramObject, ref, val;
     paramObject = {};
     paramIndex = 0;
-    for (i = 0, len = params.length; i < len; i++) {
-      param = params[i];
+    for (j = 0, len = params.length; j < len; j++) {
+      param = params[j];
       if ((ref = typeof param) === 'string' || ref === 'number') {
         paramObject[paramPositions[paramIndex++]] = param;
       } else if (Object.prototype.toString.call(param) === '[object Object]') {
@@ -508,13 +512,13 @@ ModelBase = (function(superClass) {
       };
     },
     selectedIsVisible: function(field) {
-      var i, len, opt, ref;
+      var j, len, opt, ref;
       if (field == null) {
         field = this;
       }
       ref = field.options;
-      for (i = 0, len = ref.length; i < len; i++) {
-        opt = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        opt = ref[j];
         if (opt.selected && !opt.isVisible) {
           return "A selected option is not currently available.  Please make a new choice from available options.";
         }
@@ -523,7 +527,7 @@ ModelBase = (function(superClass) {
   };
 
   ModelBase.prototype.cloneModel = function(newRoot, constructor) {
-    var childClone, i, key, len, modelObj, myClone, newVal, ref, val;
+    var childClone, j, key, len, modelObj, myClone, newVal, ref, val;
     if (newRoot == null) {
       newRoot = this.root;
     }
@@ -541,8 +545,8 @@ ModelBase = (function(superClass) {
       } else if (Array.isArray(val)) {
         newVal = [];
         if (val[0] instanceof ModelBase && key !== 'value') {
-          for (i = 0, len = val.length; i < len; i++) {
-            modelObj = val[i];
+          for (j = 0, len = val.length; j < len; j++) {
+            modelObj = val[j];
             childClone = modelObj.cloneModel(newRoot);
             if (childClone.parent === this) {
               childClone.parent = myClone;
@@ -635,14 +639,14 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.child = function(path) {
-    var c, child, i, len, name, ref;
+    var c, child, j, len, name, ref;
     if (!(Array.isArray(path))) {
       path = path.split(/[.\/]/);
     }
     name = path.shift();
     ref = this.children;
-    for (i = 0, len = ref.length; i < len; i++) {
-      c = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      c = ref[j];
       if (c.name === name) {
         child = c;
       }
@@ -655,23 +659,23 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.setDirty = function(id, whatChanged) {
-    var child, i, len, ref;
+    var child, j, len, ref;
     ref = this.children;
-    for (i = 0, len = ref.length; i < len; i++) {
-      child = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      child = ref[j];
       child.setDirty(id, whatChanged);
     }
     return ModelGroup.__super__.setDirty.call(this, id, whatChanged);
   };
 
   ModelGroup.prototype.setClean = function(all) {
-    var child, i, len, ref, results;
+    var child, j, len, ref, results;
     ModelGroup.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.children;
       results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        child = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        child = ref[j];
         results.push(child.setClean(all));
       }
       return results;
@@ -679,15 +683,15 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.recalculateRelativeProperties = function(collection) {
-    var child, dirty, i, len, newValid;
+    var child, dirty, j, len, newValid;
     if (collection == null) {
       collection = this.children;
     }
     dirty = this.dirty;
     ModelGroup.__super__.recalculateRelativeProperties.apply(this, arguments);
     newValid = true;
-    for (i = 0, len = collection.length; i < len; i++) {
-      child = collection[i];
+    for (j = 0, len = collection.length; j < len; j++) {
+      child = collection[j];
       child.recalculateRelativeProperties();
       newValid && (newValid = child.isValid);
     }
@@ -715,11 +719,11 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.clear = function() {
-    var child, i, len, ref, results;
+    var child, j, len, ref, results;
     ref = this.children;
     results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      child = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      child = ref[j];
       results.push(child.clear());
     }
     return results;
@@ -764,23 +768,23 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.setDirty = function(id, whatChanged) {
-    var i, len, ref, val;
+    var j, len, ref, val;
     ref = this.value;
-    for (i = 0, len = ref.length; i < len; i++) {
-      val = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      val = ref[j];
       val.setDirty(id, whatChanged);
     }
     return RepeatingModelGroup.__super__.setDirty.call(this, id, whatChanged);
   };
 
   RepeatingModelGroup.prototype.setClean = function(all) {
-    var i, len, ref, results, val;
+    var j, len, ref, results, val;
     RepeatingModelGroup.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.value;
       results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        val = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        val = ref[j];
         results.push(val.setClean(all));
       }
       return results;
@@ -802,7 +806,7 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.applyData = function(data, clear) {
-    var added, i, key, len, obj, results, value;
+    var added, j, key, len, obj, results, value;
     if (clear == null) {
       clear = false;
     }
@@ -810,8 +814,8 @@ RepeatingModelGroup = (function(superClass) {
       this.set('value', []);
     }
     results = [];
-    for (i = 0, len = data.length; i < len; i++) {
-      obj = data[i];
+    for (j = 0, len = data.length; j < len; j++) {
+      obj = data[j];
       added = this.add();
       results.push((function() {
         var ref, results1;
@@ -858,7 +862,7 @@ ModelField = (function(superClass) {
   }
 
   ModelField.prototype.initialize = function() {
-    var ref;
+    var ref, ref1;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
     this.setDefault('defaultValue', this.get('value'));
@@ -873,7 +877,7 @@ ModelField = (function(superClass) {
     this.setDefault('dynamicValue', null);
     ModelField.__super__.initialize.apply(this, arguments);
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
-      throw new Error("Bad field type: " + this.type);
+      return exports.handleError("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
     while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
@@ -889,28 +893,68 @@ ModelField = (function(superClass) {
     this.bindPropFunctions('validators');
     this.makePropArray('onChangeHandlers');
     this.bindPropFunctions('onChangeHandlers');
+    if (this.optionsFrom != null) {
+      if ((this.optionsFrom.url == null) || (this.optionsFrom.parseResults == null)) {
+        return exports.handleError('When fetching options remotely, both url and parseResults properties are required');
+      }
+      if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function') {
+        this.optionsFrom.url = this.bindPropFunction('optionsFrom.url', this.optionsFrom.url);
+      }
+      if (typeof this.optionsFrom.parseResults !== 'function') {
+        return exports.handleError('optionsFrom.parseResults must be a function');
+      }
+      this.optionsFrom.parseResults = this.bindPropFunction('optionsFrom.parseResults', this.optionsFrom.parseResults);
+      this.getOptionsFrom();
+    }
     this.updateOptionsSelected();
     this.on('change:value', function() {
-      var changeFunc, i, len, ref1;
-      ref1 = this.onChangeHandlers;
-      for (i = 0, len = ref1.length; i < len; i++) {
-        changeFunc = ref1[i];
+      var changeFunc, j, len, ref2;
+      ref2 = this.onChangeHandlers;
+      for (j = 0, len = ref2.length; j < len; j++) {
+        changeFunc = ref2[j];
         changeFunc();
       }
       return this.updateOptionsSelected();
     });
     return this.on('change:type', function() {
-      var ref1;
+      var ref2;
       if (this.type === 'multiselect') {
         this.value = this.value.length > 0 ? [this.value] : [];
       } else if (this.previousAttributes().type === 'multiselect') {
         this.value = this.value.length > 0 ? this.value[0] : '';
       }
-      if (this.options.length > 0 && !((ref1 = this.type) === 'select' || ref1 === 'multiselect')) {
+      if (this.options.length > 0 && !((ref2 = this.type) === 'select' || ref2 === 'multiselect')) {
         return this.type = 'select';
       }
     });
   };
+
+  ModelField.prototype.getOptionsFrom = _.memoize(_.debounce(function() {
+    var ref, url;
+    if (this.optionsFrom == null) {
+      return;
+    }
+    url = typeof this.optionsFrom.url === 'function' ? this.optionsFrom.url() : this.optionsFrom.url;
+    return typeof window !== "undefined" && window !== null ? (ref = window.formbuilderui) != null ? ref.getFromProxy({
+      url: url,
+      method: 'get'
+    }, (function(_this) {
+      return function(data) {
+        var i, mappedResults, opt, results;
+        mappedResults = _this.optionsFrom.parseResults(data);
+        if (!Array.isArray(mappedResults)) {
+          return exports.handleError('results of parseResults must be an array of option parameters');
+        }
+        _this.options = [];
+        results = [];
+        for (i in mappedResults) {
+          opt = mappedResults[i];
+          results.push(_this.option(opt));
+        }
+        return results;
+      };
+    })(this)) : void 0 : void 0;
+  }, 1000));
 
   ModelField.prototype.validityMessage = void 0;
 
@@ -927,7 +971,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.option = function() {
-    var i, len, opt, optionObject, optionParams, ref, ref1;
+    var j, len, opt, optionObject, optionParams, ref, ref1;
     optionParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     optionObject = this.buildParamObject(optionParams, ['title', 'value', 'selected']);
     if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
@@ -935,8 +979,8 @@ ModelField = (function(superClass) {
     }
     this.options.push(new ModelOption(optionObject));
     ref1 = this.options;
-    for (i = 0, len = ref1.length; i < len; i++) {
-      opt = ref1[i];
+    for (j = 0, len = ref1.length; j < len; j++) {
+      opt = ref1[j];
       if (opt.selected) {
         this.addOptionValue(opt.value);
       }
@@ -947,24 +991,24 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.updateOptionsSelected = function() {
-    var i, len, opt, ref, results;
+    var j, len, opt, ref, results;
     ref = this.options;
     results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      opt = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      opt = ref[j];
       results.push(opt.selected = this.hasValue(opt.value));
     }
     return results;
   };
 
   ModelField.prototype.child = function(value) {
-    var i, len, o, ref;
+    var j, len, o, ref;
     if (Array.isArray(value)) {
       value = value.shift();
     }
     ref = this.options;
-    for (i = 0, len = ref.length; i < len; i++) {
-      o = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      o = ref[j];
       if (o.value === value) {
         return o;
       }
@@ -984,23 +1028,23 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.setDirty = function(id, whatChanged) {
-    var i, len, opt, ref;
+    var j, len, opt, ref;
     ref = this.options;
-    for (i = 0, len = ref.length; i < len; i++) {
-      opt = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      opt = ref[j];
       opt.setDirty(id, whatChanged);
     }
     return ModelField.__super__.setDirty.call(this, id, whatChanged);
   };
 
   ModelField.prototype.setClean = function(all) {
-    var i, len, opt, ref, results;
+    var j, len, opt, ref, results;
     ModelField.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.options;
       results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        opt = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        opt = ref[j];
         results.push(opt.setClean(all));
       }
       return results;
@@ -1008,19 +1052,19 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.recalculateRelativeProperties = function() {
-    var dirty, i, j, len, len1, opt, ref, ref1, results, validator, validityMessage, value;
+    var dirty, j, k, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
     dirty = this.dirty;
     ModelField.__super__.recalculateRelativeProperties.apply(this, arguments);
     if (this.shouldCallTriggerFunctionFor(dirty, 'isValid')) {
       validityMessage = void 0;
       ref = this.validators;
-      for (i = 0, len = ref.length; i < len; i++) {
-        validator = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        validator = ref[j];
         if (typeof validator === 'function') {
           validityMessage = validator.call(this);
         }
         if (typeof validityMessage === 'function') {
-          throw new Error("A validator on field '" + this.name + "' returned a function");
+          return exports.handleError("A validator on field '" + this.name + "' returned a function");
         }
         if (validityMessage) {
           break;
@@ -1034,14 +1078,17 @@ ModelField = (function(superClass) {
     if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
       value = this.dynamicValue();
       if (typeof value === 'function') {
-        throw new Error("dynamicValue on field '" + this.name + "' returned a function");
+        return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
       }
       this.set('value', value);
     }
-    ref1 = this.options;
+    if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'options')) {
+      this.getOptionsFrom();
+    }
+    ref2 = this.options;
     results = [];
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      opt = ref1[j];
+    for (k = 0, len1 = ref2.length; k < len1; k++) {
+      opt = ref2[k];
       results.push(opt.recalculateRelativeProperties());
     }
     return results;
@@ -1130,11 +1177,11 @@ ModelTree = (function(superClass) {
   };
 
   ModelTree.prototype.option = function(item) {
-    var context, i, j, last, len, piece, pieces, ref;
-    ref = item.split(' > '), pieces = 2 <= ref.length ? slice.call(ref, 0, i = ref.length - 1) : (i = 0, []), last = ref[i++];
+    var context, j, k, last, len, piece, pieces, ref;
+    ref = item.split(' > '), pieces = 2 <= ref.length ? slice.call(ref, 0, j = ref.length - 1) : (j = 0, []), last = ref[j++];
     context = this.options;
-    for (j = 0, len = pieces.length; j < len; j++) {
-      piece = pieces[j];
+    for (k = 0, len = pieces.length; k < len; k++) {
+      piece = pieces[k];
       if (!context[piece]) {
         context = context[piece] = {};
       } else {
@@ -1186,7 +1233,7 @@ ModelFieldImage = (function(superClass) {
     this.set('optionsChanged', false);
     ModelFieldImage.__super__.initialize.apply(this, arguments);
     if (this.allowUpload && (this.companyID == null)) {
-      throw new Error("required property 'companyID' missing for image field '" + this.name + "'");
+      return exports.handleError("required property 'companyID' missing for image field '" + this.name + "'");
     }
   };
 
@@ -1210,7 +1257,7 @@ ModelFieldImage = (function(superClass) {
   };
 
   ModelFieldImage.prototype.child = function(fileID) {
-    var i, len, o, ref;
+    var j, len, o, ref;
     if (Array.isArray(fileID)) {
       fileID = fileID.shift();
     }
@@ -1218,8 +1265,8 @@ ModelFieldImage = (function(superClass) {
       fileID = fileID.fileID;
     }
     ref = this.options;
-    for (i = 0, len = ref.length; i < len; i++) {
-      o = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      o = ref[j];
       if (o.fileID === fileID) {
         return o;
       }

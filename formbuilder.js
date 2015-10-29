@@ -587,7 +587,7 @@ ModelGroup = (function(superClass) {
   ModelGroup.prototype.field = function() {
     var fieldObject, fieldParams, fld;
     fieldParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    fieldObject = this.buildParamObject(fieldParams, ['title', 'name', 'type', 'value', 'description']);
+    fieldObject = this.buildParamObject(fieldParams, ['title', 'name', 'type', 'value']);
     fld = (function() {
       switch (fieldObject.type) {
         case 'image':

@@ -12,6 +12,18 @@ describe 'fromCoffee', ->
     assert.strictEqual a.constructor.name, 'ModelField', 'field has correct constructor'
     assert.strictEqual a.value, '', 'model has the correct default value'
     done()
+
+  it 'can build a field with a description', (done) ->
+    model = fb.fromCoffee 'field "a", value: "foo", description: "bar"'
+    assert.strictEqual typeof model, 'object', 'built an object'
+    assert.strictEqual model.constructor.name, 'ModelGroup', 'returned value is correct class'
+    a = model.child 'a'
+    assert.strictEqual a.name, 'a', 'has the correct name'
+    assert.strictEqual a.title, 'a', 'has the correct title'
+    assert.strictEqual a.constructor.name, 'ModelField', 'field has correct constructor'
+    assert.strictEqual a.value, 'foo', 'model has the correct value'
+    assert.strictEqual a.description, 'bar', 'model has the correct description'
+    done()
     
   it 'can build a model that contains groups', (done) ->
     model = fb.fromCoffee """

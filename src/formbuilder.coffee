@@ -40,11 +40,9 @@ if alert?
 # Determine what to do in the case of any error, including during compile, build and dynamic function calls.
 # Any client may overwrite this method to handle errors differently, for example displaying them to the user
 exports.handleError = (err) ->
-  console.log 'handling error'
   if not err instanceof Error
     err = new Error err
   throw err
-
 
 # Apply initialization data to the model.
 exports.applyData = (modelObject, data) ->
@@ -272,11 +270,6 @@ class ModelBase extends Backbone.Model
         func.apply model, arguments
       catch err
         message = makeErrorMessage model, propName, err
-
-#        if runtime
-#          throttledAlert "A fatal error occurred. #{message}"
-#        else
-#          throw new Error message
         exports.handleError message
 
   # bind properties that are functions to this object's context. Single functions or arrays of functions
@@ -657,25 +650,30 @@ class ModelField extends ModelBase
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
 
-  getOptionsFrom: _.memoize _.debounce ->
+  getOptionsFrom: _.throttle ->
     return if !@optionsFrom?
+    
     url =
       if typeof @optionsFrom.url is 'function'
         @optionsFrom.url()
       else
         @optionsFrom.url
-    
-    window?.formbuilderui?.getFromProxy {
+    if @prevUrl is url
+      return
+    @prevUrl = url
+
+    window?.formbuilderproxy?.getFromProxy {
       url: url
-      method: 'get'
-    }, (data) =>
+      method: @optionsFrom.method or 'get'
+    }, (error, data) =>
+      if error
+        return exports.handleError makeErrorMessage @, 'optionsFrom', error
       mappedResults = @optionsFrom.parseResults data
       if not Array.isArray mappedResults
         return exports.handleError 'results of parseResults must be an array of option parameters'
       @options = []
       @option opt for i, opt of mappedResults
   , 1000
-
 
   validityMessage: undefined
   field: (obj...) ->
@@ -691,7 +689,8 @@ class ModelField extends ModelBase
     if not (@type in ['select','multiselect'])
       @type = 'select'
 
-    @options.push new ModelOption optionObject
+    @options = @options.concat new ModelOption optionObject #assign rather than push to trigger correctly
+
     #if any option has selected:true, set this field's value to that
     for opt in @options
       if opt.selected
@@ -699,7 +698,6 @@ class ModelField extends ModelBase
     #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
     @updateOptionsSelected()
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
-    @trigger 'change'
     @ #return the field so we can chain .option calls
 
   updateOptionsSelected: ->

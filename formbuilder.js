@@ -51,7 +51,6 @@ if (typeof alert !== "undefined" && alert !== null) {
 }
 
 exports.handleError = function(err) {
-  console.log('handling error');
   if (!err instanceof Error) {
     err = new Error(err);
   }
@@ -929,18 +928,25 @@ ModelField = (function(superClass) {
     });
   };
 
-  ModelField.prototype.getOptionsFrom = _.memoize(_.debounce(function() {
+  ModelField.prototype.getOptionsFrom = _.throttle(function() {
     var ref, url;
     if (this.optionsFrom == null) {
       return;
     }
     url = typeof this.optionsFrom.url === 'function' ? this.optionsFrom.url() : this.optionsFrom.url;
-    return typeof window !== "undefined" && window !== null ? (ref = window.formbuilderui) != null ? ref.getFromProxy({
+    if (this.prevUrl === url) {
+      return;
+    }
+    this.prevUrl = url;
+    return typeof window !== "undefined" && window !== null ? (ref = window.formbuilderproxy) != null ? ref.getFromProxy({
       url: url,
-      method: 'get'
+      method: this.optionsFrom.method || 'get'
     }, (function(_this) {
-      return function(data) {
+      return function(error, data) {
         var i, mappedResults, opt, results;
+        if (error) {
+          return exports.handleError(makeErrorMessage(_this, 'optionsFrom', error));
+        }
         mappedResults = _this.optionsFrom.parseResults(data);
         if (!Array.isArray(mappedResults)) {
           return exports.handleError('results of parseResults must be an array of option parameters');
@@ -954,7 +960,7 @@ ModelField = (function(superClass) {
         return results;
       };
     })(this)) : void 0 : void 0;
-  }, 1000));
+  }, 1000);
 
   ModelField.prototype.validityMessage = void 0;
 
@@ -977,7 +983,7 @@ ModelField = (function(superClass) {
     if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
       this.type = 'select';
     }
-    this.options.push(new ModelOption(optionObject));
+    this.options = this.options.concat(new ModelOption(optionObject));
     ref1 = this.options;
     for (j = 0, len = ref1.length; j < len; j++) {
       opt = ref1[j];
@@ -986,7 +992,6 @@ ModelField = (function(superClass) {
       }
     }
     this.updateOptionsSelected();
-    this.trigger('change');
     return this;
   };
 

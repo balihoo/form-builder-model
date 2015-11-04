@@ -672,7 +672,7 @@ class ModelField extends ModelBase
       if not Array.isArray mappedResults
         return exports.handleError 'results of parseResults must be an array of option parameters'
       @options = []
-      @option opt for i, opt of mappedResults
+      @option opt for opt in mappedResults
   , 1000
 
   validityMessage: undefined

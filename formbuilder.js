@@ -51,7 +51,7 @@ if (typeof alert !== "undefined" && alert !== null) {
 }
 
 exports.handleError = function(err) {
-  if (!err instanceof Error) {
+  if (!(err instanceof Error)) {
     err = new Error(err);
   }
   throw err;
@@ -174,11 +174,11 @@ exports.fromPackage = function(pkg, data, element) {
   buildModelWithRecursiveImports = function(p, el) {
     var buildImport, builtImports, f, form;
     form = ((function() {
-      var j, len, ref, results;
+      var i, len, ref, results;
       ref = p.forms;
       results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        f = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        f = ref[i];
         if (f.formid === p.formid) {
           results.push(f);
         }
@@ -211,24 +211,24 @@ exports.fromPackage = function(pkg, data, element) {
 };
 
 exports.getChanges = function(modelAfter, beforeData) {
-  var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, j, k, key, len, len1, modelBefore, p, patch, path, val;
+  var after, before, changedPath, changedPaths, changedPathsUniqObject, changedPathsUnique, changes, i, j, key, len, len1, modelBefore, p, patch, path, val;
   modelBefore = modelAfter.cloneModel();
   modelBefore.applyData(beforeData, true);
   patch = jiff.diff(modelBefore.buildOutputData(), modelAfter.buildOutputData(), {
     invertible: false
   });
   changedPaths = (function() {
-    var j, len, results;
+    var i, len, results;
     results = [];
-    for (j = 0, len = patch.length; j < len; j++) {
-      p = patch[j];
+    for (i = 0, len = patch.length; i < len; i++) {
+      p = patch[i];
       results.push(p.path.replace(/\/[0-9]+$/, ''));
     }
     return results;
   })();
   changedPathsUniqObject = {};
-  for (j = 0, len = changedPaths.length; j < len; j++) {
-    val = changedPaths[j];
+  for (i = 0, len = changedPaths.length; i < len; i++) {
+    val = changedPaths[i];
     changedPathsUniqObject[val] = val;
   }
   changedPathsUnique = (function() {
@@ -240,8 +240,8 @@ exports.getChanges = function(modelAfter, beforeData) {
     return results;
   })();
   changes = [];
-  for (k = 0, len1 = changedPathsUnique.length; k < len1; k++) {
-    changedPath = changedPathsUnique[k];
+  for (j = 0, len1 = changedPathsUnique.length; j < len1; j++) {
+    changedPath = changedPathsUnique[j];
     path = changedPath.slice(1);
     before = modelBefore.child(path);
     after = modelAfter.child(path);
@@ -305,10 +305,10 @@ ModelBase = (function(superClass) {
     this.makePropArray('onChangePropertiesHandlers');
     this.bindPropFunctions('onChangePropertiesHandlers');
     return this.on('change', function() {
-      var ch, changeFunc, j, len, ref1;
+      var ch, changeFunc, i, len, ref1;
       ref1 = this.onChangePropertiesHandlers;
-      for (j = 0, len = ref1.length; j < len; j++) {
-        changeFunc = ref1[j];
+      for (i = 0, len = ref1.length; i < len; i++) {
+        changeFunc = ref1[i];
         changeFunc();
       }
       ch = this.changedAttributes();
@@ -351,10 +351,10 @@ ModelBase = (function(superClass) {
   };
 
   ModelBase.prototype.bindPropFunctions = function(propName) {
-    var index, j, ref, results;
+    var i, index, ref, results;
     if (Array.isArray(this[propName])) {
       results = [];
-      for (index = j = 0, ref = this[propName].length; 0 <= ref ? j < ref : j > ref; index = 0 <= ref ? ++j : --j) {
+      for (index = i = 0, ref = this[propName].length; 0 <= ref ? i < ref : i > ref; index = 0 <= ref ? ++i : --i) {
         results.push(this[propName][index] = this.bindPropFunction(propName, this[propName][index]));
       }
       return results;
@@ -372,11 +372,11 @@ ModelBase = (function(superClass) {
   };
 
   ModelBase.prototype.buildParamObject = function(params, paramPositions) {
-    var j, key, len, param, paramIndex, paramObject, ref, val;
+    var i, key, len, param, paramIndex, paramObject, ref, val;
     paramObject = {};
     paramIndex = 0;
-    for (j = 0, len = params.length; j < len; j++) {
-      param = params[j];
+    for (i = 0, len = params.length; i < len; i++) {
+      param = params[i];
       if ((ref = typeof param) === 'string' || ref === 'number') {
         paramObject[paramPositions[paramIndex++]] = param;
       } else if (Object.prototype.toString.call(param) === '[object Object]') {
@@ -511,13 +511,13 @@ ModelBase = (function(superClass) {
       };
     },
     selectedIsVisible: function(field) {
-      var j, len, opt, ref;
+      var i, len, opt, ref;
       if (field == null) {
         field = this;
       }
       ref = field.options;
-      for (j = 0, len = ref.length; j < len; j++) {
-        opt = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        opt = ref[i];
         if (opt.selected && !opt.isVisible) {
           return "A selected option is not currently available.  Please make a new choice from available options.";
         }
@@ -526,7 +526,7 @@ ModelBase = (function(superClass) {
   };
 
   ModelBase.prototype.cloneModel = function(newRoot, constructor) {
-    var childClone, j, key, len, modelObj, myClone, newVal, ref, val;
+    var childClone, i, key, len, modelObj, myClone, newVal, ref, val;
     if (newRoot == null) {
       newRoot = this.root;
     }
@@ -544,8 +544,8 @@ ModelBase = (function(superClass) {
       } else if (Array.isArray(val)) {
         newVal = [];
         if (val[0] instanceof ModelBase && key !== 'value') {
-          for (j = 0, len = val.length; j < len; j++) {
-            modelObj = val[j];
+          for (i = 0, len = val.length; i < len; i++) {
+            modelObj = val[i];
             childClone = modelObj.cloneModel(newRoot);
             if (childClone.parent === this) {
               childClone.parent = myClone;
@@ -638,14 +638,14 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.child = function(path) {
-    var c, child, j, len, name, ref;
+    var c, child, i, len, name, ref;
     if (!(Array.isArray(path))) {
       path = path.split(/[.\/]/);
     }
     name = path.shift();
     ref = this.children;
-    for (j = 0, len = ref.length; j < len; j++) {
-      c = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      c = ref[i];
       if (c.name === name) {
         child = c;
       }
@@ -658,23 +658,23 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.setDirty = function(id, whatChanged) {
-    var child, j, len, ref;
+    var child, i, len, ref;
     ref = this.children;
-    for (j = 0, len = ref.length; j < len; j++) {
-      child = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
       child.setDirty(id, whatChanged);
     }
     return ModelGroup.__super__.setDirty.call(this, id, whatChanged);
   };
 
   ModelGroup.prototype.setClean = function(all) {
-    var child, j, len, ref, results;
+    var child, i, len, ref, results;
     ModelGroup.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.children;
       results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        child = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        child = ref[i];
         results.push(child.setClean(all));
       }
       return results;
@@ -682,15 +682,15 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.recalculateRelativeProperties = function(collection) {
-    var child, dirty, j, len, newValid;
+    var child, dirty, i, len, newValid;
     if (collection == null) {
       collection = this.children;
     }
     dirty = this.dirty;
     ModelGroup.__super__.recalculateRelativeProperties.apply(this, arguments);
     newValid = true;
-    for (j = 0, len = collection.length; j < len; j++) {
-      child = collection[j];
+    for (i = 0, len = collection.length; i < len; i++) {
+      child = collection[i];
       child.recalculateRelativeProperties();
       newValid && (newValid = child.isValid);
     }
@@ -718,11 +718,11 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.clear = function() {
-    var child, j, len, ref, results;
+    var child, i, len, ref, results;
     ref = this.children;
     results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      child = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
       results.push(child.clear());
     }
     return results;
@@ -767,23 +767,23 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.setDirty = function(id, whatChanged) {
-    var j, len, ref, val;
+    var i, len, ref, val;
     ref = this.value;
-    for (j = 0, len = ref.length; j < len; j++) {
-      val = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      val = ref[i];
       val.setDirty(id, whatChanged);
     }
     return RepeatingModelGroup.__super__.setDirty.call(this, id, whatChanged);
   };
 
   RepeatingModelGroup.prototype.setClean = function(all) {
-    var j, len, ref, results, val;
+    var i, len, ref, results, val;
     RepeatingModelGroup.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.value;
       results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        val = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        val = ref[i];
         results.push(val.setClean(all));
       }
       return results;
@@ -805,7 +805,7 @@ RepeatingModelGroup = (function(superClass) {
   };
 
   RepeatingModelGroup.prototype.applyData = function(data, clear) {
-    var added, j, key, len, obj, results, value;
+    var added, i, key, len, obj, results, value;
     if (clear == null) {
       clear = false;
     }
@@ -813,8 +813,8 @@ RepeatingModelGroup = (function(superClass) {
       this.set('value', []);
     }
     results = [];
-    for (j = 0, len = data.length; j < len; j++) {
-      obj = data[j];
+    for (i = 0, len = data.length; i < len; i++) {
+      obj = data[i];
       added = this.add();
       results.push((function() {
         var ref, results1;
@@ -907,10 +907,10 @@ ModelField = (function(superClass) {
     }
     this.updateOptionsSelected();
     this.on('change:value', function() {
-      var changeFunc, j, len, ref2;
+      var changeFunc, i, len, ref2;
       ref2 = this.onChangeHandlers;
-      for (j = 0, len = ref2.length; j < len; j++) {
-        changeFunc = ref2[j];
+      for (i = 0, len = ref2.length; i < len; i++) {
+        changeFunc = ref2[i];
         changeFunc();
       }
       return this.updateOptionsSelected();
@@ -943,7 +943,7 @@ ModelField = (function(superClass) {
       method: this.optionsFrom.method || 'get'
     }, (function(_this) {
       return function(error, data) {
-        var i, mappedResults, opt, results;
+        var i, len, mappedResults, opt, results;
         if (error) {
           return exports.handleError(makeErrorMessage(_this, 'optionsFrom', error));
         }
@@ -953,7 +953,7 @@ ModelField = (function(superClass) {
         }
         _this.options = [];
         results = [];
-        for (i in mappedResults) {
+        for (i = 0, len = mappedResults.length; i < len; i++) {
           opt = mappedResults[i];
           results.push(_this.option(opt));
         }
@@ -977,7 +977,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.option = function() {
-    var j, len, opt, optionObject, optionParams, ref, ref1;
+    var i, len, opt, optionObject, optionParams, ref, ref1;
     optionParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     optionObject = this.buildParamObject(optionParams, ['title', 'value', 'selected']);
     if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
@@ -985,8 +985,8 @@ ModelField = (function(superClass) {
     }
     this.options = this.options.concat(new ModelOption(optionObject));
     ref1 = this.options;
-    for (j = 0, len = ref1.length; j < len; j++) {
-      opt = ref1[j];
+    for (i = 0, len = ref1.length; i < len; i++) {
+      opt = ref1[i];
       if (opt.selected) {
         this.addOptionValue(opt.value);
       }
@@ -996,24 +996,24 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.updateOptionsSelected = function() {
-    var j, len, opt, ref, results;
+    var i, len, opt, ref, results;
     ref = this.options;
     results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      opt = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      opt = ref[i];
       results.push(opt.selected = this.hasValue(opt.value));
     }
     return results;
   };
 
   ModelField.prototype.child = function(value) {
-    var j, len, o, ref;
+    var i, len, o, ref;
     if (Array.isArray(value)) {
       value = value.shift();
     }
     ref = this.options;
-    for (j = 0, len = ref.length; j < len; j++) {
-      o = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      o = ref[i];
       if (o.value === value) {
         return o;
       }
@@ -1033,23 +1033,23 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.setDirty = function(id, whatChanged) {
-    var j, len, opt, ref;
+    var i, len, opt, ref;
     ref = this.options;
-    for (j = 0, len = ref.length; j < len; j++) {
-      opt = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      opt = ref[i];
       opt.setDirty(id, whatChanged);
     }
     return ModelField.__super__.setDirty.call(this, id, whatChanged);
   };
 
   ModelField.prototype.setClean = function(all) {
-    var j, len, opt, ref, results;
+    var i, len, opt, ref, results;
     ModelField.__super__.setClean.apply(this, arguments);
     if (all) {
       ref = this.options;
       results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        opt = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        opt = ref[i];
         results.push(opt.setClean(all));
       }
       return results;
@@ -1057,14 +1057,14 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.recalculateRelativeProperties = function() {
-    var dirty, j, k, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
+    var dirty, i, j, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
     dirty = this.dirty;
     ModelField.__super__.recalculateRelativeProperties.apply(this, arguments);
     if (this.shouldCallTriggerFunctionFor(dirty, 'isValid')) {
       validityMessage = void 0;
       ref = this.validators;
-      for (j = 0, len = ref.length; j < len; j++) {
-        validator = ref[j];
+      for (i = 0, len = ref.length; i < len; i++) {
+        validator = ref[i];
         if (typeof validator === 'function') {
           validityMessage = validator.call(this);
         }
@@ -1092,8 +1092,8 @@ ModelField = (function(superClass) {
     }
     ref2 = this.options;
     results = [];
-    for (k = 0, len1 = ref2.length; k < len1; k++) {
-      opt = ref2[k];
+    for (j = 0, len1 = ref2.length; j < len1; j++) {
+      opt = ref2[j];
       results.push(opt.recalculateRelativeProperties());
     }
     return results;
@@ -1182,11 +1182,11 @@ ModelTree = (function(superClass) {
   };
 
   ModelTree.prototype.option = function(item) {
-    var context, j, k, last, len, piece, pieces, ref;
-    ref = item.split(' > '), pieces = 2 <= ref.length ? slice.call(ref, 0, j = ref.length - 1) : (j = 0, []), last = ref[j++];
+    var context, i, j, last, len, piece, pieces, ref;
+    ref = item.split(' > '), pieces = 2 <= ref.length ? slice.call(ref, 0, i = ref.length - 1) : (i = 0, []), last = ref[i++];
     context = this.options;
-    for (k = 0, len = pieces.length; k < len; k++) {
-      piece = pieces[k];
+    for (j = 0, len = pieces.length; j < len; j++) {
+      piece = pieces[j];
       if (!context[piece]) {
         context = context[piece] = {};
       } else {
@@ -1262,7 +1262,7 @@ ModelFieldImage = (function(superClass) {
   };
 
   ModelFieldImage.prototype.child = function(fileID) {
-    var j, len, o, ref;
+    var i, len, o, ref;
     if (Array.isArray(fileID)) {
       fileID = fileID.shift();
     }
@@ -1270,8 +1270,8 @@ ModelFieldImage = (function(superClass) {
       fileID = fileID.fileID;
     }
     ref = this.options;
-    for (j = 0, len = ref.length; j < len; j++) {
-      o = ref[j];
+    for (i = 0, len = ref.length; i < len; i++) {
+      o = ref[i];
       if (o.fileID === fileID) {
         return o;
       }

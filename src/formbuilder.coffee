@@ -40,7 +40,7 @@ if alert?
 # Determine what to do in the case of any error, including during compile, build and dynamic function calls.
 # Any client may overwrite this method to handle errors differently, for example displaying them to the user
 exports.handleError = (err) ->
-  if not err instanceof Error
+  if err not instanceof Error
     err = new Error err
   throw err
 

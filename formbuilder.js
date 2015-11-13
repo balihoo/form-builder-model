@@ -50,6 +50,13 @@ if (typeof alert !== "undefined" && alert !== null) {
   throttledAlert = _.throttle(alert, 500);
 }
 
+exports.handleError = function(err) {
+  if (!(err instanceof Error)) {
+    err = new Error(err);
+  }
+  throw err;
+};
+
 exports.applyData = function(modelObject, data) {
   return modelObject.applyData(data);
 };
@@ -67,7 +74,7 @@ exports.mergeData = function(a, b) {
     }
     return a;
   } else {
-    throw new Error('mergeData: The object to merge in is not an object');
+    return exports.handleError('mergeData: The object to merge in is not an object');
   }
 };
 
@@ -90,7 +97,7 @@ exports.fromCode = function(code, data, element, imports) {
       message = "A model test has failed";
     }
     if (!bool) {
-      throw new Error(message);
+      return exports.handleError(message);
     }
   };
   newRoot = new ModelGroup();
@@ -338,11 +345,7 @@ ModelBase = (function(superClass) {
       } catch (_error) {
         err = _error;
         message = makeErrorMessage(model, propName, err);
-        if (runtime) {
-          return throttledAlert("A fatal error occurred. " + message);
-        } else {
-          throw new Error(message);
-        }
+        return exports.handleError(message);
       }
     };
   };
@@ -858,7 +861,7 @@ ModelField = (function(superClass) {
   }
 
   ModelField.prototype.initialize = function() {
-    var ref;
+    var ref, ref1;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
     this.setDefault('defaultValue', this.get('value'));
@@ -873,7 +876,7 @@ ModelField = (function(superClass) {
     this.setDefault('dynamicValue', null);
     ModelField.__super__.initialize.apply(this, arguments);
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
-      throw new Error("Bad field type: " + this.type);
+      return exports.handleError("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
     while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
@@ -889,28 +892,75 @@ ModelField = (function(superClass) {
     this.bindPropFunctions('validators');
     this.makePropArray('onChangeHandlers');
     this.bindPropFunctions('onChangeHandlers');
+    if (this.optionsFrom != null) {
+      if ((this.optionsFrom.url == null) || (this.optionsFrom.parseResults == null)) {
+        return exports.handleError('When fetching options remotely, both url and parseResults properties are required');
+      }
+      if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function') {
+        this.optionsFrom.url = this.bindPropFunction('optionsFrom.url', this.optionsFrom.url);
+      }
+      if (typeof this.optionsFrom.parseResults !== 'function') {
+        return exports.handleError('optionsFrom.parseResults must be a function');
+      }
+      this.optionsFrom.parseResults = this.bindPropFunction('optionsFrom.parseResults', this.optionsFrom.parseResults);
+      this.getOptionsFrom();
+    }
     this.updateOptionsSelected();
     this.on('change:value', function() {
-      var changeFunc, i, len, ref1;
-      ref1 = this.onChangeHandlers;
-      for (i = 0, len = ref1.length; i < len; i++) {
-        changeFunc = ref1[i];
+      var changeFunc, i, len, ref2;
+      ref2 = this.onChangeHandlers;
+      for (i = 0, len = ref2.length; i < len; i++) {
+        changeFunc = ref2[i];
         changeFunc();
       }
       return this.updateOptionsSelected();
     });
     return this.on('change:type', function() {
-      var ref1;
+      var ref2;
       if (this.type === 'multiselect') {
         this.value = this.value.length > 0 ? [this.value] : [];
       } else if (this.previousAttributes().type === 'multiselect') {
         this.value = this.value.length > 0 ? this.value[0] : '';
       }
-      if (this.options.length > 0 && !((ref1 = this.type) === 'select' || ref1 === 'multiselect')) {
+      if (this.options.length > 0 && !((ref2 = this.type) === 'select' || ref2 === 'multiselect')) {
         return this.type = 'select';
       }
     });
   };
+
+  ModelField.prototype.getOptionsFrom = _.throttle(function() {
+    var ref, url;
+    if (this.optionsFrom == null) {
+      return;
+    }
+    url = typeof this.optionsFrom.url === 'function' ? this.optionsFrom.url() : this.optionsFrom.url;
+    if (this.prevUrl === url) {
+      return;
+    }
+    this.prevUrl = url;
+    return typeof window !== "undefined" && window !== null ? (ref = window.formbuilderproxy) != null ? ref.getFromProxy({
+      url: url,
+      method: this.optionsFrom.method || 'get'
+    }, (function(_this) {
+      return function(error, data) {
+        var i, len, mappedResults, opt, results;
+        if (error) {
+          return exports.handleError(makeErrorMessage(_this, 'optionsFrom', error));
+        }
+        mappedResults = _this.optionsFrom.parseResults(data);
+        if (!Array.isArray(mappedResults)) {
+          return exports.handleError('results of parseResults must be an array of option parameters');
+        }
+        _this.options = [];
+        results = [];
+        for (i = 0, len = mappedResults.length; i < len; i++) {
+          opt = mappedResults[i];
+          results.push(_this.option(opt));
+        }
+        return results;
+      };
+    })(this)) : void 0 : void 0;
+  }, 1000);
 
   ModelField.prototype.validityMessage = void 0;
 
@@ -933,7 +983,7 @@ ModelField = (function(superClass) {
     if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
       this.type = 'select';
     }
-    this.options.push(new ModelOption(optionObject));
+    this.options = this.options.concat(new ModelOption(optionObject));
     ref1 = this.options;
     for (i = 0, len = ref1.length; i < len; i++) {
       opt = ref1[i];
@@ -942,7 +992,6 @@ ModelField = (function(superClass) {
       }
     }
     this.updateOptionsSelected();
-    this.trigger('change');
     return this;
   };
 
@@ -1008,7 +1057,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.recalculateRelativeProperties = function() {
-    var dirty, i, j, len, len1, opt, ref, ref1, results, validator, validityMessage, value;
+    var dirty, i, j, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
     dirty = this.dirty;
     ModelField.__super__.recalculateRelativeProperties.apply(this, arguments);
     if (this.shouldCallTriggerFunctionFor(dirty, 'isValid')) {
@@ -1020,7 +1069,7 @@ ModelField = (function(superClass) {
           validityMessage = validator.call(this);
         }
         if (typeof validityMessage === 'function') {
-          throw new Error("A validator on field '" + this.name + "' returned a function");
+          return exports.handleError("A validator on field '" + this.name + "' returned a function");
         }
         if (validityMessage) {
           break;
@@ -1034,14 +1083,17 @@ ModelField = (function(superClass) {
     if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
       value = this.dynamicValue();
       if (typeof value === 'function') {
-        throw new Error("dynamicValue on field '" + this.name + "' returned a function");
+        return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
       }
       this.set('value', value);
     }
-    ref1 = this.options;
+    if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'options')) {
+      this.getOptionsFrom();
+    }
+    ref2 = this.options;
     results = [];
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      opt = ref1[j];
+    for (j = 0, len1 = ref2.length; j < len1; j++) {
+      opt = ref2[j];
       results.push(opt.recalculateRelativeProperties());
     }
     return results;
@@ -1186,7 +1238,7 @@ ModelFieldImage = (function(superClass) {
     this.set('optionsChanged', false);
     ModelFieldImage.__super__.initialize.apply(this, arguments);
     if (this.allowUpload && (this.companyID == null)) {
-      throw new Error("required property 'companyID' missing for image field '" + this.name + "'");
+      return exports.handleError("required property 'companyID' missing for image field '" + this.name + "'");
     }
   };
 

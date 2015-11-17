@@ -36,6 +36,15 @@ Fields are created with the `field()` function with default positional parameter
 field title:'First Name', name:'fname'
 field title:'Last Name', name:'lname'
 ```
+
+Don't create two fields with the same name in the same place, as this wouldn't result in valid JSON.
+
+```
+field 'foo'
+field 'foo' #not okay, this field will be ignored.
+group 'bar'
+    .field 'foo' #okay, different spot in JSON
+```
 ## Field Properties
 * **title** *string* - Text to display next to this field. Default: same as name.
 * **name** *string* - The name of this field as it will appear in the input and output JSON.
@@ -77,6 +86,7 @@ field 'b'
 
     It is important to note that this parseResult function is only called each time the url changes. This would be important if the results depend on the value of some other field.  Changes to that field would trigger the optionsFrom to be reevaluated, but if the url doesn't change then the parseResults will NOT be called and the same options will remain.
     
+    As with other options, don't return two entries that would have the same value.
 ```
 urlPart = field 'Url Part'
 .option 'thing1', selected:true
@@ -99,7 +109,7 @@ Call these functions to alter a current field in some way.
     Options on select and multiselect fields could have the following properties.
   
     * **title** - Display text for this option. Default: same as value. At least one of title or value is required.
-    * **value** - The value the field should have if this option is selected. Default: same as title. At least one of title or value is required.
+    * **value** - The value the field should have if this option is selected. Default: same as title. At least one of title or value is required.  Do not create two options on the same field with the same value.
     * **selected** *bool* - Set to true for an option to be selected by default.  Default:false
     * **visible** *bool or function* - Works mostly the same as [on a field](#fieldVisible), except that options on fields of type image or tree may not be set to invisible.  This is due their complex rendering which makes it difficult for options to come and go.
     
@@ -182,6 +192,8 @@ group 'grandparent'
   .group 'parent'
     .field 'child'
 ```
+As with fields, do not create two groups with the same name in the same place.
+
 ## Group Properties
 * **title** *string* - Text to display for this group. Default: same as name.
 * **name** *string* - The name of this group as it will appear in the input and output JSON.  This will be the key whose value is an object containing all of its children.

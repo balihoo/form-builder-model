@@ -940,7 +940,8 @@ ModelField = (function(superClass) {
     this.prevUrl = url;
     return typeof window !== "undefined" && window !== null ? (ref = window.formbuilderproxy) != null ? ref.getFromProxy({
       url: url,
-      method: this.optionsFrom.method || 'get'
+      method: this.optionsFrom.method || 'get',
+      headerKey: this.optionsFrom.headerKey
     }, (function(_this) {
       return function(error, data) {
         var i, len, mappedResults, opt, results;

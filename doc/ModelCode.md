@@ -1,10 +1,10 @@
-# Model Codes
+# Model Code
 
 Model code is written in [CoffeeScript](http://coffeescript.org/) and includes extensions to create fields and supporting properties.
 
 # Disclaimer
 
-Each of these features was written for a specific use case but we try to guess at general uses and allow those.  We have test that ensure our specific use cases work, but if you try to do something crazy it may not work. Talk with a developer if you need help hacking or establishing where the boundaries are.
+Each of these features was written for a specific use case but we try to guess at general uses and allow those.  We have tests that ensure our specific use cases work, but if you try to do something crazy it may not work. Talk with a developer if you need help hacking or establishing where the boundaries are.
 
 There are also things in the plumbing of model code that may be accessible but are not documented here.  Anything not in this document may be changed at any time in a way that breaks your form.  Don't use undocumented features.
 
@@ -15,12 +15,12 @@ There are also things in the plumbing of model code that may be accessible but a
 # General Use
 Form objects are most easily created by calling the desired function and passing named properties for that object.  For example
 
-```
+```coffeescript
 field title:'This is a Demo', name:'demo', type:'text', value:'initialValue'
 ```
 Some functions allow parameters to be supplied in the right order rather than labeling each propery.  For example, the following is equivalent to the previous example.
 
-```
+```coffeescript
 field 'This is a Demo', 'demo', 'text', 'initialValue'
 ```    
 Such positional parameters will be described where available.
@@ -32,14 +32,14 @@ Fields represent some input that will be present in the output of the form.
 
 Fields are created with the `field()` function with default positional parameters title, name, type, value
 
-```
+```coffeescript
 field title:'First Name', name:'fname'
 field title:'Last Name', name:'lname'
 ```
 
 Don't create two fields with the same name in the same place, as this wouldn't result in valid JSON.
 
-```
+```coffeescript
 field 'foo'
 field 'foo' #not okay, this field will be ignored.
 group 'bar'
@@ -53,14 +53,14 @@ group 'bar'
 * **description** *string* - Adds a description directly below a field's input. This is preferred over creating a field of type 'info' for instructions because info fields do not appear directly adjacent to the field they describe.
 * **dynamicValue** *function* <a name="dynamicValue"></a>- Allows you to set the value of this field based on other form properties.  This will overwrite the field's value when computed.
 
-```
+```coffeescript
 field 'name'
 field 'greeting', dynamicValue: ->
   "Hello there " + @root.child('name').value
 ```
 * **visible** *function or bool* <a name="fieldVisible"></a>- Everything is visible:true by default. Set visible to false for invisible, or a function that returns a boolean for conditional visibility. Whether or not an object is currently visible is stored in the isVisible property.
 
-```
+```coffeescript
 field 'lookHere'                            #defalt visible is true
 field 'dontLookHere', visible: false        #never visible, but will appear in the output data
 field 'maybeLookHere', visible: ->
@@ -68,7 +68,7 @@ field 'maybeLookHere', visible: ->
 ```
 * **validators** *array of functions* - These can be set when creating a field or added to a field one at a time with the `.validator` function.  Validator functions return an error message if the field is not valid, otherwise something falsy.
 
-```
+```coffeescript
 field 'a', validators: [validate.required, validate.minLength 3]
 field 'b'
   .validator validate.required
@@ -87,7 +87,7 @@ field 'b'
     It is important to note that this parseResult function is only called each time the url changes. This would be important if the results depend on the value of some other field.  Changes to that field would trigger the optionsFrom to be reevaluated, but if the url doesn't change then the parseResults will NOT be called and the same options will remain.
     
     As with other options, don't return two entries that would have the same value.
-```
+```coffeescript
 urlPart = field 'Url Part'
 .option 'thing1', selected:true
 .option 'thing2'
@@ -113,7 +113,7 @@ Call these functions to alter a current field in some way.
     * **selected** *bool* - Set to true for an option to be selected by default.  Default:false
     * **visible** *bool or function* - Works mostly the same as [on a field](#fieldVisible), except that options on fields of type image or tree may not be set to invisible.  This is due their complex rendering which makes it difficult for options to come and go.
     
-    ```
+    ```coffeescript
     field 'foo'
       .option title:'first option', value:'first', selected:true
       .option title:'second option', value:'second'
@@ -122,7 +122,7 @@ Call these functions to alter a current field in some way.
     Image options have different properties, see below.
 * **validator()** - Appends a new validation function to the field.
 
-```
+```coffeescript
 field 'foo'
   .validator validate.required
   .validator ->
@@ -130,7 +130,7 @@ field 'foo'
 ```
 * **onChange()** - Appends a new function to run when the field's value changes.  The dynamicValue function is likely more useful for making a value relative, but this allows other properties to be influenced.
 
-```
+```coffeescript
 field 'name'
   .onChange ->
     c.title = "What is your favorite color, #{@value}?"
@@ -139,7 +139,7 @@ c = field name:'color'
 ```
 * **onChangeProperties()** - Append a new function to run whenever any property changes.
 
-```
+```coffeescript
 prompt = field type:'info', title:'Choose from the following 0 options'
  
 field 'choices'
@@ -187,7 +187,7 @@ Groups are used to contain other form objects, including fields and other groups
 
 Groups are built using the `group` function, with default positional parameters title, name, description.
 
-```
+```coffeescript
 group 'grandparent'
   .group 'parent'
     .field 'child'
@@ -204,7 +204,7 @@ As with fields, do not create two groups with the same name in the same place.
 ## Group Functions
 The main purpose of groups is to contain other groups and fields.  Groups and fields are created as children of a given group by calling the respective function on that group.  The group and field functions are the same as on the root of the form except they are preceeded by a dot to show which the parent group should be.
 
-```
+```coffeescript
 field 'a'
 group 'A Group'
 .field 'b'
@@ -221,7 +221,7 @@ Repeating groups are like a cross between Groups and Fields.  Like a group, they
 ## Repeating Group Properties
 The only difference between creating a regular group and a repeating group is the presense of the repeating property, which is set to true.
 
-```
+```coffeescript
 group 'repeater', repeating:true
   .field 'first', value:1
   .field 'second', value:2
@@ -232,7 +232,7 @@ group 'repeater', repeating:true
 
 These functions are usually only called by pressing the groups buttons in the UI, but can be useful for setting up initial state.
 
-```
+```coffeescript
 r = group name:'repeater', title:'Choose 3 things', repeating:true
   .field 'thing', value:1
 
@@ -271,7 +271,7 @@ Any property that is possible to set on a field or group can be referenced later
 * **children** *array of group/field* - Groups have a list of all the groups and/or fields created directly within them.
 * **child()** - The child function allows you to drill down into child properties by name.  It can be used to find a child one level down at a time, or multiple levels my separating each level with a dot.  Fields have options instead of children, and although they don't have a name property they can be found by value.
 
-```
+```coffeescript
 group 'level1'
   .group 'level2'
     .field 'a', value:'stuff'
@@ -310,7 +310,7 @@ Tests are written in model code and evaluated every time the code changes.
 * **test()** - Pass a function that executes some tests.  To pass a test return nothing, but to fail you can throw and error or fail an assertion.
 * **assert()** - Pass a condition as a boolean and a message if that condition fails (is false).
 
-```
+```coffeescript
 field 'first'
 field 'second'
 
@@ -320,7 +320,7 @@ test ->
 
 More advanced tests can apply values to the form and test the form's output.  Multiple calls to test will not interfere with each other.
 
-```
+```coffeescript
 first =  field 'first'
 second = field 'second', dynamicValue: ->
   first.value + " is the word"

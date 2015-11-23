@@ -665,6 +665,7 @@ class ModelField extends ModelBase
     window?.formbuilderproxy?.getFromProxy {
       url: url
       method: @optionsFrom.method or 'get'
+      headerKey: @optionsFrom.headerKey
     }, (error, data) =>
       if error
         return exports.handleError makeErrorMessage @, 'optionsFrom', error

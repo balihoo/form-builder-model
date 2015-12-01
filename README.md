@@ -6,8 +6,10 @@ This model can then be rendered with ui components in the main [form-builder](ht
 
 # Typical Use
 
+The code is most easily obtained in the npm repositories under the package name 'balihoo-form-builder-model'.  After install, this code will require and use it.
+
 	var http = require('some http client');
-	var formbuilder = require('form-builder-model');
+	var formbuilder = require('balihoo-form-builder-model');
 	
 	http.get('<formbuilderurl>/<formid>/package', function(err, result) {
 	  var model = formbuilder.fromPackage(result.body);

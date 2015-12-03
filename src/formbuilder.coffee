@@ -586,11 +586,11 @@ class ModelField extends ModelBase
   initialize: ->
     @setDefault 'type', 'text'
     @setDefault 'options', []
-    @setDefault 'defaultValue', @get 'value' #determines control type, so keep separate from current value
-    if @get('defaultValue')?
-      @set('value', @get 'defaultValue')  #value may be overwritten by input data, so set even if exists
-    else
-      @clear() #clears value
+    @setDefault 'value',
+      if (@get 'type') is 'multiselect' then []
+      else if (@get 'type') is 'bool' then false
+      else ''
+    @setDefault 'defaultValue', @get 'value' #used for control type and clear()
     @set 'isValid', true
     @setDefault 'validators', []
     @setDefault 'onChangeHandlers', []
@@ -696,6 +696,7 @@ class ModelField extends ModelBase
     for opt in @options
       if opt.selected
         @addOptionValue opt.value
+    @defaultValue = @value
     #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
     @updateOptionsSelected()
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
@@ -791,11 +792,7 @@ class ModelField extends ModelBase
       @value
 
   clear: () ->
-    @set 'value',
-      if @defaultValue then @defaultValue
-      else if (@get 'type') is 'multiselect' then []
-      else if (@get 'type') is 'bool' then false
-      else ''
+    @value = @defaultValue
 
   applyData: (data, clear=false) ->
     @clear() if clear

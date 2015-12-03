@@ -864,12 +864,8 @@ ModelField = (function(superClass) {
     var ref, ref1;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
+    this.setDefault('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
     this.setDefault('defaultValue', this.get('value'));
-    if (this.get('defaultValue') != null) {
-      this.set('value', this.get('defaultValue'));
-    } else {
-      this.clear();
-    }
     this.set('isValid', true);
     this.setDefault('validators', []);
     this.setDefault('onChangeHandlers', []);
@@ -992,6 +988,7 @@ ModelField = (function(superClass) {
         this.addOptionValue(opt.value);
       }
     }
+    this.defaultValue = this.value;
     this.updateOptionsSelected();
     return this;
   };
@@ -1137,7 +1134,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.clear = function() {
-    return this.set('value', this.defaultValue ? this.defaultValue : (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    return this.value = this.defaultValue;
   };
 
   ModelField.prototype.applyData = function(data, clear) {

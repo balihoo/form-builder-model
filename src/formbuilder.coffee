@@ -114,6 +114,8 @@ exports.fromCode = (code, data, element, imports)->
 
   newRoot.applyData data
 
+  newRoot.renderTemplate data
+
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
   newRoot.setDirty newRoot.id, 'multiple'
@@ -527,6 +529,10 @@ class ModelGroup extends ModelBase
     for key, value of data
       @child(key)?.applyData value
 
+  renderTemplate: (data) ->
+    @children.forEach (child) ->
+      child.renderTemplate(data)
+
 ###
   Encapsulates a group of form objects that can be added or removed to the form together multiple times
 ###
@@ -595,6 +601,7 @@ class ModelField extends ModelBase
     @setDefault 'validators', []
     @setDefault 'onChangeHandlers', []
     @setDefault 'dynamicValue', null
+    @setDefault 'template', null
 
     super
 
@@ -603,7 +610,8 @@ class ModelField extends ModelBase
                      'bool', 'tree', 'color', 'select', 'multiselect', 'image']
       return exports.handleError "Bad field type: #{@type}"
 
-    @bindPropFunctions 'dynamicValue'
+    # Fields with a template porperty can't also have a dynamicValue property.
+    @bindPropFunctions 'dynamicValue' unless @template
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
     while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
@@ -764,7 +772,6 @@ class ModelField extends ModelBase
     for opt in @options
       opt.recalculateRelativeProperties()
 
-
   addOptionValue: (val) ->
     if @type is 'multiselect'
       if not (val in @value)
@@ -801,6 +808,12 @@ class ModelField extends ModelBase
     @clear() if clear
     if data?
       @value = data
+
+  renderTemplate: (data) ->
+    if @template
+      for child in @parent.value[0].children when child.name == @template
+        @applyData Mustache.render child.value, data
+        console.log @value
 
 class ModelTree extends ModelField
   initialize: ->

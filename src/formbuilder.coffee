@@ -114,8 +114,6 @@ exports.fromCode = (code, data, element, imports)->
 
   newRoot.applyData data
 
-  newRoot.renderTemplate data
-
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
   newRoot.setDirty newRoot.id, 'multiple'
@@ -434,6 +432,7 @@ class ModelGroup extends ModelBase
     @setDefault 'children', []
     @setDefault 'root', @
     @set 'isValid', true
+    @set 'data', null
 
     super
 
@@ -526,12 +525,9 @@ class ModelGroup extends ModelBase
 
   applyData: (data, clear=false) ->
     @clear() if clear
+    @data = data
     for key, value of data
       @child(key)?.applyData value
-
-  renderTemplate: (data) ->
-    @children.forEach (child) ->
-      child.renderTemplate(data)
 
 ###
   Encapsulates a group of form objects that can be added or removed to the form together multiple times
@@ -610,7 +606,7 @@ class ModelField extends ModelBase
                      'bool', 'tree', 'color', 'select', 'multiselect', 'image']
       return exports.handleError "Bad field type: #{@type}"
 
-    # Fields with a template porperty can't also have a dynamicValue property.
+    # Fields with a template property can't also have a dynamicValue property.
     @bindPropFunctions 'dynamicValue' unless @template
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
@@ -756,15 +752,18 @@ class ModelField extends ModelBase
         if validityMessage then break
       @validityMessage = validityMessage
       @set isValid: not validityMessage?
+    
+    if @template
+      @renderTemplate() if @shouldCallTriggerFunctionFor dirty, 'template'
+    else
+      #dynamic value
+      if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'
+        value = @dynamicValue()
 
-    #dynamic value
-    if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'
-      value = @dynamicValue()
+        if typeof value is 'function'
+          return exports.handleError "dynamicValue on field '#{@name}' returned a function"
 
-      if typeof value is 'function'
-        return exports.handleError "dynamicValue on field '#{@name}' returned a function"
-
-      @set 'value', value
+        @set 'value', value
 
     if typeof @optionsFrom?.url is 'function' and @shouldCallTriggerFunctionFor dirty, 'options'
       @getOptionsFrom()
@@ -809,11 +808,8 @@ class ModelField extends ModelBase
     if data?
       @value = data
 
-  renderTemplate: (data) ->
-    if @template
-      for child in @parent.value[0].children when child.name == @template
-        @applyData Mustache.render child.value, data
-        console.log @value
+  renderTemplate: () ->
+    @applyData Mustache.render @parent.child(@template).value, @root.data
 
 class ModelTree extends ModelField
   initialize: ->

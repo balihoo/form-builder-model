@@ -133,7 +133,6 @@ exports.fromCode = function(code, data, element, imports) {
     }
   })(null);
   newRoot.applyData(data);
-  newRoot.renderTemplate(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -585,6 +584,7 @@ ModelGroup = (function(superClass) {
     this.setDefault('children', []);
     this.setDefault('root', this);
     this.set('isValid', true);
+    this.set('data', null);
     return ModelGroup.__super__.initialize.apply(this, arguments);
   };
 
@@ -737,18 +737,13 @@ ModelGroup = (function(superClass) {
     if (clear) {
       this.clear();
     }
+    this.data = data;
     results = [];
     for (key in data) {
       value = data[key];
       results.push((ref = this.child(key)) != null ? ref.applyData(value) : void 0);
     }
     return results;
-  };
-
-  ModelGroup.prototype.renderTemplate = function(data) {
-    return this.children.forEach(function(child) {
-      return child.renderTemplate(data);
-    });
   };
 
   return ModelGroup;
@@ -1091,12 +1086,18 @@ ModelField = (function(superClass) {
         isValid: validityMessage == null
       });
     }
-    if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
-      value = this.dynamicValue();
-      if (typeof value === 'function') {
-        return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
+    if (this.template) {
+      if (this.shouldCallTriggerFunctionFor(dirty, 'template')) {
+        this.renderTemplate();
       }
-      this.set('value', value);
+    } else {
+      if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
+        value = this.dynamicValue();
+        if (typeof value === 'function') {
+          return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
+        }
+        this.set('value', value);
+      }
     }
     if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'options')) {
       this.getOptionsFrom();
@@ -1162,21 +1163,8 @@ ModelField = (function(superClass) {
     }
   };
 
-  ModelField.prototype.renderTemplate = function(data) {
-    var child, i, len, ref, results;
-    if (this.template) {
-      ref = this.parent.value[0].children;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        child = ref[i];
-        if (!(child.name === this.template)) {
-          continue;
-        }
-        this.applyData(Mustache.render(child.value, data));
-        results.push(console.log(this.value));
-      }
-      return results;
-    }
+  ModelField.prototype.renderTemplate = function() {
+    return this.applyData(Mustache.render(this.parent.child(this.template).value, this.root.data));
   };
 
   return ModelField;

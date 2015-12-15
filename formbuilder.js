@@ -133,6 +133,7 @@ exports.fromCode = function(code, data, element, imports) {
     }
   })(null);
   newRoot.applyData(data);
+  newRoot.renderTemplate(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -744,6 +745,12 @@ ModelGroup = (function(superClass) {
     return results;
   };
 
+  ModelGroup.prototype.renderTemplate = function(data) {
+    return this.children.forEach(function(child) {
+      return child.renderTemplate(data);
+    });
+  };
+
   return ModelGroup;
 
 })(ModelBase);
@@ -870,11 +877,14 @@ ModelField = (function(superClass) {
     this.setDefault('validators', []);
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
+    this.setDefault('template', null);
     ModelField.__super__.initialize.apply(this, arguments);
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
       return exports.handleError("Bad field type: " + this.type);
     }
-    this.bindPropFunctions('dynamicValue');
+    if (!this.template) {
+      this.bindPropFunctions('dynamicValue');
+    }
     while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
       this.value = this.value[0];
     }
@@ -1146,6 +1156,23 @@ ModelField = (function(superClass) {
     }
     if (data != null) {
       return this.value = data;
+    }
+  };
+
+  ModelField.prototype.renderTemplate = function(data) {
+    var child, i, len, ref, results;
+    if (this.template) {
+      ref = this.parent.value[0].children;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        child = ref[i];
+        if (!(child.name === this.template)) {
+          continue;
+        }
+        this.applyData(Mustache.render(child.value, data));
+        results.push(console.log(this.value));
+      }
+      return results;
     }
   };
 

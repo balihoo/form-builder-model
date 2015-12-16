@@ -1161,7 +1161,13 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.renderTemplate = function() {
-    return this.applyData(Mustache.render(this.parent.child(this.template).value, this.root.data));
+    var template;
+    if (typeof this.template === 'object') {
+      template = this.template.value;
+    } else {
+      template = this.parent.child(this.template).value;
+    }
+    return this.applyData(Mustache.render(template, this.root.data));
   };
 
   return ModelField;

@@ -806,7 +806,11 @@ class ModelField extends ModelBase
       @value = data
 
   renderTemplate: () ->
-    @applyData(Mustache.render(@parent.child(@template).value, @root.data))
+    if typeof @template is 'object'
+      template = @template.value
+    else
+      template = @parent.child(@template).value
+    @applyData(Mustache.render(template, @root.data))
 
 class ModelTree extends ModelField
   initialize: ->

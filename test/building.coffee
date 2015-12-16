@@ -25,6 +25,28 @@ describe 'fromCoffee', ->
     assert.strictEqual a.description, 'bar', 'model has the correct description'
     done()
     
+  it 'can build a field with a template', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', template:'a'""",
+      {a:'{{{city}}}'}
+    a = model.child 'a'
+    b = model.child 'b'
+    assert.strictEqual a.value, '{{{city}}}'
+    assert.strictEqual b.value, ''
+    done()
+
+  it 'can build a field with a template and render mustache', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', template:'a'""",
+      {a:'{{{city}}}', city:'Boise'}
+    a = model.child 'a'
+    b = model.child 'b'
+    assert.strictEqual a.value, '{{{city}}}'
+    assert.strictEqual b.value, 'Boise'
+    done()
+
   it 'can build a model that contains groups', (done) ->
     model = fb.fromCoffee """
       group 'g'

@@ -809,7 +809,7 @@ class ModelField extends ModelBase
       @value = data
 
   renderTemplate: () ->
-    @applyData Mustache.render @parent.child(@template).value, @root.data
+    @applyData(Mustache.render(@parent.child(@template).value, @root.data))
 
 class ModelTree extends ModelField
   initialize: ->

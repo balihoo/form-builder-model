@@ -91,30 +91,90 @@ describe 'getChanges', ->
       }
     ]
     done()
-  it 'handles fields not present in initial', (done) ->
-    model = fb.fromCoffee "field 'first', value:'one'\nfield 'second', value:'two'"
-    result = fb.getChanges model, {first:'one initial'}
-    assert.deepEqual result.changes.sort(sortChangeFunc), [
-      {
-        name: '/first'
-        title: 'first'
-        before: 'one initial'
-        after: 'one'
-      }
-    ]
-    done()
-  it 'handles fields not present in final', (done) ->
-    model = fb.fromCoffee "field 'first', value:'one'\nfield 'second', value:'two'"
-    result = fb.getChanges model, {first:'one initial', second:'two', third:'three'}
-    assert.deepEqual result.changes.sort(sortChangeFunc), [
-      {
-        name: '/first'
-        title: 'first'
-        before: 'one initial'
-        after: 'one'
-      }
-    ]
-    done()
+
+  ###
+    when default
+      current default, provided
+      initial default, provided, missing
+    when no default
+      current provided
+      initial provided, missing
+  ###
+  context 'when a field has a default value', ->
+    model = null
+    beforeEach -> model = fb.fromCoffee "field 'foo', value:'bar'"
+    it 'current is default, initial is default', ->
+      defaults = model.buildOutputData()
+      result = model.getChanges defaults
+      assert.deepEqual result.changes, []
+    it 'current is default, initial is provided', ->
+      result = model.getChanges {foo:'initial'}
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: 'initial'
+        after: 'bar'
+      }]
+    it 'current is default, initial is missing', ->
+      result = model.getChanges {}
+      assert.deepEqual result.changes, []
+    it 'current is provided, initial is default', ->
+      model.child('foo').value = 'after'
+      result = model.getChanges {foo:'bar'}
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: 'bar'
+        after: 'after'
+      }]
+    it 'current is provided, initial is provided', ->
+      model.child('foo').value = 'after'
+      result = model.getChanges {foo:'initial'}
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: 'initial'
+        after: 'after'
+      }]
+    it 'current is provided, initial is missing', ->
+      model.child('foo').value = 'after'
+      result = model.getChanges {}
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: 'bar'
+        after: 'after'
+      }]
+
+  context 'when a field has no default value', ->
+    model = null
+    beforeEach -> model = fb.fromCoffee "field 'foo'"
+
+    it 'current is provided, initial is provided', ->
+      model.child('foo').value = 'after'
+      result = model.getChanges foo:'initial'
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: 'initial'
+        after: 'after'
+      }]
+
+    it 'current is provided, initial is missing', ->
+      model.child('foo').value = 'after'
+      result = model.getChanges {}
+      assert.deepEqual result.changes, [{
+        name: '/foo'
+        title: 'foo'
+        before: ''
+        after: 'after'
+      }]
+
+  it 'ignores values that dont match a field', ->
+    model = fb.fromCoffee "field 'one', value:'first'"
+    result = model.getChanges twi:'second'
+    assert.deepEqual result.changes, []
+
   it 'handles multiselects (with array values)', (done) ->
     model = fb.fromCoffee "field 'sel', type:'multiselect'", sel:['one','two']
     result = fb.getChanges model, sel:['two','three']

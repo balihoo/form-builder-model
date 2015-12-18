@@ -737,7 +737,12 @@ ModelGroup = (function(superClass) {
     if (clear) {
       this.clear();
     }
-    this.data = data;
+    if (this.data) {
+      this.data = exports.mergeData(this.data, data);
+      this.recalculateRelativeProperties();
+    } else {
+      this.data = data;
+    }
     results = [];
     for (key in data) {
       value = data[key];
@@ -881,9 +886,7 @@ ModelField = (function(superClass) {
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
       return exports.handleError("Bad field type: " + this.type);
     }
-    if (!this.template) {
-      this.bindPropFunctions('dynamicValue');
-    }
+    this.bindPropFunctions('dynamicValue');
     while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
       this.value = this.value[0];
     }
@@ -1087,9 +1090,7 @@ ModelField = (function(superClass) {
       });
     }
     if (this.template) {
-      if (this.shouldCallTriggerFunctionFor(dirty, 'template')) {
-        this.renderTemplate();
-      }
+      this.renderTemplate();
     } else {
       if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
         value = this.dynamicValue();
@@ -1170,7 +1171,7 @@ ModelField = (function(superClass) {
     } else {
       template = this.parent.child(this.template).value;
     }
-    return this.applyData(Mustache.render(template, this.root.data));
+    return this.value = Mustache.render(template, this.root.data);
   };
 
   return ModelField;

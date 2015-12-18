@@ -99,7 +99,7 @@ describe 'applyData', ->
   it 'sets the value of template fields', (done) ->
     model = fb.fromCoffee """
       field 'a'
-      field 'b', template:'a'""",
+      field 'b', visible: false, template:'a'""",
       {a:'{{{city}}}'}
     assert.deepEqual model.buildOutputData(), {a:'{{{city}}}', b:''}
     model.applyData {city:'Boise'}

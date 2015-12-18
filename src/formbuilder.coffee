@@ -525,7 +525,13 @@ class ModelGroup extends ModelBase
 
   applyData: (data, clear=false) ->
     @clear() if clear
-    @data = data
+
+    if @data
+      @data = exports.mergeData @data, data
+      @recalculateRelativeProperties()
+    else
+      @data = data
+
     for key, value of data
       @child(key)?.applyData value
 
@@ -606,8 +612,7 @@ class ModelField extends ModelBase
                      'bool', 'tree', 'color', 'select', 'multiselect', 'image']
       return exports.handleError "Bad field type: #{@type}"
 
-    # Fields with a template property can't also have a dynamicValue property.
-    @bindPropFunctions 'dynamicValue' unless @template
+    @bindPropFunctions 'dynamicValue'
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
     while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
@@ -754,8 +759,9 @@ class ModelField extends ModelBase
       @validityMessage = validityMessage
       @set isValid: not validityMessage?
     
+    # Fields with a template property can't also have a dynamicValue property.
     if @template
-      @renderTemplate() if @shouldCallTriggerFunctionFor dirty, 'template'
+      @renderTemplate()
     else
       #dynamic value
       if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'
@@ -810,7 +816,7 @@ class ModelField extends ModelBase
       template = @template.value
     else
       template = @parent.child(@template).value
-    @applyData(Mustache.render(template, @root.data))
+    @value = Mustache.render template, @root.data
 
 class ModelTree extends ModelField
   initialize: ->

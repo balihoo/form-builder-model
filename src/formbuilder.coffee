@@ -483,6 +483,7 @@ class ModelGroup extends ModelBase
       path = path.split /[./]/
     name = path.shift()
     child = c for c in @children when c.name is name
+
     if path.length is 0
       child
     else
@@ -528,7 +529,7 @@ class ModelGroup extends ModelBase
 
     if @data
       @data = exports.mergeData @data, data
-      @recalculateRelativeProperties()
+      @trigger 'change'
     else
       @data = data
 
@@ -760,7 +761,7 @@ class ModelField extends ModelBase
       @set isValid: not validityMessage?
     
     # Fields with a template property can't also have a dynamicValue property.
-    if @template
+    if @template and @shouldCallTriggerFunctionFor dirty, 'value'
       @renderTemplate()
     else
       #dynamic value

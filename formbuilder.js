@@ -739,7 +739,7 @@ ModelGroup = (function(superClass) {
     }
     if (this.data) {
       this.data = exports.mergeData(this.data, data);
-      this.recalculateRelativeProperties();
+      this.trigger('change');
     } else {
       this.data = data;
     }
@@ -1089,7 +1089,7 @@ ModelField = (function(superClass) {
         isValid: validityMessage == null
       });
     }
-    if (this.template) {
+    if (this.template && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
       this.renderTemplate();
     } else {
       if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {

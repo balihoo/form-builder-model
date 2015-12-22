@@ -102,6 +102,14 @@ describe 'fromCoffee', ->
     assert.strictEqual model.child('a').value, 'first', 'applied first datum'
     assert.strictEqual model.child('b').value, 'second', 'applied second datum'
     done()
+
+  it 'can apply data to a model multiple times', (done) ->
+    model = fb.fromCoffee "field 'a', dynamicValue: -> data.b", b:'c'
+    a = model.child 'a'
+    assert.deepEqual model.buildOutputData(), a:'c'
+    model.applyData b:'d'
+    assert.deepEqual model.buildOutputData(), a:'d'
+    done()
     
   it 'uses default if no data is provided', (done) ->
     model = fb.fromCoffee "field 'a', value:'b'"

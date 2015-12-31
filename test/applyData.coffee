@@ -9,10 +9,22 @@ describe 'applyData', ->
     assert.deepEqual model.buildOutputData(), {first:'new one', second:'two'}
     done()
   it 'restores all initial values when clear=true', (done) ->
-    model = fb.fromCoffee "field 'first'\nfield 'second'", {first:'one',second:'two'}
+    model = fb.fromCoffee """
+        field 'first', defaultValue: 'default one'
+        field 'second'
+      """, {first:'one',second:'two'}
     assert.deepEqual model.buildOutputData(), {first:'one', second:'two'}
-    model.applyData {first:'new one'}, true
-    assert.deepEqual model.buildOutputData(), {first:'new one', second:''}
+    model.applyData {second:'new two'}, true
+    assert.deepEqual model.buildOutputData(), {first:'default one', second:'new two'}
+    done()
+  it 'clears initial values when clear=true and purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+        field 'first', defaultValue: 'default one'
+        field 'second'
+      """, {first:'one',second:'two'}
+    assert.deepEqual model.buildOutputData(), {first:'one', second:'two'}
+    model.applyData {second:'new two'}, true, true
+    assert.deepEqual model.buildOutputData(), {first:'', second:'new two'}
     done()
   it 'applies data to nested fields', (done) ->
     model = fb.fromCoffee """
@@ -75,6 +87,34 @@ describe 'applyData', ->
       container:
         second:'two'
         third: 'three'
+    }
+    done()
+  it 'clears nested values when clear=true and purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+        field 'first', value:'one'
+        group 'container'
+        .field 'second', value:'two'
+        .field 'third', value:'three'
+      """
+    model.applyData {
+      first: 'new one'
+      container:
+        third: 'new three'
+    }, true, true
+    assert.deepEqual model.buildOutputData(), {
+      first: 'new one'
+      container:
+        second: ''
+        third: 'new three'
+    }
+    model.applyData {
+      first: 'newer one'
+    }, true, true
+    assert.deepEqual model.buildOutputData(), {
+      first: 'newer one'
+      container:
+        second: ''
+        third: ''
     }
     done()
   it 'sets the value of repeating groups', (done) ->

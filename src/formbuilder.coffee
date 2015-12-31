@@ -70,7 +70,7 @@ exports.modelTests= []
 # data - initialization data (optional). Object or stringified object
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
-exports.fromCode = (code, data, element, imports)->
+exports.fromCode = (code, data, element, imports, purgeDefaults)->
   if typeof data is 'string'
     data = JSON.parse data
   runtime = false
@@ -142,8 +142,8 @@ exports.fromCode = (code, data, element, imports)->
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
 # and passes it to fromCode.
-exports.fromCoffee = (code, data, element, imports)->
-  return exports.fromCode (CoffeeScript.compile code), data, element, imports
+exports.fromCoffee = (code, data, element, imports, purgeDefaults=false)->
+  return exports.fromCode (CoffeeScript.compile code), data, element, imports, purgeDefaults
 
 # Build a model from a package object, consisting of
 # - formid (int or string)
@@ -519,11 +519,11 @@ class ModelGroup extends ModelBase
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
 
-  clear: () ->
-    child.clear() for child in @children
+  clear: (purgeDefaults=false) ->
+    child.clear purgeDefaults for child in @children
 
-  applyData: (data, clear=false) ->
-    @clear() if clear
+  applyData: (data, clear=false, purgeDefaults=false) ->
+    @clear purgeDefaults if clear
     for key, value of data
       @child(key)?.applyData value
 
@@ -554,17 +554,18 @@ class RepeatingModelGroup extends ModelGroup
     @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
 
-  clear: () ->
-    @value = @defaultValue
+  clear: (purgeDefaults=false) ->
+    @value = if purgeDefaults then [] else @defaultValue
 
-  applyData: (data, clear=false) ->
+  applyData: (data, clear=false, purgeDefaults=false) ->
+    #@clear purgeDefaults if clear or data?.length
     @set('value', []) if clear or data?.length
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data
       added = @add()
       for key,value of obj
-        added.child(key)?.applyData value
+        added.child(key)?.applyData value, clear, purgeDefaults
 
   add: ->
     clone = @cloneModel @root, ModelGroup
@@ -791,13 +792,18 @@ class ModelField extends ModelBase
     if @type isnt 'info'
       @value
 
-  clear: () ->
-    @value = @defaultValue
+  clear: (purgeDefaults=false) ->
+    if purgeDefaults
+      @value = switch @type
+        when 'multiselect' then []
+        when 'bool' then false
+        else ''
+    else
+      @value = @defaultValue
 
-  applyData: (data, clear=false) ->
-    @clear() if clear
-    if data?
-      @value = data
+  applyData: (data, clear=false, purgeDefaults=false) ->
+    @clear purgeDefaults if clear
+    @value = data if data?
 
 class ModelTree extends ModelField
   initialize: ->
@@ -846,8 +852,8 @@ class ModelTree extends ModelField
       @value.splice index, 1
       @trigger 'change'
 
-  clear: () ->
-    @value = @defaultValue
+  clear: (purgeDefaults=false) ->
+    @value = if purgeDefaults then [] else @defaultValue
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField
@@ -896,8 +902,8 @@ class ModelFieldImage extends ModelField
       val.thumbnailUrl is @value.thumbnailUrl and
       val.fileUrl is @value.fileUrl
 
-  clear: () ->
-    @value = @defaultValue
+  clear: (purgeDefaults=false) ->
+    @value = if purgeDefaults then {} else @defaultValue
 
 class ModelOption extends ModelBase
   initialize: ->

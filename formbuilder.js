@@ -82,7 +82,7 @@ runtime = false;
 
 exports.modelTests = [];
 
-exports.fromCode = function(code, data, element, imports) {
+exports.fromCode = function(code, data, element, imports, purgeDefaults) {
   var assert, newRoot, test;
   if (typeof data === 'string') {
     data = JSON.parse(data);
@@ -165,8 +165,11 @@ exports.fromCode = function(code, data, element, imports) {
   return newRoot;
 };
 
-exports.fromCoffee = function(code, data, element, imports) {
-  return exports.fromCode(CoffeeScript.compile(code), data, element, imports);
+exports.fromCoffee = function(code, data, element, imports, purgeDefaults) {
+  if (purgeDefaults == null) {
+    purgeDefaults = false;
+  }
+  return exports.fromCode(CoffeeScript.compile(code), data, element, imports, purgeDefaults);
 };
 
 exports.fromPackage = function(pkg, data, element) {
@@ -717,24 +720,30 @@ ModelGroup = (function(superClass) {
     return JSON.stringify(this.buildOutputData());
   };
 
-  ModelGroup.prototype.clear = function() {
+  ModelGroup.prototype.clear = function(purgeDefaults) {
     var child, i, len, ref, results;
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
     ref = this.children;
     results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       child = ref[i];
-      results.push(child.clear());
+      results.push(child.clear(purgeDefaults));
     }
     return results;
   };
 
-  ModelGroup.prototype.applyData = function(data, clear) {
+  ModelGroup.prototype.applyData = function(data, clear, purgeDefaults) {
     var key, ref, results, value;
     if (clear == null) {
       clear = false;
     }
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
     if (clear) {
-      this.clear();
+      this.clear(purgeDefaults);
     }
     results = [];
     for (key in data) {
@@ -800,14 +809,20 @@ RepeatingModelGroup = (function(superClass) {
     });
   };
 
-  RepeatingModelGroup.prototype.clear = function() {
-    return this.value = this.defaultValue;
+  RepeatingModelGroup.prototype.clear = function(purgeDefaults) {
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
+    return this.value = purgeDefaults ? [] : this.defaultValue;
   };
 
-  RepeatingModelGroup.prototype.applyData = function(data, clear) {
+  RepeatingModelGroup.prototype.applyData = function(data, clear, purgeDefaults) {
     var added, i, key, len, obj, results, value;
     if (clear == null) {
       clear = false;
+    }
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
     }
     if (clear || (data != null ? data.length : void 0)) {
       this.set('value', []);
@@ -821,7 +836,7 @@ RepeatingModelGroup = (function(superClass) {
         results1 = [];
         for (key in obj) {
           value = obj[key];
-          results1.push((ref = added.child(key)) != null ? ref.applyData(value) : void 0);
+          results1.push((ref = added.child(key)) != null ? ref.applyData(value, clear, purgeDefaults) : void 0);
         }
         return results1;
       })());
@@ -1133,16 +1148,35 @@ ModelField = (function(superClass) {
     }
   };
 
-  ModelField.prototype.clear = function() {
-    return this.value = this.defaultValue;
+  ModelField.prototype.clear = function(purgeDefaults) {
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
+    if (purgeDefaults) {
+      return this.value = (function() {
+        switch (this.type) {
+          case 'multiselect':
+            return [];
+          case 'bool':
+            return false;
+          default:
+            return '';
+        }
+      }).call(this);
+    } else {
+      return this.value = this.defaultValue;
+    }
   };
 
-  ModelField.prototype.applyData = function(data, clear) {
+  ModelField.prototype.applyData = function(data, clear, purgeDefaults) {
     if (clear == null) {
       clear = false;
     }
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
     if (clear) {
-      this.clear();
+      this.clear(purgeDefaults);
     }
     if (data != null) {
       return this.value = data;
@@ -1214,8 +1248,11 @@ ModelTree = (function(superClass) {
     }
   };
 
-  ModelTree.prototype.clear = function() {
-    return this.value = this.defaultValue;
+  ModelTree.prototype.clear = function(purgeDefaults) {
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
+    return this.value = purgeDefaults ? [] : this.defaultValue;
   };
 
   return ModelTree;
@@ -1286,8 +1323,11 @@ ModelFieldImage = (function(superClass) {
     return val.fileID === this.value.fileID && val.thumbnailUrl === this.value.thumbnailUrl && val.fileUrl === this.value.fileUrl;
   };
 
-  ModelFieldImage.prototype.clear = function() {
-    return this.value = this.defaultValue;
+  ModelFieldImage.prototype.clear = function(purgeDefaults) {
+    if (purgeDefaults == null) {
+      purgeDefaults = false;
+    }
+    return this.value = purgeDefaults ? {} : this.defaultValue;
   };
 
   return ModelFieldImage;

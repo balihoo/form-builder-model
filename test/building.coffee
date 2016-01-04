@@ -83,6 +83,19 @@ describe 'fromCoffee', ->
     }
     done()
 
+  it 'can applyData for mustache input in a reversed order', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData stuff:'candy'
+    model.applyData a:'I like {{{stuff}}}'
+    assert.deepEqual model.buildOutputData(), {
+      a:'I like {{{stuff}}}'
+      b:'I like candy'
+    }
+    done()
+
   it 'can build a model that contains groups', (done) ->
     model = fb.fromCoffee """
       group 'g'

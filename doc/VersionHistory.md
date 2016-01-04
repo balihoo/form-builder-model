@@ -1,5 +1,8 @@
 # Version History
 
+## 1.1.3
+- Added an additional test to verify that model data is properly merged each time applyData is called.
+
 ## 1.1.2
 - Added a new field property named "template". This new property abstracts mustache rendering away from form builder users by allowing them to define two related fields: one field that contains the mustache template and a second field that references the first field name in its template property. The second field will then output rendered mustache as its value.
 

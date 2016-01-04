@@ -3,4 +3,5 @@ test
 gulpfile.coffee
 .idea
 .npmignore
+.vscode
 coffeelint.json

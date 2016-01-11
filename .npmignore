@@ -1,5 +1,6 @@
 src
 test
+doc
 gulpfile.coffee
 .idea
 .npmignore

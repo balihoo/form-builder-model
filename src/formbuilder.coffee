@@ -123,6 +123,7 @@ exports.fromCode = (code, data, element, imports)->
       @recalculating = true
       @recalculateRelativeProperties()
       @recalculating = false
+      
   newRoot.recalculateCycle()
 
   newRoot.on 'change:isValid', ->
@@ -641,7 +642,6 @@ class ModelField extends ModelBase
       if typeof @optionsFrom.parseResults isnt 'function'
         return exports.handleError 'optionsFrom.parseResults must be a function'
       @optionsFrom.parseResults = @bindPropFunction 'optionsFrom.parseResults', @optionsFrom.parseResults
-      @getOptionsFrom()
 
     @updateOptionsSelected()
 
@@ -660,7 +660,7 @@ class ModelField extends ModelBase
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
 
-  getOptionsFrom: _.throttle ->
+  getOptionsFrom: ->
     return if !@optionsFrom?
     
     url =
@@ -684,7 +684,6 @@ class ModelField extends ModelBase
         return exports.handleError 'results of parseResults must be an array of option parameters'
       @options = []
       @option opt for opt in mappedResults
-  , 1000
 
   validityMessage: undefined
   field: (obj...) ->

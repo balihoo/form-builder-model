@@ -1,5 +1,8 @@
 # Version History
 
+## 1.1.4
+- Fix a bug with throttling multiple fields that fetch options from a url.
+
 ## 1.1.3
 - Added an additional test to verify that model data is properly merged each time applyData is called.
 

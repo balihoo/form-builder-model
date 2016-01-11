@@ -145,6 +145,7 @@ exports.fromCode = function(code, data, element, imports) {
     }
     return results;
   };
+  console.log('new root is done being built, now run recalculatRelativeProperties');
   newRoot.recalculateCycle();
   newRoot.on('change:isValid', function() {
     var e;
@@ -907,7 +908,6 @@ ModelField = (function(superClass) {
         return exports.handleError('optionsFrom.parseResults must be a function');
       }
       this.optionsFrom.parseResults = this.bindPropFunction('optionsFrom.parseResults', this.optionsFrom.parseResults);
-      this.getOptionsFrom();
     }
     this.updateOptionsSelected();
     this.on('change:value', function() {
@@ -932,7 +932,7 @@ ModelField = (function(superClass) {
     });
   };
 
-  ModelField.prototype.getOptionsFrom = _.throttle(function() {
+  ModelField.prototype.getOptionsFrom = function() {
     var ref, url;
     if (this.optionsFrom == null) {
       return;
@@ -965,7 +965,7 @@ ModelField = (function(superClass) {
         return results;
       };
     })(this)) : void 0 : void 0;
-  }, 1000);
+  };
 
   ModelField.prototype.validityMessage = void 0;
 

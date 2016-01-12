@@ -117,22 +117,104 @@ describe 'applyData', ->
         third: ''
     }
     done()
-  it 'sets the value of repeating groups', (done) ->
+  it 'applies data to a model group', (done) ->
     model = fb.fromCoffee """
-      group 'g', repeating:true
-      .field 'f'
-      """, {g:[
-        {f:'initial'}
-        {f:'starting'}
-      ]}
-    model.applyData {g:[
-      {f:'ending'}
-      {f:'final'}
-    ]}
-    assert.deepEqual model.buildOutputData(), {
-      g: [
-        {f:'ending'}
-        {f:'final'}
-      ]
-    }
+      group 'g'
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:{first:''}}
+    model.applyData {g:{first: 'fresh'}}
+    assert.deepEqual model.buildOutputData(), {g:{first:'fresh'}}
+    done()
+  it 'applies data to a repeating model group', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true
+      .field 'first'
+      """, {g:[{first:'initial'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'initial'}]}
+    done()
+  it 'restores a repeating model group to initial value', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    done()
+  it 'applies data over the intiial value in a repeating model group', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """, {g:[{first:'initial'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'initial'}]}
+    model.applyData {g:[{first: 'newer'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    done()
+  it 'applies data over the intiial value in a repeating model group when clear=true', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """, {g:[{first:'initial'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'initial'}]}
+    model.applyData {g:[{first: 'newer'}]}, true
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    done()
+  it 'applies data over the intiial value in a repeating model group when purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """, {g:[{first:'initial'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'initial'}]}
+    model.applyData {g:[{first: 'newer'}]}, false, true
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    done()
+  it 'applies data over the intiial value in a repeating model group when both clear and purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """, {g:[{first:'initial'}]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'initial'}]}
+    model.applyData {g:[{first: 'newer'}]}, true, true
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    done()
+  it 'does not change a repeating model group if no data is supplied', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    model.applyData {}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    done()
+  it 'restores intiial value in a repeating model group if no data is supplied and clear=true', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    model.applyData {g:[first:"newer"]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    model.applyData {}, true
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    done()
+  it 'clears s repeating model group if no data is supplied and both clear and purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    model.applyData {g:[first:"newer"]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    model.applyData {}, true, true
+    assert.deepEqual model.buildOutputData(), {g:[]}
+    done()
+  it 'does not change a repeating model group if no data is supplied and purgeDefaults=true but clear=false', (done) ->
+    model = fb.fromCoffee """
+      group 'g', repeating: true, value:[{first:'default'}]
+      .field 'first'
+      """
+    assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
+    model.applyData {g:[first:"newer"]}
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
+    model.applyData {}, false, true
+    assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
     done()

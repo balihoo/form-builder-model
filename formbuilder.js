@@ -132,7 +132,7 @@ exports.fromCode = function(code, data, element, imports, purgeDefaults) {
       return eval('"use strict";' + code);
     }
   })(null);
-  newRoot.applyData(data);
+  newRoot.applyData(data, true);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -770,8 +770,8 @@ RepeatingModelGroup = (function(superClass) {
   }
 
   RepeatingModelGroup.prototype.initialize = function() {
-    this.setDefault('value', []);
     this.setDefault('defaultValue', this.get('value'));
+    this.set('value', []);
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
   };
 
@@ -813,7 +813,12 @@ RepeatingModelGroup = (function(superClass) {
     if (purgeDefaults == null) {
       purgeDefaults = false;
     }
-    return this.value = purgeDefaults ? [] : this.defaultValue;
+    this.value = [];
+    if (!purgeDefaults) {
+      if (this.defaultValue) {
+        return this.applyData(this.defaultValue);
+      }
+    }
   };
 
   RepeatingModelGroup.prototype.applyData = function(data, clear, purgeDefaults) {
@@ -824,8 +829,12 @@ RepeatingModelGroup = (function(superClass) {
     if (purgeDefaults == null) {
       purgeDefaults = false;
     }
-    if (clear || (data != null ? data.length : void 0)) {
-      this.set('value', []);
+    if (data) {
+      this.value = [];
+    } else {
+      if (clear) {
+        this.clear(purgeDefaults);
+      }
     }
     results = [];
     for (i = 0, len = data.length; i < len; i++) {

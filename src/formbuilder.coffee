@@ -112,7 +112,8 @@ exports.fromCode = (code, data, element, imports, purgeDefaults)->
     else
       eval '"use strict";' + code
 
-  newRoot.applyData data
+  # clear=true pre-builds repeating model groups with default values
+  newRoot.applyData data, true
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
@@ -524,6 +525,7 @@ class ModelGroup extends ModelBase
 
   applyData: (data, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
+
     for key, value of data
       @child(key)?.applyData value
 
@@ -532,8 +534,8 @@ class ModelGroup extends ModelBase
 ###
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
-    @setDefault 'value', []
-    @setDefault('defaultValue', @get 'value')
+    @setDefault 'defaultValue', @get 'value'
+    @set 'value', []
 
     super
 
@@ -555,11 +557,18 @@ class RepeatingModelGroup extends ModelGroup
       super instance #build output data of each value as a group, not repeating group
 
   clear: (purgeDefaults=false) ->
-    @value = if purgeDefaults then [] else @defaultValue
+    @value = []
+
+    unless purgeDefaults
+      @applyData @defaultValue if @defaultValue
 
   applyData: (data, clear=false, purgeDefaults=false) ->
-    #@clear purgeDefaults if clear or data?.length
-    @set('value', []) if clear or data?.length
+    # always clear out and replace the model value when data is supplied
+    if data
+      @value = []
+    else
+      @clear purgeDefaults if clear
+
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
     for obj in data

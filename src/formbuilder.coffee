@@ -70,7 +70,7 @@ exports.modelTests= []
 # data - initialization data (optional). Object or stringified object
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
-exports.fromCode = (code, data, element, imports, purgeDefaults)->
+exports.fromCode = (code, data, element, imports)->
   if typeof data is 'string'
     data = JSON.parse data
   runtime = false
@@ -143,8 +143,8 @@ exports.fromCode = (code, data, element, imports, purgeDefaults)->
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
 # and passes it to fromCode.
-exports.fromCoffee = (code, data, element, imports, purgeDefaults=false)->
-  return exports.fromCode (CoffeeScript.compile code), data, element, imports, purgeDefaults
+exports.fromCoffee = (code, data, element, imports)->
+  return exports.fromCode (CoffeeScript.compile code), data, element, imports
 
 # Build a model from a package object, consisting of
 # - formid (int or string)

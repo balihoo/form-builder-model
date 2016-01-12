@@ -145,7 +145,6 @@ exports.fromCode = function(code, data, element, imports) {
     }
     return results;
   };
-  console.log('new root is done being built, now run recalculatRelativeProperties');
   newRoot.recalculateCycle();
   newRoot.on('change:isValid', function() {
     var e;
@@ -1063,7 +1062,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.recalculateRelativeProperties = function() {
-    var dirty, i, j, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
+    var dirty, i, j, len, len1, opt, ref, ref1, results, validator, validityMessage, value;
     dirty = this.dirty;
     ModelField.__super__.recalculateRelativeProperties.apply(this, arguments);
     if (this.shouldCallTriggerFunctionFor(dirty, 'isValid')) {
@@ -1097,13 +1096,13 @@ ModelField = (function(superClass) {
         this.set('value', value);
       }
     }
-    if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'options')) {
+    if (this.shouldCallTriggerFunctionFor(dirty, 'options')) {
       this.getOptionsFrom();
     }
-    ref2 = this.options;
+    ref1 = this.options;
     results = [];
-    for (j = 0, len1 = ref2.length; j < len1; j++) {
-      opt = ref2[j];
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      opt = ref1[j];
       results.push(opt.recalculateRelativeProperties());
     }
     return results;

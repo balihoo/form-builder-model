@@ -772,7 +772,7 @@ class ModelField extends ModelBase
 
         @set 'value', value
 
-    if typeof @optionsFrom?.url is 'function' and @shouldCallTriggerFunctionFor dirty, 'options'
+    if @shouldCallTriggerFunctionFor dirty, 'options'
       @getOptionsFrom()
 
     for opt in @options

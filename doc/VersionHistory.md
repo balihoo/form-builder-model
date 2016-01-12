@@ -1,5 +1,8 @@
 # Version History
 
+## 1.1.5
+- Further bugfix for getting options from url where string urls were never fetched.
+
 ## 1.1.4
 - Fix a bug with throttling multiple fields that fetch options from a url.
 

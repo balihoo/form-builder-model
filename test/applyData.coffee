@@ -196,7 +196,7 @@ describe 'applyData', ->
     model.applyData {}, true
     assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
     done()
-  it 'clears s repeating model group if no data is supplied and both clear and purgeDefaults=true', (done) ->
+  it 'clears a repeating model group if no data is supplied and both clear and purgeDefaults=true', (done) ->
     model = fb.fromCoffee """
       group 'g', repeating: true, value:[{first:'default'}]
       .field 'first'

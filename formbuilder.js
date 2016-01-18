@@ -57,8 +57,8 @@ exports.handleError = function(err) {
   throw err;
 };
 
-exports.applyData = function(modelObject, data) {
-  return modelObject.applyData(data);
+exports.applyData = function(modelObject, data, clear, purgeDefaults) {
+  return modelObject.applyData(data, clear, purgeDefaults);
 };
 
 exports.mergeData = function(a, b) {
@@ -82,7 +82,7 @@ runtime = false;
 
 exports.modelTests = [];
 
-exports.fromCode = function(code, data, element, imports, purgeDefaults) {
+exports.fromCode = function(code, data, element, imports) {
   var assert, newRoot, test;
   if (typeof data === 'string') {
     data = JSON.parse(data);
@@ -165,11 +165,8 @@ exports.fromCode = function(code, data, element, imports, purgeDefaults) {
   return newRoot;
 };
 
-exports.fromCoffee = function(code, data, element, imports, purgeDefaults) {
-  if (purgeDefaults == null) {
-    purgeDefaults = false;
-  }
-  return exports.fromCode(CoffeeScript.compile(code), data, element, imports, purgeDefaults);
+exports.fromCoffee = function(code, data, element, imports) {
+  return exports.fromCode(CoffeeScript.compile(code), data, element, imports);
 };
 
 exports.fromPackage = function(pkg, data, element) {

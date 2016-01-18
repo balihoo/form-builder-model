@@ -45,8 +45,8 @@ exports.handleError = (err) ->
   throw err
 
 # Apply initialization data to the model.
-exports.applyData = (modelObject, data) ->
-  modelObject.applyData data
+exports.applyData = (modelObject, data, clear, purgeDefaults) ->
+  modelObject.applyData data, clear, purgeDefaults
 
 # Merge data objects together.  Should have the same result
 # as if applyData was called sequentially.

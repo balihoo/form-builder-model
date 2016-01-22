@@ -871,7 +871,7 @@ ModelField = (function(superClass) {
     var ref, ref1;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
-    this.setDefault('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    this.setDefault('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : (this.get('type')) === 'button' ? null : '');
     this.setDefault('defaultValue', this.get('value'));
     this.set('isValid', true);
     this.setDefault('validators', []);
@@ -879,11 +879,11 @@ ModelField = (function(superClass) {
     this.setDefault('dynamicValue', null);
     this.setDefault('template', null);
     ModelField.__super__.initialize.apply(this, arguments);
-    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
+    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image' && ref !== 'button') {
       return exports.handleError("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
-    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
+    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree') && (this.type !== 'button')) {
       this.value = this.value[0];
     }
     if (typeof this.value === 'string' && (this.type === 'multiselect')) {

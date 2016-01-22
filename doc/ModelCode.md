@@ -187,6 +187,8 @@ There are many types of fields that can be created.  If a certain type allows ex
 * **time** - Select a time of day including optional timezone.
     * **timezones** *array of string* - Time fields may optionally include a timezone, chosen from a list provided with this property.
 * **date** - Select a date.
+* **button** - A button that a user can click on to trigger some event.
+    * **tooltip** *string* - The text to be displayed when a user hovers over the button.
 
 
 # Groups<a name="groups"></a>

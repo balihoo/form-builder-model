@@ -1,5 +1,8 @@
 # Version History
 
+## 1.2.0
+- Added a new button field type to support triggering events within rendered forms. This allows applications that are embedding forms to listen for and react to form-defined events.
+
 ## 1.1.5
 - Further bugfix for getting options from url where string urls were never fetched.
 

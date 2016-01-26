@@ -83,7 +83,7 @@ runtime = false;
 exports.modelTests = [];
 
 exports.fromCode = function(code, data, element, imports) {
-  var assert, newRoot, test;
+  var assert, emit, newRoot, test;
   if (typeof data === 'string') {
     data = JSON.parse(data);
   }
@@ -98,6 +98,11 @@ exports.fromCode = function(code, data, element, imports) {
     }
     if (!bool) {
       return exports.handleError(message);
+    }
+  };
+  emit = function(name, context) {
+    if (element) {
+      return element.trigger($.Event(name, context));
     }
   };
   newRoot = new ModelGroup();
@@ -120,6 +125,7 @@ exports.fromCode = function(code, data, element, imports) {
         test: test,
         assert: assert,
         Mustache: Mustache,
+        emit: emit,
         _: _,
         console: {
           log: function() {},
@@ -156,7 +162,7 @@ exports.fromCode = function(code, data, element, imports) {
   });
   newRoot.on('recalculate', function() {
     if (element) {
-      return element.trigger($.Event('change'));
+      return emit('change');
     }
   });
   newRoot.trigger('change:isValid');

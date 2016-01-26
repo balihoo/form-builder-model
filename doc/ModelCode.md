@@ -189,7 +189,19 @@ There are many types of fields that can be created.  If a certain type allows ex
 * **date** - Select a date.
 * **button** - A button that a user can click on to trigger some event.
     * **tooltip** *string* - The text to be displayed when a user hovers over the button.
+    * **onClick** *function* - The emit function to be triggered when the button is clicked. This should contain a minimum of the event name and can also contain an optional object with event context.
+```coffeescript
+# Button field type example
+g = group 'Ad Choices'
 
+g.field 'Select an Ad', 'ad_selection', type: 'select'
+  .option 'Ad 1'
+  .option 'Ad 2'
+
+g.field 'Edit', 'edit', type: 'button', tooltip: 'Click here to edit the selected ad',
+  onClick: ->
+    emit 'edit_ad', value: g.child('ad_selection').value
+```
 
 # Groups<a name="groups"></a>
 Groups are used to contain other form objects, including fields and other groups.  In this way, a hierarchical form may be created that generates a full JSON output that can match a required structure.  Groups will also serve to visually segregate sections of a form.

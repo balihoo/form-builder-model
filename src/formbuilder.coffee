@@ -79,6 +79,9 @@ exports.fromCode = (code, data, element, imports)->
   assert = (bool, message="A model test has failed") ->
     if not bool then exports.handleError message
 
+  emit = (name, context) ->
+    element.trigger($.Event(name, context)) if element
+
   newRoot = new ModelGroup()
   #dont recalculate until model is done creating
   newRoot.recalculating = false
@@ -103,6 +106,7 @@ exports.fromCode = (code, data, element, imports)->
         test: test
         assert: assert
         Mustache: Mustache
+        emit: emit
         _:_
         console:#console functions don't break, but don't do anything
           log:->
@@ -133,8 +137,7 @@ exports.fromCode = (code, data, element, imports)->
       element.trigger e
 
   newRoot.on 'recalculate', ->
-    if element
-      element.trigger $.Event 'change'
+    emit 'change' if element
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
 

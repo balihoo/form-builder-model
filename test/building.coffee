@@ -25,6 +25,77 @@ describe 'fromCoffee', ->
     assert.strictEqual a.description, 'bar', 'model has the correct description'
     done()
     
+  it 'can build a field with a template string', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a'""",
+      {a:'{{{city}}}'}
+    a = model.child 'a'
+    b = model.child 'b'
+    assert.strictEqual a.value, '{{{city}}}'
+    assert.strictEqual b.value, ''
+    done()
+
+  it 'can build a field with a template object', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:root.child('a')""",
+      {a:'{{{city}}}'}
+    a = model.child 'a'
+    b = model.child 'b'
+    assert.strictEqual a.value, '{{{city}}}'
+    assert.strictEqual b.value, ''
+    done()
+
+  it 'can build a field with a template and render mustache', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a'""",
+      {a:'{{{city}}}', city:'Boise'}
+    a = model.child 'a'
+    b = model.child 'b'
+    assert.strictEqual a.value, '{{{city}}}'
+    assert.strictEqual b.value, 'Boise'
+    done()
+
+  it 'can build a field with a template string to child object', (done) ->
+    model = fb.fromCoffee """
+      group 'a'
+        .field 'b'
+      field 'c', visible: false, template:'a.b'""",
+      {a:{b:'{{{stuff}}}'}, stuff:'candy'}
+    b = model.child 'a.b'
+    c = model.child 'c'
+    assert.strictEqual b.value, '{{{stuff}}}'
+    assert.strictEqual c.value, 'candy'
+    done()
+
+  it 'can applyData for mustache input', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData a:'I like {{{stuff}}}'
+    model.applyData stuff:'candy'
+    assert.deepEqual model.buildOutputData(), {
+      a:'I like {{{stuff}}}'
+      b:'I like candy'
+    }
+    done()
+
+  it 'can applyData for mustache input in a reversed order', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData stuff:'candy'
+    model.applyData a:'I like {{{stuff}}}'
+    assert.deepEqual model.buildOutputData(), {
+      a:'I like {{{stuff}}}'
+      b:'I like candy'
+    }
+    done()
+
   it 'can build a model that contains groups', (done) ->
     model = fb.fromCoffee """
       group 'g'
@@ -43,6 +114,14 @@ describe 'fromCoffee', ->
       b: 'second')
     assert.strictEqual model.child('a').value, 'first', 'applied first datum'
     assert.strictEqual model.child('b').value, 'second', 'applied second datum'
+    done()
+
+  it 'can apply data to a model multiple times', (done) ->
+    model = fb.fromCoffee "field 'a', dynamicValue: -> data.b", b:'c'
+    a = model.child 'a'
+    assert.deepEqual model.buildOutputData(), a:'c'
+    model.applyData b:'d'
+    assert.deepEqual model.buildOutputData(), a:'d'
     done()
     
   it 'uses default if no data is provided', (done) ->

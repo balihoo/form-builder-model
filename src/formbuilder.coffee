@@ -124,6 +124,7 @@ exports.fromCode = (code, data, element, imports)->
       @recalculating = true
       @recalculateRelativeProperties()
       @recalculating = false
+      
   newRoot.recalculateCycle()
 
   newRoot.on 'change:isValid', ->
@@ -433,6 +434,7 @@ class ModelGroup extends ModelBase
     @setDefault 'children', []
     @setDefault 'root', @
     @set 'isValid', true
+    @set 'data', null
 
     super
 
@@ -483,6 +485,7 @@ class ModelGroup extends ModelBase
       path = path.split /[./]/
     name = path.shift()
     child = c for c in @children when c.name is name
+
     if path.length is 0
       child
     else
@@ -525,6 +528,12 @@ class ModelGroup extends ModelBase
 
   applyData: (data, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
+
+    if @data
+      @data = exports.mergeData @data, data
+      @trigger 'change'
+    else
+      @data = data
 
     for key, value of data
       @child(key)?.applyData value
@@ -605,6 +614,7 @@ class ModelField extends ModelBase
     @setDefault 'validators', []
     @setDefault 'onChangeHandlers', []
     @setDefault 'dynamicValue', null
+    @setDefault 'template', null
 
     super
 
@@ -641,7 +651,6 @@ class ModelField extends ModelBase
       if typeof @optionsFrom.parseResults isnt 'function'
         return exports.handleError 'optionsFrom.parseResults must be a function'
       @optionsFrom.parseResults = @bindPropFunction 'optionsFrom.parseResults', @optionsFrom.parseResults
-      @getOptionsFrom()
 
     @updateOptionsSelected()
 
@@ -660,7 +669,7 @@ class ModelField extends ModelBase
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
 
-  getOptionsFrom: _.throttle ->
+  getOptionsFrom: ->
     return if !@optionsFrom?
     
     url =
@@ -684,7 +693,6 @@ class ModelField extends ModelBase
         return exports.handleError 'results of parseResults must be an array of option parameters'
       @options = []
       @option opt for opt in mappedResults
-  , 1000
 
   validityMessage: undefined
   field: (obj...) ->
@@ -759,22 +767,25 @@ class ModelField extends ModelBase
         if validityMessage then break
       @validityMessage = validityMessage
       @set isValid: not validityMessage?
+    
+    # Fields with a template property can't also have a dynamicValue property.
+    if @template and @shouldCallTriggerFunctionFor dirty, 'value'
+      @renderTemplate()
+    else
+      #dynamic value
+      if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'
+        value = @dynamicValue()
 
-    #dynamic value
-    if typeof @dynamicValue is 'function' and @shouldCallTriggerFunctionFor dirty, 'value'
-      value = @dynamicValue()
+        if typeof value is 'function'
+          return exports.handleError "dynamicValue on field '#{@name}' returned a function"
 
-      if typeof value is 'function'
-        return exports.handleError "dynamicValue on field '#{@name}' returned a function"
+        @set 'value', value
 
-      @set 'value', value
-
-    if typeof @optionsFrom?.url is 'function' and @shouldCallTriggerFunctionFor dirty, 'options'
+    if @shouldCallTriggerFunctionFor dirty, 'options'
       @getOptionsFrom()
 
     for opt in @options
       opt.recalculateRelativeProperties()
-
 
   addOptionValue: (val) ->
     if @type is 'multiselect'
@@ -813,6 +824,13 @@ class ModelField extends ModelBase
   applyData: (data, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
     @value = data if data?
+
+  renderTemplate: () ->
+    if typeof @template is 'object'
+      template = @template.value
+    else
+      template = @parent.child(@template).value
+    @value = Mustache.render template, @root.data
 
 class ModelTree extends ModelField
   initialize: ->

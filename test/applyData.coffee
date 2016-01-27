@@ -218,3 +218,15 @@ describe 'applyData', ->
     model.applyData {}, false, true
     assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
     done()
+  it 'sets the value of template fields', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a'""",
+      {a:'{{{city}}}'}
+    assert.deepEqual model.buildOutputData(), {a:'{{{city}}}', b:''}
+    model.applyData {city:'Boise'}
+    assert.deepEqual model.buildOutputData(), {a:'{{{city}}}', b:'Boise'}
+    model.applyData {a:'{{{state}}}'}
+    model.applyData {state:'ID'}
+    assert.deepEqual model.buildOutputData(), {a:'{{{state}}}', b:'ID'}
+    done()

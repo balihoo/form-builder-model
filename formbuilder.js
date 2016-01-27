@@ -584,6 +584,7 @@ ModelGroup = (function(superClass) {
     this.setDefault('children', []);
     this.setDefault('root', this);
     this.set('isValid', true);
+    this.set('data', null);
     return ModelGroup.__super__.initialize.apply(this, arguments);
   };
 
@@ -742,6 +743,12 @@ ModelGroup = (function(superClass) {
     if (clear) {
       this.clear(purgeDefaults);
     }
+    if (this.data) {
+      this.data = exports.mergeData(this.data, data);
+      this.trigger('change');
+    } else {
+      this.data = data;
+    }
     results = [];
     for (key in data) {
       value = data[key];
@@ -891,6 +898,7 @@ ModelField = (function(superClass) {
     this.setDefault('validators', []);
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
+    this.setDefault('template', null);
     ModelField.__super__.initialize.apply(this, arguments);
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
       return exports.handleError("Bad field type: " + this.type);
@@ -920,7 +928,6 @@ ModelField = (function(superClass) {
         return exports.handleError('optionsFrom.parseResults must be a function');
       }
       this.optionsFrom.parseResults = this.bindPropFunction('optionsFrom.parseResults', this.optionsFrom.parseResults);
-      this.getOptionsFrom();
     }
     this.updateOptionsSelected();
     this.on('change:value', function() {
@@ -945,7 +952,7 @@ ModelField = (function(superClass) {
     });
   };
 
-  ModelField.prototype.getOptionsFrom = _.throttle(function() {
+  ModelField.prototype.getOptionsFrom = function() {
     var ref, url;
     if (this.optionsFrom == null) {
       return;
@@ -978,7 +985,7 @@ ModelField = (function(superClass) {
         return results;
       };
     })(this)) : void 0 : void 0;
-  }, 1000);
+  };
 
   ModelField.prototype.validityMessage = void 0;
 
@@ -1076,7 +1083,7 @@ ModelField = (function(superClass) {
   };
 
   ModelField.prototype.recalculateRelativeProperties = function() {
-    var dirty, i, j, len, len1, opt, ref, ref1, ref2, results, validator, validityMessage, value;
+    var dirty, i, j, len, len1, opt, ref, ref1, results, validator, validityMessage, value;
     dirty = this.dirty;
     ModelField.__super__.recalculateRelativeProperties.apply(this, arguments);
     if (this.shouldCallTriggerFunctionFor(dirty, 'isValid')) {
@@ -1099,20 +1106,24 @@ ModelField = (function(superClass) {
         isValid: validityMessage == null
       });
     }
-    if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
-      value = this.dynamicValue();
-      if (typeof value === 'function') {
-        return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
+    if (this.template && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
+      this.renderTemplate();
+    } else {
+      if (typeof this.dynamicValue === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'value')) {
+        value = this.dynamicValue();
+        if (typeof value === 'function') {
+          return exports.handleError("dynamicValue on field '" + this.name + "' returned a function");
+        }
+        this.set('value', value);
       }
-      this.set('value', value);
     }
-    if (typeof ((ref1 = this.optionsFrom) != null ? ref1.url : void 0) === 'function' && this.shouldCallTriggerFunctionFor(dirty, 'options')) {
+    if (this.shouldCallTriggerFunctionFor(dirty, 'options')) {
       this.getOptionsFrom();
     }
-    ref2 = this.options;
+    ref1 = this.options;
     results = [];
-    for (j = 0, len1 = ref2.length; j < len1; j++) {
-      opt = ref2[j];
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      opt = ref1[j];
       results.push(opt.recalculateRelativeProperties());
     }
     return results;
@@ -1187,6 +1198,16 @@ ModelField = (function(superClass) {
     if (data != null) {
       return this.value = data;
     }
+  };
+
+  ModelField.prototype.renderTemplate = function() {
+    var template;
+    if (typeof this.template === 'object') {
+      template = this.template.value;
+    } else {
+      template = this.parent.child(this.template).value;
+    }
+    return this.value = Mustache.render(template, this.root.data);
   };
 
   return ModelField;

@@ -1,5 +1,8 @@
 # Version History
 
+## 1.2.1
+- Default build data to an empty object to prevent NPE in model code that references this data.
+
 ## 1.2.0
 - Added optional purgeDefaults parameter to the clear functions to allow all values to be cleared instead of reseting to default values.
 

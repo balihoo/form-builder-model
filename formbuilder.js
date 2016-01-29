@@ -84,6 +84,7 @@ exports.modelTests = [];
 
 exports.fromCode = function(code, data, element, imports) {
   var assert, newRoot, test;
+  data || (data = {});
   if (typeof data === 'string') {
     data = JSON.parse(data);
   }
@@ -204,9 +205,7 @@ exports.fromPackage = function(pkg, data, element) {
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
   }
-  if (data != null) {
-    pkg.data = _.extend(pkg.data || {}, data);
-  }
+  pkg.data = _.extend(pkg.data || {}, data || {});
   return buildModelWithRecursiveImports(pkg, element);
 };
 

@@ -71,6 +71,7 @@ exports.modelTests= []
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
 exports.fromCode = (code, data, element, imports)->
+  data or= {}
   if typeof data is 'string'
     data = JSON.parse data
   runtime = false
@@ -179,8 +180,8 @@ exports.fromPackage = (pkg, data, element) ->
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
-  if data?
-    pkg.data = _.extend pkg.data or {}, data
+  #data could be in the package and/or as a separate parameter.  Extend them together.
+  pkg.data = _.extend pkg.data or {}, data or {}
   return buildModelWithRecursiveImports pkg, element
 
 exports.getChanges = (modelAfter, beforeData) ->

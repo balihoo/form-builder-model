@@ -1,5 +1,8 @@
 # Version History
 
+## 1.2.0
+- Added optional purgeDefaults parameter to the clear functions to allow all values to be cleared instead of reseting to default values.
+
 ## 1.1.5
 - Further bugfix for getting options from url where string urls were never fetched.
 

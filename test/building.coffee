@@ -129,6 +129,11 @@ describe 'fromCoffee', ->
     assert.strictEqual model.child('a').value, 'b', 'uses default value'
     done()
     
+  it 'tolerates undefiend data when referenced in model', (done) ->
+    model = fb.fromCoffee "field 'a', value:data.foo"
+    assert.strictEqual model.child('a').value, '', 'uses empty when value missing in data'
+    done()
+    
 describe 'fromPackage', ->
   it 'can build a model with no data', (done) ->
     pkg =
@@ -222,4 +227,14 @@ describe 'fromPackage', ->
       catch e
         e.message
     assert.strictEqual result, "cheeseburger is not defined"
+    done()
+    
+  it 'tolerates undefined data when referenced in model', (done) ->
+    pkg =
+      formid: 1
+      forms: [
+        {formid: 1, model: "field 'a', value:data.foo"}
+      ]
+    model = fb.fromPackage pkg
+    assert.strictEqual model.child('a').value, '', 'uses empty when value missing in data'
     done()

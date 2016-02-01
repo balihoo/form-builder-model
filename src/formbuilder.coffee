@@ -80,6 +80,9 @@ exports.fromCode = (code, data, element, imports)->
   assert = (bool, message="A model test has failed") ->
     if not bool then exports.handleError message
 
+  emit = (name, context) ->
+    element.trigger($.Event(name, context)) if element
+
   newRoot = new ModelGroup()
   #dont recalculate until model is done creating
   newRoot.recalculating = false
@@ -104,6 +107,7 @@ exports.fromCode = (code, data, element, imports)->
         test: test
         assert: assert
         Mustache: Mustache
+        emit: emit
         _:_
         console:#console functions don't break, but don't do anything
           log:->
@@ -135,8 +139,7 @@ exports.fromCode = (code, data, element, imports)->
       element.trigger e
 
   newRoot.on 'recalculate', ->
-    if element
-      element.trigger $.Event 'change'
+    emit 'change' if element
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
 
@@ -609,6 +612,7 @@ class ModelField extends ModelBase
     @setDefault 'value',
       if (@get 'type') is 'multiselect' then []
       else if (@get 'type') is 'bool' then false
+      else if (@get 'type') is 'button' then null
       else ''
     @setDefault 'defaultValue', @get 'value' #used for control type and clear()
     @set 'isValid', true
@@ -621,13 +625,13 @@ class ModelField extends ModelBase
 
     #difficult to catch bad types at render time.  error here instead
     if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
-                     'bool', 'tree', 'color', 'select', 'multiselect', 'image']
+                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'button']
       return exports.handleError "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
 
     # multiselects are arrays, others are strings.  If typeof value doesn't match, convert it.
-    while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree')
+    while (Array.isArray @value) and (@type isnt 'multiselect') and (@type isnt 'tree') and (@type isnt 'button')
       @value = @value[0]
 
     if typeof @value is 'string' and (@type is 'multiselect')

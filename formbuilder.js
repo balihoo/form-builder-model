@@ -83,7 +83,7 @@ runtime = false;
 exports.modelTests = [];
 
 exports.fromCode = function(code, data, element, imports) {
-  var assert, newRoot, test;
+  var assert, emit, newRoot, test;
   data || (data = {});
   if (typeof data === 'string') {
     data = JSON.parse(data);
@@ -99,6 +99,11 @@ exports.fromCode = function(code, data, element, imports) {
     }
     if (!bool) {
       return exports.handleError(message);
+    }
+  };
+  emit = function(name, context) {
+    if (element) {
+      return element.trigger($.Event(name, context));
     }
   };
   newRoot = new ModelGroup();
@@ -121,6 +126,7 @@ exports.fromCode = function(code, data, element, imports) {
         test: test,
         assert: assert,
         Mustache: Mustache,
+        emit: emit,
         _: _,
         console: {
           log: function() {},
@@ -157,7 +163,7 @@ exports.fromCode = function(code, data, element, imports) {
   });
   newRoot.on('recalculate', function() {
     if (element) {
-      return element.trigger($.Event('change'));
+      return emit('change');
     }
   });
   newRoot.trigger('change:isValid');
@@ -891,7 +897,7 @@ ModelField = (function(superClass) {
     var ref, ref1;
     this.setDefault('type', 'text');
     this.setDefault('options', []);
-    this.setDefault('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : '');
+    this.setDefault('value', (this.get('type')) === 'multiselect' ? [] : (this.get('type')) === 'bool' ? false : (this.get('type')) === 'button' ? null : '');
     this.setDefault('defaultValue', this.get('value'));
     this.set('isValid', true);
     this.setDefault('validators', []);
@@ -899,11 +905,11 @@ ModelField = (function(superClass) {
     this.setDefault('dynamicValue', null);
     this.setDefault('template', null);
     ModelField.__super__.initialize.apply(this, arguments);
-    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image') {
+    if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image' && ref !== 'button') {
       return exports.handleError("Bad field type: " + this.type);
     }
     this.bindPropFunctions('dynamicValue');
-    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree')) {
+    while ((Array.isArray(this.value)) && (this.type !== 'multiselect') && (this.type !== 'tree') && (this.type !== 'button')) {
       this.value = this.value[0];
     }
     if (typeof this.value === 'string' && (this.type === 'multiselect')) {

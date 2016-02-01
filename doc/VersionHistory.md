@@ -1,5 +1,8 @@
 # Version History
 
+## 1.3.0
+- Added a new button field type to support triggering events within rendered forms. This allows applications that are embedding forms to listen for and react to form-defined events.
+
 ## 1.2.1
 - Default build data to an empty object to prevent NPE in model code that references this data.
 

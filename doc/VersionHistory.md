@@ -1,7 +1,13 @@
 # Version History
 
-## 1.2.0
+## 1.3.0
 - Added a new button field type to support triggering events within rendered forms. This allows applications that are embedding forms to listen for and react to form-defined events.
+
+## 1.2.1
+- Default build data to an empty object to prevent NPE in model code that references this data.
+
+## 1.2.0
+- Added optional purgeDefaults parameter to the clear functions to allow all values to be cleared instead of reseting to default values.
 
 ## 1.1.5
 - Further bugfix for getting options from url where string urls were never fetched.

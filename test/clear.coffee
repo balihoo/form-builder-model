@@ -61,14 +61,25 @@ describe 'clear', ->
     done()
   it 'restores a repeating group to its initial value', (done) ->
     model = fb.fromCoffee """
-        group 'g', repeating:true
-        .field 'f', value:'initial'
+        group 'g', repeating:true, value: [f:'initial']
+        .field 'f'
       """
-    assert.deepEqual model.buildOutputData(), g:[]
-    model.child('g').add()
     assert.deepEqual model.buildOutputData(), g:[f:'initial']
+    model.child('g').add()
+    assert.deepEqual model.buildOutputData(), g:[{f:'initial'},{f:''}]
     model.child('g').clear()
     assert.deepEqual model.buildOutputData(), g:[f:'initial']
+    done()
+  it 'clears a repeating group to when purgeDefaults=true', (done) ->
+    model = fb.fromCoffee """
+        group 'g', repeating:true, value: [f:'initial']
+        .field 'f'
+      """
+    assert.deepEqual model.buildOutputData(), g:[f:'initial']
+    model.child('g').add()
+    assert.deepEqual model.buildOutputData(), g:[{f:'initial'},{f:''}]
+    model.child('g').clear(true)
+    assert.deepEqual model.buildOutputData(), g:[]
     done()
   it 'restores an image field to its initial value', (done) ->
     model = fb.fromCoffee """

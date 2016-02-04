@@ -118,7 +118,7 @@ exports.fromCode = (code, data, element, imports)->
       eval '"use strict";' + code
 
   # clear=true pre-builds repeating model groups with default values
-  newRoot.applyData data, true
+  newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
@@ -531,7 +531,12 @@ class ModelGroup extends ModelBase
     child.clear purgeDefaults for child in @children
 
   applyData: (data, clear=false, purgeDefaults=false) ->
-    @clear purgeDefaults if clear
+    if not clear and not purgeDefaults
+      # Reset repeating model group to defaults before applying data
+      for child in @children
+        child.clear purgeDefaults if child.repeating
+    else if clear
+      @clear purgeDefaults
 
     if @data
       @data = exports.mergeData @data, data

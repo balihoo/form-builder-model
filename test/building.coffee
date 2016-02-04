@@ -238,3 +238,11 @@ describe 'fromPackage', ->
     model = fb.fromPackage pkg
     assert.strictEqual model.child('a').value, '', 'uses empty when value missing in data'
     done()
+
+  it 'retains values set in model code (not just defaults)', (done) ->
+    model = fb.fromCoffee """
+      foo = field 'foo'
+      foo.value = 'bar'
+    """
+    assert.strictEqual model.child('foo').value, 'bar'
+    done()

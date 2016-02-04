@@ -139,7 +139,7 @@ exports.fromCode = function(code, data, element, imports) {
       return eval('"use strict";' + code);
     }
   })(null);
-  newRoot.applyData(data, true);
+  newRoot.applyData(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -738,14 +738,22 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.applyData = function(data, clear, purgeDefaults) {
-    var key, ref, results, value;
+    var child, i, key, len, ref, ref1, results, value;
     if (clear == null) {
       clear = false;
     }
     if (purgeDefaults == null) {
       purgeDefaults = false;
     }
-    if (clear) {
+    if (!clear && !purgeDefaults) {
+      ref = this.children;
+      for (i = 0, len = ref.length; i < len; i++) {
+        child = ref[i];
+        if (child.repeating) {
+          child.clear(purgeDefaults);
+        }
+      }
+    } else if (clear) {
       this.clear(purgeDefaults);
     }
     if (this.data) {
@@ -757,7 +765,7 @@ ModelGroup = (function(superClass) {
     results = [];
     for (key in data) {
       value = data[key];
-      results.push((ref = this.child(key)) != null ? ref.applyData(value) : void 0);
+      results.push((ref1 = this.child(key)) != null ? ref1.applyData(value) : void 0);
     }
     return results;
   };

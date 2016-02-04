@@ -117,7 +117,6 @@ exports.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
-  # clear=true pre-builds repeating model groups with default values
   newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot

@@ -117,6 +117,8 @@ exports.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
+  newRoot.postBuild()
+
   newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
@@ -257,6 +259,8 @@ class ModelBase extends Backbone.Model
 
       @root.setDirty @id, ch
       @root.recalculateCycle()
+
+  postBuild: ->
 
   setDefault: (field, val) ->
     if not @get(field)?
@@ -441,6 +445,9 @@ class ModelGroup extends ModelBase
 
     super
 
+  postBuild: ->
+    child.postBuild() for child in @children
+
   field: (fieldParams...) ->
     fieldObject = @buildParamObject fieldParams, ['title', 'name', 'type', 'value']
 
@@ -530,12 +537,7 @@ class ModelGroup extends ModelBase
     child.clear purgeDefaults for child in @children
 
   applyData: (data, clear=false, purgeDefaults=false) ->
-    if not clear and not purgeDefaults
-      # Reset repeating model group to defaults before applying data
-      for child in @children
-        child.clear purgeDefaults if child.repeating
-    else if clear
-      @clear purgeDefaults
+    @clear purgeDefaults if clear
 
     if @data
       @data = exports.mergeData @data, data
@@ -551,10 +553,13 @@ class ModelGroup extends ModelBase
 ###
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
-    @setDefault 'defaultValue', @get 'value'
+    @setDefault 'defaultValue', (if @get 'value' then @get 'value' else [])
     @set 'value', []
 
     super
+
+  postBuild: ->
+    @clear() # Apply the defaultValue for the repeating model group after it has been built
 
   setDirty: (id, whatChanged) ->
     val.setDirty id, whatChanged for val in @value
@@ -677,6 +682,8 @@ class ModelField extends ModelBase
       # must be *select if options present
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
+
+  postBuild: ->
 
   getOptionsFrom: ->
     return if !@optionsFrom?

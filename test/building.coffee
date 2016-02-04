@@ -246,3 +246,16 @@ describe 'fromPackage', ->
     """
     assert.strictEqual model.child('foo').value, 'bar'
     done()
+
+  it 'does not clear repeating groups if no data supplied', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      group 'b', repeating:true
+      .field 'c'
+    """
+    assert.deepEqual model.buildOutputData(), {a:'', b:[]}
+    model.applyData b:[c:'c value']
+    assert.deepEqual model.buildOutputData(), {a:'', b:[c:'c value']}
+    model.applyData a:'a value'
+    assert.deepEqual model.buildOutputData(), {a:'a value', b:[c:'c value']}
+    done()

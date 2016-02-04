@@ -139,6 +139,7 @@ exports.fromCode = function(code, data, element, imports) {
       return eval('"use strict";' + code);
     }
   })(null);
+  newRoot.postBuild();
   newRoot.applyData(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
@@ -324,6 +325,8 @@ ModelBase = (function(superClass) {
       return this.root.recalculateCycle();
     });
   };
+
+  ModelBase.prototype.postBuild = function() {};
 
   ModelBase.prototype.setDefault = function(field, val) {
     if (this.get(field) == null) {
@@ -593,6 +596,17 @@ ModelGroup = (function(superClass) {
     return ModelGroup.__super__.initialize.apply(this, arguments);
   };
 
+  ModelGroup.prototype.postBuild = function() {
+    var child, i, len, ref, results;
+    ref = this.children;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
+      results.push(child.postBuild());
+    }
+    return results;
+  };
+
   ModelGroup.prototype.field = function() {
     var fieldObject, fieldParams, fld;
     fieldParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
@@ -738,22 +752,14 @@ ModelGroup = (function(superClass) {
   };
 
   ModelGroup.prototype.applyData = function(data, clear, purgeDefaults) {
-    var child, i, key, len, ref, ref1, results, value;
+    var key, ref, results, value;
     if (clear == null) {
       clear = false;
     }
     if (purgeDefaults == null) {
       purgeDefaults = false;
     }
-    if (!clear && !purgeDefaults) {
-      ref = this.children;
-      for (i = 0, len = ref.length; i < len; i++) {
-        child = ref[i];
-        if (child.repeating) {
-          child.clear(purgeDefaults);
-        }
-      }
-    } else if (clear) {
+    if (clear) {
       this.clear(purgeDefaults);
     }
     if (this.data) {
@@ -765,7 +771,7 @@ ModelGroup = (function(superClass) {
     results = [];
     for (key in data) {
       value = data[key];
-      results.push((ref1 = this.child(key)) != null ? ref1.applyData(value) : void 0);
+      results.push((ref = this.child(key)) != null ? ref.applyData(value) : void 0);
     }
     return results;
   };
@@ -787,9 +793,13 @@ RepeatingModelGroup = (function(superClass) {
   }
 
   RepeatingModelGroup.prototype.initialize = function() {
-    this.setDefault('defaultValue', this.get('value'));
+    this.setDefault('defaultValue', (this.get('value') ? this.get('value') : []));
     this.set('value', []);
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
+  };
+
+  RepeatingModelGroup.prototype.postBuild = function() {
+    return this.clear();
   };
 
   RepeatingModelGroup.prototype.setDirty = function(id, whatChanged) {
@@ -964,6 +974,8 @@ ModelField = (function(superClass) {
       }
     });
   };
+
+  ModelField.prototype.postBuild = function() {};
 
   ModelField.prototype.getOptionsFrom = function() {
     var ref, url;

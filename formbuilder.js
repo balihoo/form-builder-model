@@ -139,7 +139,8 @@ exports.fromCode = function(code, data, element, imports) {
       return eval('"use strict";' + code);
     }
   })(null);
-  newRoot.applyData(data, true);
+  newRoot.postBuild();
+  newRoot.applyData(data);
   newRoot.getChanges = exports.getChanges.bind(null, newRoot);
   newRoot.setDirty(newRoot.id, 'multiple');
   newRoot.recalculateCycle = function() {
@@ -324,6 +325,8 @@ ModelBase = (function(superClass) {
       return this.root.recalculateCycle();
     });
   };
+
+  ModelBase.prototype.postBuild = function() {};
 
   ModelBase.prototype.setDefault = function(field, val) {
     if (this.get(field) == null) {
@@ -593,6 +596,17 @@ ModelGroup = (function(superClass) {
     return ModelGroup.__super__.initialize.apply(this, arguments);
   };
 
+  ModelGroup.prototype.postBuild = function() {
+    var child, i, len, ref, results;
+    ref = this.children;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
+      results.push(child.postBuild());
+    }
+    return results;
+  };
+
   ModelGroup.prototype.field = function() {
     var fieldObject, fieldParams, fld;
     fieldParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
@@ -779,9 +793,13 @@ RepeatingModelGroup = (function(superClass) {
   }
 
   RepeatingModelGroup.prototype.initialize = function() {
-    this.setDefault('defaultValue', this.get('value'));
+    this.setDefault('defaultValue', this.get('value') || []);
     this.set('value', []);
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
+  };
+
+  RepeatingModelGroup.prototype.postBuild = function() {
+    return this.clear();
   };
 
   RepeatingModelGroup.prototype.setDirty = function(id, whatChanged) {

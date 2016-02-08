@@ -117,8 +117,9 @@ exports.fromCode = (code, data, element, imports)->
     else
       eval '"use strict";' + code
 
-  # clear=true pre-builds repeating model groups with default values
-  newRoot.applyData data, true
+  newRoot.postBuild()
+
+  newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
 
@@ -258,6 +259,8 @@ class ModelBase extends Backbone.Model
 
       @root.setDirty @id, ch
       @root.recalculateCycle()
+
+  postBuild: ->
 
   setDefault: (field, val) ->
     if not @get(field)?
@@ -442,6 +445,9 @@ class ModelGroup extends ModelBase
 
     super
 
+  postBuild: ->
+    child.postBuild() for child in @children
+
   field: (fieldParams...) ->
     fieldObject = @buildParamObject fieldParams, ['title', 'name', 'type', 'value']
 
@@ -547,10 +553,13 @@ class ModelGroup extends ModelBase
 ###
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
-    @setDefault 'defaultValue', @get 'value'
+    @setDefault 'defaultValue', @get('value') or []
     @set 'value', []
 
     super
+
+  postBuild: ->
+    @clear() # Apply the defaultValue for the repeating model group after it has been built
 
   setDirty: (id, whatChanged) ->
     val.setDirty id, whatChanged for val in @value

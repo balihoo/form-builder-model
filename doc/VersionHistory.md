@@ -1,5 +1,8 @@
 # Version History
 
+## 1.3.1
+- Fix a bug that caused values being set in the model code to be cleared out. Values defined in the model code should be treated as default values.
+
 ## 1.3.0
 - Added a new button field type to support triggering events within rendered forms. This allows applications that are embedding forms to listen for and react to form-defined events.
 

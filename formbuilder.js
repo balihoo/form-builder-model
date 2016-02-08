@@ -793,7 +793,7 @@ RepeatingModelGroup = (function(superClass) {
   }
 
   RepeatingModelGroup.prototype.initialize = function() {
-    this.setDefault('defaultValue', (this.get('value') ? this.get('value') : []));
+    this.setDefault('defaultValue', this.get('value') || []);
     this.set('value', []);
     return RepeatingModelGroup.__super__.initialize.apply(this, arguments);
   };
@@ -974,8 +974,6 @@ ModelField = (function(superClass) {
       }
     });
   };
-
-  ModelField.prototype.postBuild = function() {};
 
   ModelField.prototype.getOptionsFrom = function() {
     var ref, url;

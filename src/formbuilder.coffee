@@ -553,7 +553,7 @@ class ModelGroup extends ModelBase
 ###
 class RepeatingModelGroup extends ModelGroup
   initialize: ->
-    @setDefault 'defaultValue', (if @get 'value' then @get 'value' else [])
+    @setDefault 'defaultValue', @get('value') or []
     @set 'value', []
 
     super
@@ -682,8 +682,6 @@ class ModelField extends ModelBase
       # must be *select if options present
       if @options.length > 0 and not (@type in ['select', 'multiselect'])
         @type = 'select'
-
-  postBuild: ->
 
   getOptionsFrom: ->
     return if !@optionsFrom?

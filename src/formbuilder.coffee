@@ -906,15 +906,11 @@ class ModelFieldImage extends ModelField
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super
 
-    #companyID is required.  If it doesn't exist, throw an error
-    if @allowUpload and !@companyID?
-      return exports.handleError "required property 'companyID' missing for image field '#{@name}'"
-
   # Override behaviors different from other fields.
 
   option: (optionParams...) ->
     optionObject = @buildParamObject optionParams, ['fileID', 'fileUrl', 'thumbnailUrl']
-    optionObject.title = @fileID
+    optionObject.fileID ?= optionObject.fileUrl
     optionObject.thumbnailUrl ?= optionObject.fileUrl
     optionObject.value = {
       fileID: optionObject.fileID

@@ -168,12 +168,12 @@ There are many types of fields that can be created.  If a certain type allows ex
 * **multiselect** - The same as select except the user may select more than one option.
 * **image** - The user selects an image from available choices or optionally can upload their own image.  
     * **allowUpload** *bool* - Set to true to allow users to upload their own local images.  Default: false.
-    * **companyID** *int or string** - Uploaded images must belong to a certain company in Marketer.  If allowUpload is true, this property is required.
+    * **companyID** *int or string** - Images may be uploaded to Marketer or the Form Builder DAM.  The presence of this property indicates that images should go to Marketer and will be stored under this company.  If absent, images will be stored in the Form Builder DAM.
     * **imagesPerPage** *int* - Number of images to show on each page of the image carousel.  Default: 4
     
     The options of an image field are not a simple title and value, but rather an object containing image properties.
     
-    * **fileID** *int* - The file ID, usually used to reference the file ID in Marketer.
+    * **fileID** *int* - The file ID, usually used to reference the file ID in Marketer.  This property is not required.
     * **fileUrl** *string* - The hosted location of the full sized image, which will be used when fulfilling this form.
     * **thumbnailUrl** *string* - Optional thumbnail to speed up the image picker control. Default: same as fileUrl.  This url must be accessible by those viewing the form!
     

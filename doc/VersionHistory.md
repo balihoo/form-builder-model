@@ -1,7 +1,7 @@
 # Version History
 
 ## 1.3.2
-- Images with allowUpload:true no longer require the companyID property. The presence of this property indicates that images shoudl be uploaded to Marketer under the given companyID, while its absence indicates that images should be uploaded to Marketer.
+- Images with allowUpload:true no longer require the companyID property. The presence of this property indicates that images shoudl be uploaded to Marketer under the given companyID, while its absence indicates that images should be uploaded to Form Builder.
 
 ## 1.3.1
 - Fix a bug that caused values being set in the model code to be cleared out. Values defined in the model code should be treated as default values.

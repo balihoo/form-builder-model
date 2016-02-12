@@ -1321,17 +1321,16 @@ ModelFieldImage = (function(superClass) {
     this.setDefault('allowUpload', false);
     this.setDefault('imagesPerPage', 4);
     this.set('optionsChanged', false);
-    ModelFieldImage.__super__.initialize.apply(this, arguments);
-    if (this.allowUpload && (this.companyID == null)) {
-      return exports.handleError("required property 'companyID' missing for image field '" + this.name + "'");
-    }
+    return ModelFieldImage.__super__.initialize.apply(this, arguments);
   };
 
   ModelFieldImage.prototype.option = function() {
     var optionObject, optionParams;
     optionParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     optionObject = this.buildParamObject(optionParams, ['fileID', 'fileUrl', 'thumbnailUrl']);
-    optionObject.title = this.fileID;
+    if (optionObject.fileID == null) {
+      optionObject.fileID = optionObject.fileUrl;
+    }
     if (optionObject.thumbnailUrl == null) {
       optionObject.thumbnailUrl = optionObject.fileUrl;
     }

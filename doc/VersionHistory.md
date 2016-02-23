@@ -1,5 +1,8 @@
 # Version History
 
+## 1.3.3
+- Fix a bug where adding an option with selected:true to an image field did not set the field's value to that option.
+
 ## 1.3.2
 - Images with allowUpload:true no longer require the companyID property. The presence of this property indicates that images shoudl be uploaded to Marketer under the given companyID, while its absence indicates that images should be uploaded to Form Builder.
 

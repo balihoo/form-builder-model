@@ -24,8 +24,54 @@ describe 'fields', ->
       foo.option 'another'
       assert.deepEqual foo.defaultValue, ['baz']
       foo.option 'yet another', selected:true
-      assert.deepEqual foo.defaultValue, ['baz', 'yet another']
-
+      assert.deepEqual foo.defaultValue, ['baz', 'yet another']    
+    it "adds selected options to an image field's defaultValue", ->
+      model = fb.fromCoffee "field 'foo', type:'image'"
+      foo = model.child 'foo'
+      assert.deepEqual foo.defaultValue, {}
+      foo.option {
+        fileID: 'fileID value1'
+        fileUrl: 'fileUrl value1'
+        thumbnailUrl: 'thumbnailUrl value1'
+      }
+      assert.deepEqual foo.defaultValue, {}
+      newOpt = {
+        fileID: 'fileID value2'
+        fileUrl: 'fileUrl value2'
+        thumbnailUrl: 'thumbnailUrl value2'
+        selected:true
+      }
+      foo.option newOpt
+      delete newOpt.selected
+      # sets default value
+      assert.deepEqual foo.defaultValue, newOpt
+      # and sets current value
+      assert.deepEqual foo.value, newOpt
+      foo.option {
+        fileID: 'fileID value3'
+        fileUrl: 'fileUrl value3'
+        thumbnailUrl: 'thumbnailUrl value3'
+      }
+      assert.deepEqual foo.defaultValue, newOpt
+      assert.deepEqual foo.value, newOpt
+    it 'triggers recalculation in other fields', ->
+      model = fb.fromCoffee """
+        a = field 'a', type:'select'
+        field 'b', dynamicValue: -> a.options.length
+      """
+      model.child('a').option 'first'
+      assert.strictEqual model.child('b').value, 1
+    it 'triggers recalculation in other fields for image types', ->
+      model = fb.fromCoffee """
+              a = field 'a', type:'image'
+              field 'b', dynamicValue: -> a.options.length
+            """
+      model.child('a').option {
+        fileID: 'fileID value'
+        fileUrl: 'fileUrl value'
+        thumbnailUrl: 'thumbnailUrl value'
+      }
+      assert.strictEqual model.child('b').value, 1
   describe '.cloneModel()', ->
     cloneAndCompareField = (foo) ->
       fooClone = foo.cloneModel()

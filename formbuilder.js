@@ -1028,7 +1028,7 @@ ModelField = (function(superClass) {
     var i, len, opt, optionObject, optionParams, ref, ref1;
     optionParams = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     optionObject = this.buildParamObject(optionParams, ['title', 'value', 'selected']);
-    if (!((ref = this.type) === 'select' || ref === 'multiselect')) {
+    if (!((ref = this.type) === 'select' || ref === 'multiselect' || ref === 'image')) {
       this.type = 'select';
     }
     this.options = this.options.concat(new ModelOption(optionObject));
@@ -1339,10 +1339,8 @@ ModelFieldImage = (function(superClass) {
       fileUrl: optionObject.fileUrl,
       thumbnailUrl: optionObject.thumbnailUrl
     };
-    this.options.push(new ModelOption(optionObject));
     this.optionsChanged = true;
-    this.trigger('change');
-    return this;
+    return ModelFieldImage.__super__.option.call(this, optionObject);
   };
 
   ModelFieldImage.prototype.child = function(fileID) {

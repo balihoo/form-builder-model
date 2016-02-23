@@ -719,7 +719,7 @@ class ModelField extends ModelBase
     optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
 
     # when adding an option to a field, make sure it is a *select type
-    if not (@type in ['select','multiselect'])
+    if not (@type in ['select','multiselect','image'])
       @type = 'select'
 
     @options = @options.concat new ModelOption optionObject #assign rather than push to trigger correctly
@@ -917,10 +917,8 @@ class ModelFieldImage extends ModelField
       fileUrl: optionObject.fileUrl
       thumbnailUrl: optionObject.thumbnailUrl
     }
-    @options.push new ModelOption optionObject
-    @optionsChanged = true
-    @trigger 'change'
-    @
+    @optionsChanged = true #required to reinit the carousel in the ui
+    super optionObject
 
   # image values are objects, so lookup children by fileid instead
   child: (fileID) ->

@@ -629,6 +629,7 @@ class ModelField extends ModelBase
     @setDefault 'onChangeHandlers', []
     @setDefault 'dynamicValue', null
     @setDefault 'template', null
+    @setDefault 'autocomplete', null
 
     super
 

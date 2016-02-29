@@ -922,6 +922,7 @@ ModelField = (function(superClass) {
     this.setDefault('onChangeHandlers', []);
     this.setDefault('dynamicValue', null);
     this.setDefault('template', null);
+    this.setDefault('autocomplete', null);
     ModelField.__super__.initialize.apply(this, arguments);
     if ((ref = this.type) !== 'info' && ref !== 'text' && ref !== 'url' && ref !== 'email' && ref !== 'tel' && ref !== 'time' && ref !== 'date' && ref !== 'textarea' && ref !== 'bool' && ref !== 'tree' && ref !== 'color' && ref !== 'select' && ref !== 'multiselect' && ref !== 'image' && ref !== 'button') {
       return exports.handleError("Bad field type: " + this.type);

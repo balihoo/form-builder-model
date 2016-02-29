@@ -107,7 +107,16 @@ field 'Getting Options Remotely', optionsFrom:
 field 'a' # Input may include mustache variables such as {{{document.address.city}}}
 field 'b', visible: false, template: 'a' # This field's output is the rendered value of field 'a'
 ```
-      
+
+* **autocomplete** *object* - A user may type "@" or "{{" to trigger an autocomplete selection.  Further text will limit the choices to those that start with that text.  Upon selecting an autocomplete choice, the trigger and search will be replaced with that autocomplete value.
+  The parameter to this property is an object with a single key "list", the value of which is an object with any key:value pairs.  Each key will be an option displayed in the autocomplete, and the corresponding value will be used in the field value when selected.
+
+```coffeescript
+field 'a', autocomplete: list:
+  City: "{{document.address.city}}"
+  State: "{{document.address.state}}"
+```
+
 # Field Functions
 Call these functions to alter a current field in some way.
 

@@ -1,5 +1,8 @@
 # Version History
 
+## 1.4.1
+- When applying a value to a field with options, make sure that value is among that field's options.  This was an issue in the UI specifically when a new image was uploaded to an image field, then that form was reloaded with that previous value.  The field had the correct value, but it did not show in the rendered field.
+
 ## 1.4.0
 - Add autocomplete field property.
 

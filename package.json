@@ -1,6 +1,6 @@
 {
   "name": "balihoo-form-builder-model",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",
@@ -12,6 +12,7 @@
     "jiff":"0.7.2"
   },
   "devDependencies": {
+    "coffeelint":"1.11.1",
     "gulp": "^3.8.10",
     "gulp-coffee": "^2.2.0",
     "gulp-coffeelint": "^0.5.0",

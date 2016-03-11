@@ -836,9 +836,23 @@ class ModelField extends ModelBase
     else
       @value = @defaultValue
 
+  ensureValueInOptions: ->
+    return unless @type in ['select','multiselect','image']
+    if typeof @value is 'string'
+      existingOption = o for o in @options when o.value is @value
+      unless existingOption
+        @option @value
+    else if Array.isArray @value
+      for v in @value
+        existingOption = o for o in @options when o.value is v
+        unless existingOption
+          @option v
+
   applyData: (data, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
-    @value = data if data?
+    if data?
+      @value = data
+      @ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'
@@ -940,6 +954,12 @@ class ModelFieldImage extends ModelField
 
   clear: (purgeDefaults=false) ->
     @value = if purgeDefaults then {} else @defaultValue
+
+  ensureValueInOptions: ->
+    existingOption = o for o in @options when o.attributes.fileID is @value.fileID
+    unless existingOption
+      @option @value
+
 
 class ModelOption extends ModelBase
   initialize: ->

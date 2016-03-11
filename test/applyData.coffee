@@ -230,3 +230,49 @@ describe 'applyData', ->
     model.applyData {state:'ID'}
     assert.deepEqual model.buildOutputData(), {a:'{{{state}}}', b:'ID'}
     done()
+
+  describe "ensure that any field with options contains it's value in those options", ->
+    it 'adds when missing in select field', ->
+      model = fb.fromCoffee """
+        field 'f'
+        .option 'first'
+      """, {f:'second'}
+      assert.strictEqual model.child('f').options.length, 2
+    it 'doesnt add when not missing in select field', ->
+      model = fb.fromCoffee """
+        field 'f'
+        .option 'first'
+      """, {f:'first'}
+      assert.strictEqual model.child('f').options.length, 1
+    it 'adds when missing in multiselect fields', ->
+      model = fb.fromCoffee """
+        field 'f', type:'multiselect'
+        .option 'first'
+      """, {f:'second'}
+      assert.strictEqual model.child('f').options.length, 2
+    it 'doesnt add when not missing in multiselect field', ->
+      model = fb.fromCoffee """
+        field 'f', type:'multiselect'
+        .option 'first'
+      """, {f:'first'}
+      assert.strictEqual model.child('f').options.length, 1
+    it 'adds the value as an option to image fields', ->
+      model = fb.fromCoffee """
+        field 'f', type:'image'
+        .option
+          fileID: 1
+          fileUrl: 'url1'
+          fileThumbnail: 'thumb1'
+      """, {f:{fileID:2, fileUrl:'url2', fileThumbnail:'thumb2'}}
+      assert.strictEqual model.child('f').options.length, 2
+      assert.strictEqual model.child('f').options[1].fileID, 2
+    it 'doesnt add when not missing in image field', ->
+      model = fb.fromCoffee """
+        field 'f', type:'image'
+        .option
+          fileID: 1
+          fileUrl: 'url1'
+          fileThumbnail: 'thumb1'
+      """, {f:{fileID:1, fileUrl:'', fileThumbnail:''}}
+      assert.strictEqual model.child('f').options.length, 1
+      assert.strictEqual model.child('f').options[0].fileUrl, 'url1'

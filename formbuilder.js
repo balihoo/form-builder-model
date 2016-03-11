@@ -1209,6 +1209,44 @@ ModelField = (function(superClass) {
     }
   };
 
+  ModelField.prototype.ensureValueInOptions = function() {
+    var existingOption, i, j, k, len, len1, len2, o, ref, ref1, ref2, ref3, results, v;
+    if ((ref = this.type) !== 'select' && ref !== 'multiselect' && ref !== 'image') {
+      return;
+    }
+    if (typeof this.value === 'string') {
+      ref1 = this.options;
+      for (i = 0, len = ref1.length; i < len; i++) {
+        o = ref1[i];
+        if (o.value === this.value) {
+          existingOption = o;
+        }
+      }
+      if (!existingOption) {
+        return this.option(this.value);
+      }
+    } else if (Array.isArray(this.value)) {
+      ref2 = this.value;
+      results = [];
+      for (j = 0, len1 = ref2.length; j < len1; j++) {
+        v = ref2[j];
+        ref3 = this.options;
+        for (k = 0, len2 = ref3.length; k < len2; k++) {
+          o = ref3[k];
+          if (o.value === v) {
+            existingOption = o;
+          }
+        }
+        if (!existingOption) {
+          results.push(this.option(v));
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    }
+  };
+
   ModelField.prototype.applyData = function(data, clear, purgeDefaults) {
     if (clear == null) {
       clear = false;
@@ -1220,7 +1258,8 @@ ModelField = (function(superClass) {
       this.clear(purgeDefaults);
     }
     if (data != null) {
-      return this.value = data;
+      this.value = data;
+      return this.ensureValueInOptions();
     }
   };
 
@@ -1376,6 +1415,20 @@ ModelFieldImage = (function(superClass) {
       purgeDefaults = false;
     }
     return this.value = purgeDefaults ? {} : this.defaultValue;
+  };
+
+  ModelFieldImage.prototype.ensureValueInOptions = function() {
+    var existingOption, i, len, o, ref;
+    ref = this.options;
+    for (i = 0, len = ref.length; i < len; i++) {
+      o = ref[i];
+      if (o.attributes.fileID === this.value.fileID) {
+        existingOption = o;
+      }
+    }
+    if (!existingOption) {
+      return this.option(this.value);
+    }
   };
 
   return ModelFieldImage;

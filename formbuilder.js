@@ -82,7 +82,7 @@ runtime = false;
 
 exports.modelTests = [];
 
-exports.fromCode = function(code, data, element, imports) {
+exports.fromCode = function(code, data, element, imports, isImport) {
   var assert, emit, newRoot, test;
   data || (data = {});
   if (typeof data === 'string') {
@@ -102,7 +102,7 @@ exports.fromCode = function(code, data, element, imports) {
     }
   };
   emit = function(name, context) {
-    if (element) {
+    if (element && $) {
       return element.trigger($.Event(name, context));
     }
   };
@@ -155,15 +155,14 @@ exports.fromCode = function(code, data, element, imports) {
   };
   newRoot.recalculateCycle();
   newRoot.on('change:isValid', function() {
-    var e;
-    if (element) {
-      e = $.Event('validate');
-      e.isValid = newRoot.isValid;
-      return element.trigger(e);
+    if (!isImport) {
+      return emit('validate', {
+        isValid: newRoot.isValid
+      });
     }
   });
   newRoot.on('recalculate', function() {
-    if (element) {
+    if (!isImport) {
       return emit('change');
     }
   });
@@ -173,13 +172,13 @@ exports.fromCode = function(code, data, element, imports) {
   return newRoot;
 };
 
-exports.fromCoffee = function(code, data, element, imports) {
-  return exports.fromCode(CoffeeScript.compile(code), data, element, imports);
+exports.fromCoffee = function(code, data, element, imports, isImport) {
+  return exports.fromCode(CoffeeScript.compile(code), data, element, imports, isImport);
 };
 
 exports.fromPackage = function(pkg, data, element) {
   var buildModelWithRecursiveImports;
-  buildModelWithRecursiveImports = function(p, el) {
+  buildModelWithRecursiveImports = function(p, el, isImport) {
     var buildImport, builtImports, f, form;
     form = ((function() {
       var i, len, ref, results;
@@ -202,18 +201,18 @@ exports.fromPackage = function(pkg, data, element) {
         formid: impObj.importformid,
         data: p.data,
         forms: p.forms
-      });
+      }, element, true);
     };
     if (form.imports) {
       form.imports.forEach(buildImport);
     }
-    return exports.fromCoffee(form.model, p.data, el, builtImports);
+    return exports.fromCoffee(form.model, p.data, el, builtImports, isImport);
   };
   if (typeof pkg.formid === 'string') {
     pkg.formid = parseInt(pkg.formid);
   }
   pkg.data = _.extend(pkg.data || {}, data || {});
-  return buildModelWithRecursiveImports(pkg, element);
+  return buildModelWithRecursiveImports(pkg, element, false);
 };
 
 exports.getChanges = function(modelAfter, beforeData) {

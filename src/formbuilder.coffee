@@ -70,7 +70,7 @@ exports.modelTests= []
 # data - initialization data (optional). Object or stringified object
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
-exports.fromCode = (code, data, element, imports)->
+exports.fromCode = (code, data, element, imports, isImport)->
   data or= {}
   if typeof data is 'string'
     data = JSON.parse data
@@ -81,7 +81,8 @@ exports.fromCode = (code, data, element, imports)->
     if not bool then exports.handleError message
 
   emit = (name, context) ->
-    element.trigger($.Event(name, context)) if element
+    if element and $
+      element.trigger $.Event name, context
 
   newRoot = new ModelGroup()
   #dont recalculate until model is done creating
@@ -134,13 +135,12 @@ exports.fromCode = (code, data, element, imports)->
   newRoot.recalculateCycle()
 
   newRoot.on 'change:isValid', ->
-    if element
-      e = $.Event 'validate'
-      e.isValid = newRoot.isValid
-      element.trigger e
+    unless isImport
+      emit 'validate', isValid:newRoot.isValid
 
   newRoot.on 'recalculate', ->
-    emit 'change' if element
+    unless isImport
+      emit 'change'
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
 
@@ -149,8 +149,8 @@ exports.fromCode = (code, data, element, imports)->
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
 # and passes it to fromCode.
-exports.fromCoffee = (code, data, element, imports)->
-  return exports.fromCode (CoffeeScript.compile code), data, element, imports
+exports.fromCoffee = (code, data, element, imports, isImport)->
+  return exports.fromCode (CoffeeScript.compile code), data, element, imports, isImport
 
 # Build a model from a package object, consisting of
 # - formid (int or string)
@@ -165,28 +165,28 @@ exports.fromCoffee = (code, data, element, imports)->
 #   will override any matching keys provided in the package data
 # element to which to bind validation and change messages, also optional
 exports.fromPackage = (pkg, data, element) ->
-  buildModelWithRecursiveImports = (p, el) ->
+  buildModelWithRecursiveImports = (p, el, isImport) ->
     form = (f for f in p.forms when f.formid is p.formid)[0]
     return if !form?
 
     builtImports = {}
     buildImport = (impObj) ->
-      builtImports[impObj.namespace] = buildModelWithRecursiveImports
+      builtImports[impObj.namespace] = buildModelWithRecursiveImports({
         formid: impObj.importformid
         data: p.data
         forms: p.forms
-        #no element, don't want to bind triggers for imports.
+      }, element, true)
 
     if form.imports #in case imports left off the package
       form.imports.forEach(buildImport)
 
-    return exports.fromCoffee form.model, p.data, el, builtImports
+    return exports.fromCoffee form.model, p.data, el, builtImports, isImport
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
   #data could be in the package and/or as a separate parameter.  Extend them together.
   pkg.data = _.extend pkg.data or {}, data or {}
-  return buildModelWithRecursiveImports pkg, element
+  return buildModelWithRecursiveImports pkg, element, false
 
 exports.getChanges = (modelAfter, beforeData) ->
   modelBefore = modelAfter.cloneModel()

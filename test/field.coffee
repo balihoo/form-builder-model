@@ -72,6 +72,24 @@ describe 'fields', ->
         thumbnailUrl: 'thumbnailUrl value'
       }
       assert.strictEqual model.child('b').value, 1
+    it 'duplicate options replace earlier with the same title', ->
+      model = fb.fromCoffee """
+        field 'f'
+        .option title:'f title', value:'f value 1'
+        .option title:'f title', value:'f value 2'
+      """
+      f = model.child 'f'
+      assert.strictEqual f.options.length, 1
+      assert.strictEqual f.options[0].value, 'f value 2'
+    it 'duplicate options on image fields replace earler', ->
+      model = fb.fromCoffee """
+        field 'f', type:'image'
+        .option fileID: 'fid', fileUrl:'url 1'
+        .option fileID: 'fid', fileUrl:'url 2'
+      """
+      f = model.child 'f'
+      assert.strictEqual f.options.length, 1
+      assert.strictEqual f.options[0].fileUrl, 'url 2'
   describe '.cloneModel()', ->
     cloneAndCompareField = (foo) ->
       fooClone = foo.cloneModel()

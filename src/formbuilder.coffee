@@ -722,8 +722,11 @@ class ModelField extends ModelBase
     # when adding an option to a field, make sure it is a *select type
     if not (@type in ['select','multiselect','image'])
       @type = 'select'
-
-    @options = @options.concat new ModelOption optionObject #assign rather than push to trigger correctly
+      
+    # If this option already exists, replace.  Otherwise append
+    nextOpts = (opt for opt in @options when opt.title isnt optionObject.title)
+    nextOpts.push new ModelOption optionObject
+    @options = nextOpts
 
     #if any option has selected:true, set this field's value to that
     for opt in @options
@@ -932,6 +935,8 @@ class ModelFieldImage extends ModelField
       fileUrl: optionObject.fileUrl
       thumbnailUrl: optionObject.thumbnailUrl
     }
+    # use fileID as the key because this is how they are selected when rendered.
+    optionObject.title ?= optionObject.fileID
     @optionsChanged = true #required to reinit the carousel in the ui
     super optionObject
 
@@ -964,6 +969,8 @@ class ModelFieldImage extends ModelField
 class ModelOption extends ModelBase
   initialize: ->
     @setDefault 'value', @get 'title'
+    # No two options on a field should have the same title.  This would be confusing during render.
+    # Even if not rendered, title can be used as primary key to determine when duplicate options should be avoided.
     @setDefault 'title', @get 'value'
     # selected is used to set default value and also to store current value.
     @setDefault 'selected', false

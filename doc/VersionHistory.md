@@ -1,5 +1,8 @@
 # Version History
 
+## 1.4.3
+- Republish
+
 ## 1.4.2
 - Prevent adding duplicate options to a field.
 

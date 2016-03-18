@@ -196,7 +196,7 @@ There are many types of fields that can be created.  If a certain type allows ex
 * **time** - Select a time of day including optional timezone.
     * **timezones** *array of string* - Time fields may optionally include a timezone, chosen from a list provided with this property.
 * **date** - Select a date.
-* **button** - A button that a user can click on to trigger some event.
+* **button**<a name='buttontype'></a> - A button that a user can click on to trigger some event.
     * **tooltip** *string* - The text to be displayed when a user hovers over the button.
     * **onClick** *function* - The emit function to be triggered when the button is clicked. This should contain a minimum of the event name and can also contain an optional object with event context.
 ```coffeescript
@@ -332,6 +332,7 @@ These are available from any context, including dynamic functions
     * **selectedIsVisible** - for select and multiselect fields, ensures the selected option is currently visible.
 * **Mustache** *object* - [Mustache](https://github.com/balihoo-anewman/mustache.js) is available for filling in placeholders.
 * **_** *object* - The [underscore](http://underscore.org) library is available. 
+* **emit** *function* - Emits a jquery event to the render container. Primarily used for [button fields](#buttontype), but may also be used during other events. Takes an event name and context as parameters.
     
 # Testing
 Some forms are used in many places, and a breaking change would affect many workflows.  Tests may be added that ensure the form functions as desired, so that further changes must still adhere to this base functionality.  Form authors should not save forms with failing tests as this indicates a workflow will break.

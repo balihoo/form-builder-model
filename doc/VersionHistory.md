@@ -1,5 +1,11 @@
 # Version History
 
+# 1.4.5
+- Republish after mistaken merge target.
+
+## 1.4.4
+- Allow emit function to send events from imports.
+
 ## 1.4.3
 - Republish
 

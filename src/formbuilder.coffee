@@ -630,6 +630,7 @@ class ModelField extends ModelBase
     @setDefault 'dynamicValue', null
     @setDefault 'template', null
     @setDefault 'autocomplete', null
+    @setDefault 'disabled', false
 
     super
 

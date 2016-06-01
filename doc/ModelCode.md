@@ -8,6 +8,8 @@ Each of these features was written for a specific use case but we try to guess a
 
 There are also things in the plumbing of model code that may be accessible but are not documented here.  Anything not in this document may be changed at any time in a way that breaks your form.  Don't use undocumented features.
 
+Finally, many features exist solely for rendering a form in a browser, and therefore will not have any effect if that is not your use case.  The feature descriptions should make the use case fairly obvious.
+
 ## Quick Links
 * How do I create a [field of type X](#fieldtypes)?
 * [What stuff](#referenceable) can I include in my [dynamicValue](#dynamicValue) function (or other dynamic function)?
@@ -116,6 +118,11 @@ field 'a', autocomplete: list:
   City: "{{document.address.city}}"
   State: "{{document.address.state}}"
 ```
+
+* **disabled** *bool* - Fields may be disabled and not editable by setting disabled:true.  Default is false.  Unlike [visible](#fieldVisible) property, these uneditable fields will still appear on the page, letting the user review current values, but the inputs cannot be changed.
+
+  Note: this property does NOT work on [field types](#fieldtypes) 'time', 'image', or 'tree'.  Support is forthcoming.
+ 
 
 # Field Functions
 Call these functions to alter a current field in some way.

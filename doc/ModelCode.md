@@ -321,11 +321,12 @@ These are available from any context, including dynamic functions
 
 * **root** *Group* - The topmost group that contains all your stuff.
 * **validate** *object* - This object contains many common validation functions which can be referenced by name.
-    * **required** - the field must have some value or selection
-    * **minLength(num)** - the length of the value is at least num
-    * **maxLength(num)** - the length of the value is at most num
-    * **email** - the value looks like a valid email address
-    * **url** - the value looks like a valid url
+    * **required** - the field must have some value or selection.
+    * **minLength(num)** - the length of the value is at least num.
+    * **maxLength(num)** - the length of the value is at most num.
+    * **number** - the value must be a number.
+    * **email** - the value looks like a valid email address.
+    * **url** - the value looks like a valid url.
     * **dollars** - the value is formatted in USD.  Starts with a $ and has reasonable digits.
     * **minSelections(num)** - the minimum number of selections on a multiselect field.
     * **maxSelections(num)** - the maximum number of selections on a multiselect field.

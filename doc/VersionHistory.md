@@ -1,5 +1,8 @@
 # Version History
 
+# 1.5.0
+- Add field disabled property, which adds disabled to the rendered html.
+
 # 1.4.5
 - Republish after mistaken merge target.
 

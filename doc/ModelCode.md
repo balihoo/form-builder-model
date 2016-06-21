@@ -177,6 +177,8 @@ field 'choices'
 ## Field Types<a name='fieldtypes'></a>
 There are many types of fields that can be created.  If a certain type allows extra properties, those are displayed under that type.
 
+Certain field types imply a data type, such as 'number'. Any value assigned to a field will remain unchanged until output data is built, at which time the value will be converted to the expected type.  For example, you can assign a 'bool' field the value 'nope' and it will keep this value, but when buildOutputData is called this will be converted to a bool, which in this case is true (all strings are truthy).
+
 * **text** - A simple, one-line input box for text.  This is the default type.
 * **textarea** - Multi-line text entry.
 * **bool** - A check box whose value is true (checked) or false (unchecked)
@@ -218,6 +220,7 @@ g.field 'Edit', 'edit', type: 'button', tooltip: 'Click here to edit the selecte
   onClick: ->
     emit 'edit_ad', value: g.child('ad_selection').value
 ```
+* **number** - A text field where the output is of data type number. Default value is an empty string, which shows in the output as 0.  Any other non-number will render with a validation error and the output value will be null.
 
 # Groups<a name="groups"></a>
 Groups are used to contain other form objects, including fields and other groups.  In this way, a hierarchical form may be created that generates a full JSON output that can match a required structure.  Groups will also serve to visually segregate sections of a form.

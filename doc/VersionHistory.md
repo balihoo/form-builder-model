@@ -1,5 +1,8 @@
 # Version History
 
+# 1.6.0
+- Add number field type.
+
 # 1.5.0
 - Add field disabled property, which adds disabled to the rendered html.
 

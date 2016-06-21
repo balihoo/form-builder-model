@@ -360,7 +360,7 @@ class ModelBase extends Backbone.Model
       if value.length > n
         return "Can be at most #{n} characters long"
     number: (value = @value or '')->
-      if not value.match /^[-+]?\d*(\.?\d*)?$/
+      if isNaN(+value)
         return "Must be an integer or decimal number. (ex. 42 or 1.618)"
     email: (value = @value or '')->
       if not value.match /// ^
@@ -526,8 +526,8 @@ class ModelGroup extends ModelBase
     obj = {}
     group.children.forEach (child) ->
       data = child.buildOutputData()
-      if data?
-        obj[child.name] = child.buildOutputData()
+      unless data is undefined # undefined values do not appear in output, but nulls do
+        obj[child.name] = data
     obj
 
   buildOutputDataString: ->
@@ -636,7 +636,7 @@ class ModelField extends ModelBase
 
     #difficult to catch bad types at render time.  error here instead
     if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
-                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'button']
+                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'button', 'number']
       return exports.handleError "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
@@ -652,6 +652,10 @@ class ModelField extends ModelBase
     if @type is 'bool' and typeof @value isnt 'bool'
       @value = not not @value #convert to bool
 
+    # All number fields have a validator
+    if @type is 'number'
+      @validator @validate.number
+      
     @makePropArray 'validators'
     @bindPropFunctions 'validators'
 
@@ -828,9 +832,14 @@ class ModelField extends ModelBase
       val is @value
 
   buildOutputData: ->
-    if @type isnt 'info'
-      @value
-
+    switch @type
+      when 'number'
+        out = +@value
+        if isNaN out then null else out
+      when 'info', 'button' then undefined
+      when 'bool' then not not @value
+      else @value
+      
   clear: (purgeDefaults=false) ->
     if purgeDefaults
       @value = switch @type

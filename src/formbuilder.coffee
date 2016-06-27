@@ -618,10 +618,11 @@ class ModelField extends ModelBase
   initialize: ->
     @setDefault 'type', 'text'
     @setDefault 'options', []
-    @setDefault 'value',
-      if (@get 'type') is 'multiselect' then []
-      else if (@get 'type') is 'bool' then false
-      else if (@get 'type') is 'button' then null
+    @setDefault 'value', switch @get 'type'
+      when 'multiselect' then []
+      when 'bool' then false
+      when 'info', 'button' then undefined
+      when 'number' then 0
       else ''
     @setDefault 'defaultValue', @get 'value' #used for control type and clear()
     @set 'isValid', true

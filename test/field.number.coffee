@@ -14,9 +14,9 @@ describe 'field.number', ->
   it 'accepts number inputdata', ->
     model = fb.fromCoffee "field 'num', type:'number'", num:123
     assert.strictEqual model.buildOutputData().num, 123
-  it 'defaults value to 0', ->
+  it 'defaults internal value to 0', ->
     model = fb.fromCoffee "field 'num', type:'number'"
-    assert.strictEqual model.buildOutputData().num, 0
+    assert.strictEqual model.child('num').value, 0
   context 'when value is not parsable as a number', ->
     it 'has outputData null', ->
       model = fb.fromCoffee "field 'num', type:'number', value:'applesauce'"

@@ -177,7 +177,7 @@ field 'choices'
 ## Field Types<a name='fieldtypes'></a>
 There are many types of fields that can be created.  If a certain type allows extra properties, those are displayed under that type.
 
-Certain field types imply a data type, such as 'number'. Any value assigned to a field will remain unchanged until output data is built, at which time the value will be converted to the expected type.  For example, you can assign a 'bool' field the value 'nope' and it will keep this value, but when buildOutputData is called this will be converted to a bool, which in this case is true (all strings are truthy).
+Certain field types imply a data type, such as 'number'. The internally stored value may not be in this same data type, and only converted on buildOutputData(). This would matter if you have a function that checks another field's value in a way where data type would matter.
 
 * **text** - A simple, one-line input box for text.  This is the default type.
 * **textarea** - Multi-line text entry.

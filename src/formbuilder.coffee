@@ -8,9 +8,6 @@ Mustache     = require 'mustache'
 vm           = require 'vm'
 jiff         = require 'jiff'
 
-empty = (o)->
-  not o or (o.length? and o.length is 0) or (typeof o is 'object' and Object.keys(o).length is 0)
-
 # generate a new, unqiue identifier. Mostly good for label.for
 newid = (->
   incId = 0
@@ -351,7 +348,11 @@ class ModelBase extends Backbone.Model
   # Built-in functions for checking validity.
   validate:
     required: (value = @value or '')->
-      if empty value
+      if (switch typeof value
+        when 'number', 'boolean' then false #these types cannot be empty
+        when 'string' then value.length is 0
+        when 'object' then Object.keys(value).length is 0
+        else true) #null, undefined
         return "This field is required"
     minLength: (n)-> (value = @value or '')->
       if value.length < n
@@ -622,7 +623,6 @@ class ModelField extends ModelBase
       when 'multiselect' then []
       when 'bool' then false
       when 'info', 'button' then undefined
-      when 'number' then 0
       else ''
     @setDefault 'defaultValue', @get 'value' #used for control type and clear()
     @set 'isValid', true

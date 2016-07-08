@@ -204,7 +204,8 @@ Certain field types imply a data type, such as 'number'. The internally stored v
 * **info** - This pseudo-field doesn't allow any input or output, but can be used to display its title property as instructions to the user.
 * **time** - Select a time of day including optional timezone.
     * **timezones** *array of string* - Time fields may optionally include a timezone, chosen from a list provided with this property.
-* **date** - Select a date.
+* **date** - Select or type a date.
+    * **format** *string* - The date format of the value. Refer to the [moment docs](http://momentjs.com/docs/#/parsing/string-format/) for format tokens.  Default is M/D/YYYY. This affects the validation of the field and the format of values selected from the picker in the UI.
 * **button**<a name='buttontype'></a> - A button that a user can click on to trigger some event.
     * **tooltip** *string* - The text to be displayed when a user hovers over the button.
     * **onClick** *function* - The emit function to be triggered when the button is clicked. This should contain a minimum of the event name and can also contain an optional object with event context.
@@ -334,7 +335,8 @@ These are available from any context, including dynamic functions
     * **required** - the field must have some value or selection.
     * **minLength(num)** - the length of the value is at least num.
     * **maxLength(num)** - the length of the value is at most num.
-    * **number** - the value must be a number.
+    * **number** - the value must be a number.  Applied automatically to number fields.
+    * **date** - the value must be a valid date in the format given.  Applied automatically to date fields.
     * **email** - the value looks like a valid email address.
     * **url** - the value looks like a valid url.
     * **dollars** - the value is formatted in USD.  Starts with a $ and has reasonable digits.

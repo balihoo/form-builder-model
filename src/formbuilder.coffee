@@ -7,6 +7,7 @@ _            = require 'underscore'
 Mustache     = require 'mustache'
 vm           = require 'vm'
 jiff         = require 'jiff'
+moment       = require 'moment'
 
 # generate a new, unqiue identifier. Mostly good for label.for
 newid = (->
@@ -363,6 +364,10 @@ class ModelBase extends Backbone.Model
     number: (value = @value or '')->
       if isNaN(+value)
         return "Must be an integer or decimal number. (ex. 42 or 1.618)"
+    date: (value = @value or '', format = @format) ->
+      return if value is ''
+      unless moment(value, format, true).isValid()
+        "Not a valid date or does not match the format #{format}"
     email: (value = @value or '')->
       if not value.match /// ^
         [a-z0-9!\#$%&'*+/=?^_`{|}~-]+
@@ -458,6 +463,8 @@ class ModelGroup extends ModelBase
         new ModelFieldImage fieldObject
       when 'tree'
         new ModelTree fieldObject
+      when 'date'
+        new ModelFieldDate fieldObject
       else
         new ModelField fieldObject
 
@@ -614,6 +621,7 @@ class RepeatingModelGroup extends ModelGroup
 
 ###
   A ModelField represents a model object that render as a DOM field
+  NOTE: The following field types are subclasses: image, tree, date
 ###
 class ModelField extends ModelBase
   initialize: ->
@@ -653,7 +661,7 @@ class ModelField extends ModelBase
     if @type is 'bool' and typeof @value isnt 'bool'
       @value = not not @value #convert to bool
 
-    # All number fields have a validator
+    # Some field types have default validators
     if @type is 'number'
       @validator @validate.number
       
@@ -874,6 +882,20 @@ class ModelField extends ModelBase
     else
       template = @parent.child(@template).value
     @value = Mustache.render template, @root.data
+    
+
+class ModelFieldDate extends ModelField
+  initialize: ->
+    @setDefault 'format', 'M/D/YYYY'
+    super
+    @validator @validate.date
+    
+  # Convert date to string according to this format
+  dateToString: (date = @value, format = @format) ->
+    moment(date).format format
+  # Convert string in this format to a date. Could be an invalid date.
+  stringToDate: (str = @value, format = @format) ->
+    moment(str, format).toDate()
 
 class ModelTree extends ModelField
   initialize: ->

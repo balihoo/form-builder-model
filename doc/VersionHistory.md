@@ -1,5 +1,8 @@
 # Version History
 
+# 1.7.0
+- Add format parameter to date fields.
+
 # 1.6.0
 - Add number field type.
 

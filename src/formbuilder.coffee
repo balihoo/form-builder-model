@@ -542,7 +542,8 @@ class ModelGroup extends ModelBase
 
   clear: (purgeDefaults=false) ->
     #reset the 'data' object in-place, so model code will see an empty object too.
-    delete @data[key] for key in Object.keys(@data or {})
+    if @data
+      delete @data[key] for key in Object.keys @data
     child.clear purgeDefaults for child in @children
 
   applyData: (inData, clear=false, purgeDefaults=false) ->

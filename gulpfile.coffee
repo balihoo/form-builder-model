@@ -23,7 +23,7 @@ gulp.task 'compile', ['lint'], ->
 # runs all coffee tests in the test directory.
 # alternatively, specify --file <filename> to run a single file or alternate file pattern.
 gulp.task 'test', ['compile'], ->
-  src = argv.file or 'test/*.coffee'
+  src = argv.file or 'test/**/*.coffee'
   gulp.src src
     .pipe mocha()
   

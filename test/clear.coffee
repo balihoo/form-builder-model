@@ -120,3 +120,8 @@ describe 'clear', ->
     field.clear()
     assert.deepEqual field.value, ["reptiles > snake"]
     done()
+  it 'clears the global data variable', ->
+    model = fb.fromCoffee "field 'd', dynamicValue: -> data.foo", foo:'bar'
+    assert.deepEqual model.buildOutputData(), d:'bar'
+    model.clear()
+    assert.strictEqual model.child('d').dynamicValue(), undefined

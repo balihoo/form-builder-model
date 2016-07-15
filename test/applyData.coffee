@@ -276,3 +276,48 @@ describe 'applyData', ->
       """, {f:{fileID:1, fileUrl:'', fileThumbnail:''}}
       assert.strictEqual model.child('f').options.length, 1
       assert.strictEqual model.child('f').options[0].fileUrl, 'url1'
+
+  it 'updates global data variable', ->
+    model = fb.fromCoffee "field 'foo', dynamicValue: -> data?.val", val:'initial'
+    foo = model.child 'foo'
+    assert.strictEqual foo.value, 'initial'
+    
+    model.applyData val:'second'
+    assert.strictEqual foo.value, 'second'
+
+  context 'when mixing objects and nulls', ->
+    dataObj =
+      hours:
+        mon:
+          open:
+            hours:6
+            minutes:0
+    dataNull =
+      hours:
+        mon: null
+
+    modelCoffee = """
+      group 'hours'
+      .group 'mon'
+      .group 'open'
+      .field 'hours'
+      .field 'minutes'
+    """
+    it 'obj then null', ->
+      model = fb.fromCoffee modelCoffee
+      model.applyData dataObj, true
+      model.clear()
+      model.applyData dataNull, true
+    it 'null then obj', ->
+      model = fb.fromCoffee modelCoffee
+      model.applyData dataNull, true
+      model.clear()
+      model.applyData dataObj, true
+  it 'copies the inputdata so future applyData calls dont merge into it', ->
+    inData = b:'b new'
+    model = fb.fromCoffee 'field "a", value:"a default"\nfield "b"', inData
+    assert.deepEqual model.buildOutputData(), a:'a default', b:'b new'
+    #previously,
+    model.applyData inData, true, true
+    assert.deepEqual model.buildOutputData(), a:'', b:'b new'
+    assert.deepEqual inData, b:'b new'

@@ -43,21 +43,19 @@ exports.handleError = (err) ->
   throw err
 
 # Apply initialization data to the model.
-exports.applyData = (modelObject, data, clear, purgeDefaults) ->
-  modelObject.applyData data, clear, purgeDefaults
+exports.applyData = (modelObject, inData, clear, purgeDefaults) ->
+  modelObject.applyData inData, clear, purgeDefaults
 
-# Merge data objects together.  Should have the same result
-# as if applyData was called sequentially.
+# Merge data objects together.
+# Modifies and returns the first parameter
 exports.mergeData = (a, b)->
-  if b.constructor is Object
+  if b?.constructor is Object
     for key, value of b
-      if a[key]? and a[key].constructor is Object and value.constructor is Object
+      if a[key]? and a[key].constructor is Object and value?.constructor is Object
         exports.mergeData a[key], value
       else
         a[key] = value
-    a
-  else
-    exports.handleError 'mergeData: The object to merge in is not an object'
+  a
 
 runtime = false
 exports.modelTests= []
@@ -69,9 +67,10 @@ exports.modelTests= []
 # element - jquery element for firing validation events (optional)
 # imports - object mapping {varname : model object}. May be referenced in form code
 exports.fromCode = (code, data, element, imports, isImport)->
-  data or= {}
-  if typeof data is 'string'
-    data = JSON.parse data
+  data = switch typeof data
+    when 'object' then JSON.parse JSON.stringify data #copy it
+    when 'string' then JSON.parse data
+    else {} # 'undefined', 'null', and other unsupported types
   runtime = false
   exports.modelTests = []
   test = (func) -> exports.modelTests.push func
@@ -533,27 +532,36 @@ class ModelGroup extends ModelBase
   buildOutputData: (group = @) ->
     obj = {}
     group.children.forEach (child) ->
-      data = child.buildOutputData()
-      unless data is undefined # undefined values do not appear in output, but nulls do
-        obj[child.name] = data
+      childData = child.buildOutputData()
+      unless childData is undefined # undefined values do not appear in output, but nulls do
+        obj[child.name] = childData
     obj
 
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
 
   clear: (purgeDefaults=false) ->
+    #reset the 'data' object in-place, so model code will see an empty object too.
+    if @data
+      delete @data[key] for key in Object.keys @data
     child.clear purgeDefaults for child in @children
 
-  applyData: (data, clear=false, purgeDefaults=false) ->
+  applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
-
+    ###
+    This section preserves a link to the initially applied data object and merges subsequent applies on top
+      of it in-place.  This is necessary for two reasons.
+    First, the scope of the running model code also references the applied data through the 'data' variable.
+      Every applied data must be available even though the runtime is not re-evaluated each time.
+    Second, templated fields use this data as the input to their Mustache evaluation. See @renderTemplate()
+    ###
     if @data
-      @data = exports.mergeData @data, data
+      exports.mergeData @data, inData
       @trigger 'change'
     else
-      @data = data
+      @data = inData
 
-    for key, value of data
+    for key, value of inData
       @child(key)?.applyData value
 
 ###
@@ -592,16 +600,16 @@ class RepeatingModelGroup extends ModelGroup
     unless purgeDefaults
       @applyData @defaultValue if @defaultValue
 
-  applyData: (data, clear=false, purgeDefaults=false) ->
+  applyData: (inData, clear=false, purgeDefaults=false) ->
     # always clear out and replace the model value when data is supplied
-    if data
+    if inData
       @value = []
     else
       @clear purgeDefaults if clear
 
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
-    for obj in data
+    for obj in inData
       added = @add()
       for key,value of obj
         added.child(key)?.applyData value, clear, purgeDefaults
@@ -870,10 +878,10 @@ class ModelField extends ModelBase
         unless existingOption
           @option v
 
-  applyData: (data, clear=false, purgeDefaults=false) ->
+  applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
-    if data?
-      @value = data
+    if inData?
+      @value = inData
       @ensureValueInOptions()
 
   renderTemplate: () ->

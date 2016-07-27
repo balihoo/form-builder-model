@@ -903,7 +903,7 @@ class ModelFieldDate extends ModelField
     moment(date).format format
   # Convert string in this format to a date. Could be an invalid date.
   stringToDate: (str = @value, format = @format) ->
-    moment(str, format).toDate()
+    moment(str, format, true).toDate()
 
 class ModelTree extends ModelField
   initialize: ->

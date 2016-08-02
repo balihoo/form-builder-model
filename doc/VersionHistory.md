@@ -1,5 +1,8 @@
 # Version History
 
+# 1.7.2
+- Make date field stringToDate parse in strict mode.
+
 # 1.7.1
 - Fix a bug where applying a null value to a form that previously held an object would throw an error. This also exposed a related bug where previous values were affecting later applyData calls.
 

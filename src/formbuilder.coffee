@@ -764,7 +764,7 @@ class ModelField extends ModelBase
     for opt in @options
       opt.selected = @hasValue opt.value
 
-  # find an option by name.  Uses the same child method as groups and fields to find constituent objects
+  # find an option by value.  Uses the same child method as groups and fields to find constituent objects
   child: (value) ->
     if Array.isArray value
       value = value.shift()
@@ -828,14 +828,14 @@ class ModelField extends ModelBase
       opt.recalculateRelativeProperties()
 
   addOptionValue: (val) ->
-    if @type is 'multiselect'
+    if @type in ['multiselect','tree']
       if not (val in @value)
         @value.push val
     else #single-select
       @value = val
 
   removeOptionValue: (val) ->
-    if @type is 'multiselect'
+    if @type in ['multiselect','tree']
       if val in @value
         @value = @value.filter (v) -> v isnt val
     else if @value is val #single-select
@@ -843,7 +843,7 @@ class ModelField extends ModelBase
 
   #determine if the value is or contains the provided value.
   hasValue: (val) ->
-    if @type is 'multiselect'
+    if @type in ['multiselect','tree']
       val in @value
     else
       val is @value
@@ -905,52 +905,28 @@ class ModelFieldDate extends ModelField
   stringToDate: (str = @value, format = @format) ->
     moment(str, format).toDate()
 
+    
 class ModelTree extends ModelField
   initialize: ->
     @setDefault 'value', []
-
     super
-    @get('value').sort()
 
-  add: (item)->
-    if _.indexOf(@value, item, 'isSorted') == -1
-
-      if item instanceof Object
-        index = _.sortedIndex @value, item, 'value'
-      else
-        index = _.sortedIndex @value, item
-
-      @value.splice index, 0, item
-      @trigger 'change'
-
-  option: (item)->
-    [pieces..., last] = item.split ' > '
-    context           = @options
-
-    for piece in pieces
-      if not context[piece]
-        context = context[piece] = {}
-      else
-        context = context[piece]
-
-    if context instanceof Array
-      context.push last
-    else
-      context[last] = null
-
-    @trigger 'change'
+  option: (optionParams...) ->
+    optionObject = @buildParamObject optionParams, ['path', 'value', 'selected']
+    
+    nextOpts = (opt for opt in @options when opt.value isnt optionObject.value)
+    nextOpts.push new ModelOption optionObject
+    @options = nextOpts
+    #todo: DRY out with parent option
+    #if any option has selected:true, set this field's value to that
+    for opt in @options
+      if opt.selected
+        @addOptionValue opt.value
+    console.log 'field value is now', @value
+    @defaultValue = @value
+    #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
+    @updateOptionsSelected()
     @
-
-  remove: (item)->
-    if item instanceof Object
-      search = _.findWhere(@value, item)
-      index = _.indexOf @value, search
-    else
-      index = _.indexOf @value, item, 'isSorted'
-
-    if index != -1
-      @value.splice index, 1
-      @trigger 'change'
 
   clear: (purgeDefaults=false) ->
     @value = if purgeDefaults then [] else @defaultValue
@@ -1015,6 +991,7 @@ class ModelOption extends ModelBase
     @setDefault 'title', @get 'value'
     # selected is used to set default value and also to store current value.
     @setDefault 'selected', false
+    @setDefault 'path', [] #for tree. Might should move to subclass
     super
 
     # if selected is changed, make sure parent matches

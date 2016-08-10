@@ -298,7 +298,7 @@ class ModelBase extends Backbone.Model
     paramObject = {}
     paramIndex = 0
     for param in params
-      if typeof param in ['string', 'number']
+      if typeof param in ['string', 'number', 'boolean'] or Array.isArray param
         paramObject[paramPositions[paramIndex++]] = param
       else if Object.prototype.toString.call(param) is '[object Object]'
         for key, val of param
@@ -461,7 +461,7 @@ class ModelGroup extends ModelBase
       when 'image'
         new ModelFieldImage fieldObject
       when 'tree'
-        new ModelTree fieldObject
+        new ModelFieldTree fieldObject
       when 'date'
         new ModelFieldDate fieldObject
       else
@@ -906,14 +906,16 @@ class ModelFieldDate extends ModelField
     moment(str, format).toDate()
 
     
-class ModelTree extends ModelField
+class ModelFieldTree extends ModelField
   initialize: ->
     @setDefault 'value', []
     super
 
   option: (optionParams...) ->
     optionObject = @buildParamObject optionParams, ['path', 'value', 'selected']
-    
+    optionObject.value ?= optionObject.id
+    optionObject.value ?= optionObject.path.join ' > '
+
     nextOpts = (opt for opt in @options when opt.value isnt optionObject.value)
     nextOpts.push new ModelOption optionObject
     @options = nextOpts
@@ -922,7 +924,6 @@ class ModelTree extends ModelField
     for opt in @options
       if opt.selected
         @addOptionValue opt.value
-    console.log 'field value is now', @value
     @defaultValue = @value
     #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
     @updateOptionsSelected()

@@ -170,19 +170,19 @@ exports.fromPackage = (pkg, data, element) ->
     buildImport = (impObj) ->
       builtImports[impObj.namespace] = buildModelWithRecursiveImports({
         formid: impObj.importformid
-        data: p.data
+        data: data
         forms: p.forms
       }, element, true)
 
     if form.imports #in case imports left off the package
       form.imports.forEach(buildImport)
 
-    return exports.fromCoffee form.model, p.data, el, builtImports, isImport
+    return exports.fromCoffee form.model, data, el, builtImports, isImport
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
   #data could be in the package and/or as a separate parameter.  Extend them together.
-  pkg.data = _.extend pkg.data or {}, data or {}
+  data = _.extend pkg.data or {}, data or {}
   return buildModelWithRecursiveImports pkg, element, false
 
 exports.getChanges = (modelAfter, beforeData) ->

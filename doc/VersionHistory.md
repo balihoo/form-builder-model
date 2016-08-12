@@ -1,5 +1,9 @@
 # Version History
 
+# 1.7.4
+- Don't modify parameters when building from package.  This caused a problem when the same package is reused with 
+different data.
+
 # 1.7.3
 - Fix a bug where template fields with invalid Mustache would fail and prevent future changes. This was a problem in the UI where a user would type the value of a template, but become stuck when that incomplete value is invalid and no longer able to be changed.
 

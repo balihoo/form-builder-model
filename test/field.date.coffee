@@ -28,5 +28,16 @@ describe 'field.date', ->
     it 'accepts blank value', ->
       model = fb.fromCoffee "field 'd', type:'date'"
       assert model.child('d').isValid
+  describe 'stringToDate', ->
+    dateField = null
+    before ->
+      dateField = fb.fromCoffee("field 'd', type:'date'").child 'd'
+    valid = (date) ->
+      not isNaN date.getTime()
+    it 'rejects nonstrict matches', ->
+      assert not valid dateField.stringToDate 'It is 12/31/2016', 'M/D/YYYY'
+      assert not valid dateField.stringToDate '12/3a1/2016', 'M/D/YYYY'
+      
+      
       
   

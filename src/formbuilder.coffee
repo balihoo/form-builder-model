@@ -170,19 +170,19 @@ exports.fromPackage = (pkg, data, element) ->
     buildImport = (impObj) ->
       builtImports[impObj.namespace] = buildModelWithRecursiveImports({
         formid: impObj.importformid
-        data: p.data
+        data: data
         forms: p.forms
       }, element, true)
 
     if form.imports #in case imports left off the package
       form.imports.forEach(buildImport)
 
-    return exports.fromCoffee form.model, p.data, el, builtImports, isImport
+    return exports.fromCoffee form.model, data, el, builtImports, isImport
 
   if (typeof pkg.formid is 'string')
     pkg.formid = parseInt pkg.formid
   #data could be in the package and/or as a separate parameter.  Extend them together.
-  pkg.data = _.extend pkg.data or {}, data or {}
+  data = _.extend pkg.data or {}, data or {}
   return buildModelWithRecursiveImports pkg, element, false
 
 exports.getChanges = (modelAfter, beforeData) ->
@@ -408,6 +408,17 @@ class ModelBase extends Backbone.Model
       for opt in field.options
         if opt.selected and not opt.isVisible
           return "A selected option is not currently available.  Please make a new choice from available options."
+    template: -> #ensure the template field contains valid mustache
+      return unless @template
+      if typeof @template is 'object'
+        template = @template.value
+      else
+        template = @parent.child(@template).value
+      try
+        Mustache.render template, @root.data
+        return
+      catch e
+        "Template field does not contain valid Mustache"
 
   #Deep copy this backbone model by creating a new one with the same attributes.
   #Overwrite each root attribute with the new root in the cloning form.
@@ -668,10 +679,6 @@ class ModelField extends ModelBase
     #bools are special too.
     if @type is 'bool' and typeof @value isnt 'bool'
       @value = not not @value #convert to bool
-
-    # Some field types have default validators
-    if @type is 'number'
-      @validator @validate.number
       
     @makePropArray 'validators'
     @bindPropFunctions 'validators'
@@ -799,12 +806,19 @@ class ModelField extends ModelBase
     # only fire if isValid changes.  If isValid stays false but message changes, don't need to re-fire.
     if @shouldCallTriggerFunctionFor dirty, 'isValid'
       validityMessage = undefined
-      for validator in @validators
-        if typeof validator is 'function'
-          validityMessage = validator.call @
-        if typeof validityMessage is 'function'
-          return exports.handleError "A validator on field '#{@name}' returned a function"
-        if validityMessage then break
+      #certain validators are automatic on fields with certain properties
+      if @template
+        validityMessage or= @validate.template.call @
+      if @type is 'number'
+        validityMessage or= @validate.number.call @
+      #if no problems yet, try all the user-defined validators
+      unless validityMessage
+        for validator in @validators
+          if typeof validator is 'function'
+            validityMessage = validator.call @
+          if typeof validityMessage is 'function'
+            return exports.handleError "A validator on field '#{@name}' returned a function"
+          if validityMessage then break
       @validityMessage = validityMessage
       @set isValid: not validityMessage?
     
@@ -889,7 +903,10 @@ class ModelField extends ModelBase
       template = @template.value
     else
       template = @parent.child(@template).value
-    @value = Mustache.render template, @root.data
+    try
+      @value = Mustache.render template, @root.data
+    catch #just don't crash. Validator will display error later.
+
     
 
 class ModelFieldDate extends ModelField
@@ -903,7 +920,7 @@ class ModelFieldDate extends ModelField
     moment(date).format format
   # Convert string in this format to a date. Could be an invalid date.
   stringToDate: (str = @value, format = @format) ->
-    moment(str, format).toDate()
+    moment(str, format, true).toDate()
 
     
 class ModelFieldTree extends ModelField

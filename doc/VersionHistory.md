@@ -1,5 +1,8 @@
 # Version History
 
+# 1.8.0
+- Tree control rework.
+
 # 1.7.4
 - Don't modify parameters when building from package.  This caused a problem when the same package is reused with 
 different data.

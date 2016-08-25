@@ -1,5 +1,8 @@
 # Version History
 
+# 1.8.1
+- Add npm script prepublish
+
 # 1.8.0
 - Tree control rework.
 

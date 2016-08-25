@@ -1,6 +1,6 @@
 {
   "name": "balihoo-form-builder-model",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",
@@ -26,5 +26,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/balihoo/form-builder-model.git"
+  },
+  "scripts": {
+    "prepublish": "gulp compile"
   }
 }

@@ -955,6 +955,12 @@ class ModelFieldImage extends ModelField
     @setDefault 'value', {}
     @setDefault 'allowUpload', false
     @setDefault 'imagesPerPage', 4
+    @setDefault 'minWidth', 0
+    @setDefault 'maxWidth', 0
+    @setDefault 'minHeight', 0
+    @setDefault 'maxHeight', 0
+    @setDefault 'minSize', 0
+    @setDefault 'maxSize', 0
     @set 'optionsChanged', false #React needs to know if the number of options changed,
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super

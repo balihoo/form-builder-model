@@ -188,6 +188,12 @@ Certain field types imply a data type, such as 'number'. The internally stored v
     * **allowUpload** *bool* - Set to true to allow users to upload their own local images.  Default: false.
     * **companyID** *int or string** - Images may be uploaded to Marketer or the Form Builder DAM.  The presence of this property indicates that images should go to Marketer and will be stored under this company.  If absent, images will be stored in the Form Builder DAM.
     * **imagesPerPage** *int* - Number of images to show on each page of the image carousel.  Default: 4
+    * **minWidth** *int* - Minimum width of uploaded images. Default 0 for no limitation.
+    * **maxWidth** *int* - Maximum width of uploaded images. Default 0 for no limitation.
+    * **minHeight** *int* - Minimum height of uploaded images. Default 0 for no limitation.
+    * **maxHeight** *int* - Maximum height of uploaded images. Default 0 for no limitation.
+    * **minSize** *int* - Minimum file size in bytes of uploaded images. Default 0 for no limitation.
+    * **maxSize** *int* - Maxumum file size in bytes of uploaded images. Default 0 for no limitation.
     
     The options of an image field are not a simple title and value, but rather an object containing image properties.
     

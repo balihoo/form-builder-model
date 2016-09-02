@@ -1,5 +1,8 @@
 # Version History
 
+# 1.9.0
+- Add Image upload limitations for dimensions and file size.
+
 # 1.8.1
 - Add npm script prepublish
 

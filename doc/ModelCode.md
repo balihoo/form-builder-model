@@ -121,7 +121,7 @@ field 'a', autocomplete: list:
 
 * **disabled** *bool* - Fields may be disabled and not editable by setting disabled:true.  Default is false.  Unlike [visible](#fieldVisible) property, these uneditable fields will still appear on the page, letting the user review current values, but the inputs cannot be changed.
 
-  Note: this property does NOT work on [field types](#fieldtypes) 'time', 'image', or 'tree'.  Support is forthcoming.
+  Note: this property does NOT work on [field type](#fieldtypes) 'tree'.  Support is forthcoming.
  
 
 # Field Functions

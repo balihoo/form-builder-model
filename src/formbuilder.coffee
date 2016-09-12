@@ -116,7 +116,8 @@ exports.fromCode = (code, data, element, imports, isImport)->
       eval '"use strict";' + code
 
   newRoot.postBuild()
-
+  runtime = true
+  
   newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
@@ -141,7 +142,7 @@ exports.fromCode = (code, data, element, imports, isImport)->
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
 
-  runtime = true
+
   return newRoot
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
@@ -246,6 +247,7 @@ class ModelBase extends Backbone.Model
     # Other fields may need to update visibility, validity, etc when this field changes.
     # Fire an event on change, and catch those events fired by others.
     @on 'change', ->
+      return unless runtime
       # model onChangePropertiesHandlers functions
       for changeFunc in @onChangePropertiesHandlers
         changeFunc()
@@ -754,18 +756,20 @@ class ModelField extends ModelBase
       
     # If this option already exists, replace.  Otherwise append
     nextOpts = (opt for opt in @options when opt.title isnt optionObject.title)
-    nextOpts.push new ModelOption optionObject
+    newOption = new ModelOption optionObject
+    nextOpts.push newOption
     @options = nextOpts
 
-    #if any option has selected:true, set this field's value to that
-    for opt in @options
-      if opt.selected
-        @addOptionValue opt.value
+    #if new option has selected:true, set this field's value to that
+    if newOption.selected
+      @addOptionValue newOption.value
     @defaultValue = @value
+    @ #return the field so we can chain .option calls
+  
+  postBuild: ->
     #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
     @updateOptionsSelected()
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
-    @ #return the field so we can chain .option calls
 
   updateOptionsSelected: ->
     for opt in @options
@@ -937,17 +941,17 @@ class ModelFieldTree extends ModelField
     nextOpts.push new ModelOption optionObject
     @options = nextOpts
     #todo: DRY out with parent option
-    #if any option has selected:true, set this field's value to that
-    for opt in @options
-      if opt.selected
-        @addOptionValue opt.value
+    #if new option has selected:true, set this field's value to that
+    if optionObject.selected
+      @addOptionValue optionObject.value
     @defaultValue = @value
-    #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
-    @updateOptionsSelected()
     @
 
   clear: (purgeDefaults=false) ->
     @value = if purgeDefaults then [] else @defaultValue
+
+  postBuild: ->
+    super
 
 # An image field is different enough from other fields to warrant its own subclass
 class ModelFieldImage extends ModelField

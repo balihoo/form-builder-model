@@ -1,7 +1,7 @@
 # Version History
 
 # 2.0.0
-- Several speedups for building large tree controls and controls with many options in general
+- Several speedups for building large tree fields and fields with many options in general
 
 There is one minor breaking change when building a field, then later during runtime adding another option with selected:true, perhaps as the result of some user action. Prior to 2.0.0 that new option would add itself to the field's defaultValue, affecting the restored value when clear() is called. From 2.0.0 onward, options with selected:true will only be part of the defaultValue if they are there during build time.
 

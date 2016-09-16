@@ -1,5 +1,8 @@
 # Version History
 
+# 1.9.1
+- Add a modelClassName property, which is needed for determining which class an object belongs to in IE.
+
 # 1.9.0
 - Add Image upload limitations for dimensions and file size.
 

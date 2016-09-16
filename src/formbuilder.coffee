@@ -218,6 +218,7 @@ exports.getChanges = (modelAfter, beforeData) ->
 # Attributes common to groups and fields.
 ###
 class ModelBase extends Backbone.Model
+  modelClassName: 'ModelBase'
   initialize: ->
     @setDefault 'visible', true
     @set 'isVisible', true
@@ -453,6 +454,7 @@ class ModelBase extends Backbone.Model
   A ModelGroup is a model object that can contain any number of other groups and fields
 ###
 class ModelGroup extends ModelBase
+  modelClassName: 'ModelGroup'
   initialize: ->
     @setDefault 'children', []
     @setDefault 'root', @
@@ -579,6 +581,7 @@ class ModelGroup extends ModelBase
   Encapsulates a group of form objects that can be added or removed to the form together multiple times
 ###
 class RepeatingModelGroup extends ModelGroup
+  modelClassName: 'RepeatingModelGroup'
   initialize: ->
     @setDefault 'defaultValue', @get('value') or []
     @set 'value', []
@@ -643,6 +646,7 @@ class RepeatingModelGroup extends ModelGroup
   NOTE: The following field types are subclasses: image, tree, date
 ###
 class ModelField extends ModelBase
+  modelClassName: 'ModelField'
   initialize: ->
     @setDefault 'type', 'text'
     @setDefault 'options', []

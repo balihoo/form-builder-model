@@ -9,7 +9,7 @@ vm           = require 'vm'
 jiff         = require 'jiff'
 moment       = require 'moment'
 
-# generate a new, unqiue identifier. Mostly good for label.for
+# generate a new, unqiue identifier. Mostly good for label.
 newid = (->
   incId = 0
   ->
@@ -116,7 +116,8 @@ exports.fromCode = (code, data, element, imports, isImport)->
       eval '"use strict";' + code
 
   newRoot.postBuild()
-
+  runtime = true
+  
   newRoot.applyData data
 
   newRoot.getChanges = exports.getChanges.bind null, newRoot
@@ -141,7 +142,7 @@ exports.fromCode = (code, data, element, imports, isImport)->
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
 
-  runtime = true
+
   return newRoot
 
 # CoffeeScript counterpart to fromCode.  Compiles the given code to JS
@@ -246,6 +247,7 @@ class ModelBase extends Backbone.Model
     # Other fields may need to update visibility, validity, etc when this field changes.
     # Fire an event on change, and catch those events fired by others.
     @on 'change', ->
+      return unless runtime
       # model onChangePropertiesHandlers functions
       for changeFunc in @onChangePropertiesHandlers
         changeFunc()
@@ -650,7 +652,7 @@ class ModelField extends ModelBase
       when 'multiselect' then []
       when 'bool' then false
       when 'info', 'button' then undefined
-      else ''
+      else (@get 'defaultValue') or ''
     @setDefault 'defaultValue', @get 'value' #used for control type and clear()
     @set 'isValid', true
     @setDefault 'validators', []
@@ -749,23 +751,26 @@ class ModelField extends ModelBase
     optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
 
     # when adding an option to a field, make sure it is a *select type
-    if not (@type in ['select','multiselect','image'])
+    if not (@type in ['select','multiselect','image','tree'])
       @type = 'select'
       
     # If this option already exists, replace.  Otherwise append
     nextOpts = (opt for opt in @options when opt.title isnt optionObject.title)
-    nextOpts.push new ModelOption optionObject
+    newOption = new ModelOption optionObject
+    nextOpts.push newOption
     @options = nextOpts
 
-    #if any option has selected:true, set this field's value to that
-    for opt in @options
-      if opt.selected
-        @addOptionValue opt.value
-    @defaultValue = @value
-    #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
-    @updateOptionsSelected()
+    #if new option has selected:true, set this field's value to that
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
+    if newOption.selected
+      @addOptionValue newOption.value
     @ #return the field so we can chain .option calls
+  
+  postBuild: ->
+    # options may have changed the starting value, so update the defaultValue to that
+    @defaultValue = @value #todo: NO! need to clone this in case value isnt primitive
+    #update each option's selected status to match the field value
+    @updateOptionsSelected()
 
   updateOptionsSelected: ->
     for opt in @options
@@ -932,20 +937,9 @@ class ModelFieldTree extends ModelField
     optionObject = @buildParamObject optionParams, ['path', 'value', 'selected']
     optionObject.value ?= optionObject.id
     optionObject.value ?= optionObject.path.join ' > '
-
-    nextOpts = (opt for opt in @options when opt.value isnt optionObject.value)
-    nextOpts.push new ModelOption optionObject
-    @options = nextOpts
-    #todo: DRY out with parent option
-    #if any option has selected:true, set this field's value to that
-    for opt in @options
-      if opt.selected
-        @addOptionValue opt.value
-    @defaultValue = @value
-    #update each option's selected value to match this field. eg, if default supplied on the field rather than option(s)
-    @updateOptionsSelected()
-    @
-
+    optionObject.title = optionObject.path.join '>' #use path as the key since that is what is rendered.
+    super optionObject
+    
   clear: (purgeDefaults=false) ->
     @value = if purgeDefaults then [] else @defaultValue
 

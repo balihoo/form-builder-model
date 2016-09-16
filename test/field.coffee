@@ -1,59 +1,73 @@
 assert = require 'assert'
 fb = require '../formbuilder'
+_ = require 'underscore'
 
 describe 'fields', ->
   describe '.option()', ->
     it "adds selected options to the field's defaultValue", ->
       model = fb.fromCoffee "field 'foo'"
-      foo = model.child 'foo'
-      assert.strictEqual foo.defaultValue, ''
-      foo.option 'bar'
-      assert.strictEqual foo.defaultValue, ''
-      foo.option 'baz', selected:true
-      assert.strictEqual foo.defaultValue, 'baz'
-      foo.option 'another'
-      assert.strictEqual foo.defaultValue, 'baz'
+      assert.strictEqual model.child('foo').defaultValue, ''
+      model = fb.fromCoffee "field('foo').option 'bar'"
+      assert.strictEqual model.child('foo').defaultValue, ''
+      model = fb.fromCoffee "field('foo').option 'bar', selected:true"
+      assert.strictEqual model.child('foo').defaultValue, 'bar'
+      model = fb.fromCoffee """
+        field 'foo'
+        .option 'one'
+        .option 'two', selected:true
+        .option 'three'
+        """
+      assert.strictEqual model.child('foo').defaultValue, 'two'
     it "adds selected options to the multiselect field's defaultValue", ->
       model = fb.fromCoffee "field 'foo', type:'multiselect'"
-      foo = model.child 'foo'
-      assert.deepEqual foo.defaultValue, []
-      foo.option 'bar'
-      assert.deepEqual foo.defaultValue, []
-      foo.option 'baz', selected:true
-      assert.deepEqual foo.defaultValue, ['baz']
-      foo.option 'another'
-      assert.deepEqual foo.defaultValue, ['baz']
-      foo.option 'yet another', selected:true
-      assert.deepEqual foo.defaultValue, ['baz', 'yet another']    
+      assert.deepEqual model.child('foo').defaultValue, []
+      model = fb.fromCoffee "field('foo', type:'multiselect').option 'bar'"
+      assert.deepEqual model.child('foo').defaultValue, []
+      model = fb.fromCoffee "field('foo', type:'multiselect').option 'bar', selected:true"
+      assert.deepEqual model.child('foo').defaultValue, ['bar']
+      model = fb.fromCoffee """
+        field 'foo', type:'multiselect'
+        .option 'one', selected:true
+        .option 'two'
+        .option 'three', selected:true
+        .option 'four'
+        """
+      assert.deepEqual model.child('foo').defaultValue, ['one', 'three']
     it "adds selected options to an image field's defaultValue", ->
       model = fb.fromCoffee "field 'foo', type:'image'"
-      foo = model.child 'foo'
-      assert.deepEqual foo.defaultValue, {}
-      foo.option {
-        fileID: 'fileID value1'
-        fileUrl: 'fileUrl value1'
-        thumbnailUrl: 'thumbnailUrl value1'
-      }
-      assert.deepEqual foo.defaultValue, {}
-      newOpt = {
+      assert.deepEqual model.child('foo').defaultValue, {}
+      model = fb.fromCoffee """
+        field 'foo', type:'image'
+        .option
+          fileID: 'fileID value1'
+          fileUrl: 'fileUrl value1'
+          thumbnailUrl: 'thumbnailUrl value1'
+        """
+      assert.deepEqual model.child('foo').defaultValue, {}
+      newOpt =
         fileID: 'fileID value2'
         fileUrl: 'fileUrl value2'
         thumbnailUrl: 'thumbnailUrl value2'
         selected:true
-      }
-      foo.option newOpt
-      delete newOpt.selected
-      # sets default value
-      assert.deepEqual foo.defaultValue, newOpt
+      model = fb.fromCoffee """
+        field 'foo', type:'image'
+        .option #{JSON.stringify newOpt}
+        """
+      assert.deepEqual model.child('foo').defaultValue, _.omit newOpt, 'selected'
       # and sets current value
-      assert.deepEqual foo.value, newOpt
-      foo.option {
-        fileID: 'fileID value3'
-        fileUrl: 'fileUrl value3'
-        thumbnailUrl: 'thumbnailUrl value3'
-      }
-      assert.deepEqual foo.defaultValue, newOpt
-      assert.deepEqual foo.value, newOpt
+      assert.deepEqual model.child('foo').value, _.omit newOpt, 'selected'
+
+      model = fb.fromCoffee """
+        field 'foo', type:'image'
+        .option
+          fileID: 'fileID value1'
+          fileUrl: 'fileUrl value1'
+          thumbnailUrl: 'thumbnailUrl value1'
+        .option #{JSON.stringify newOpt}
+        """
+      assert.deepEqual model.child('foo').defaultValue, _.omit newOpt, 'selected'
+      assert.deepEqual model.child('foo').value, _.omit newOpt, 'selected'
+      
     it 'triggers recalculation in other fields', ->
       model = fb.fromCoffee """
         a = field 'a', type:'select'

@@ -6,3 +6,4 @@ gulpfile.coffee
 .npmignore
 .vscode
 coffeelint.json
+*.tgz

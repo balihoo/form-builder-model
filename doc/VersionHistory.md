@@ -1,5 +1,8 @@
 # Version History
 
+# 2.0.1
+- Fix a bug where default values are not saved for fields in a repeating group.
+
 # 2.0.0
 - Several speedups for building large tree fields and fields with many options in general
 

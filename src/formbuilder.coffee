@@ -588,6 +588,7 @@ class RepeatingModelGroup extends ModelGroup
     super
 
   postBuild: ->
+    c.postBuild() for c in @children
     @clear() # Apply the defaultValue for the repeating model group after it has been built
 
   setDirty: (id, whatChanged) ->

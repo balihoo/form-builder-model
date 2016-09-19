@@ -1,5 +1,8 @@
 # Version History
 
+# 2.0.2
+- Add a modelClassName property, which is needed for determining which class an object belongs to in IE.
+
 # 2.0.1
 - Fix a bug where default values are not saved for fields in a repeating group.
 

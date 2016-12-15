@@ -1,5 +1,8 @@
 # Version History
 
+# 2.0.3
+- Fix an issue where fields with optionsFrom that didn't find any options would remain a text field.  Now optionsFrom defaults a field's type to select regardless of whether any options are returned.
+
 # 2.0.2
 - Add a modelClassName property, which is needed for determining which class an object belongs to in IE.
 

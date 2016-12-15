@@ -695,6 +695,7 @@ class ModelField extends ModelBase
     @bindPropFunctions 'onChangeHandlers'
     
     if @optionsFrom?
+      @ensureSelectType()
       if !@optionsFrom.url? or !@optionsFrom.parseResults?
         return exports.handleError 'When fetching options remotely, both url and parseResults properties are required'
       if typeof @optionsFrom?.url is 'function'
@@ -717,7 +718,7 @@ class ModelField extends ModelBase
       else if @previousAttributes().type is 'multiselect'
         @value = if @value.length > 0 then @value[0] else ''
       # must be *select if options present
-      if @options.length > 0 and not (@type in ['select', 'multiselect'])
+      if @options.length > 0 and not @isSelectType()
         @type = 'select'
 
   getOptionsFrom: ->
@@ -756,8 +757,7 @@ class ModelField extends ModelBase
     optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
 
     # when adding an option to a field, make sure it is a *select type
-    if not (@type in ['select','multiselect','image','tree'])
-      @type = 'select'
+    @ensureSelectType()
       
     # If this option already exists, replace.  Otherwise append
     nextOpts = (opt for opt in @options when opt.title isnt optionObject.title)
@@ -780,6 +780,15 @@ class ModelField extends ModelBase
   updateOptionsSelected: ->
     for opt in @options
       opt.selected = @hasValue opt.value
+
+  # returns true if this type is one where a value is selected. Otherwise false
+  isSelectType: ->
+    @type in ['select', 'multiselect', 'image', 'tree']
+
+  # certain operations require one of the select types.  If its not already, change field type to select
+  ensureSelectType: ->
+    unless @isSelectType()
+      @type = 'select'
 
   # find an option by value.  Uses the same child method as groups and fields to find constituent objects
   child: (value) ->
@@ -891,7 +900,7 @@ class ModelField extends ModelBase
       @value = @defaultValue
 
   ensureValueInOptions: ->
-    return unless @type in ['select','multiselect','image']
+    return unless @isSelectType()
     if typeof @value is 'string'
       existingOption = o for o in @options when o.value is @value
       unless existingOption

@@ -104,6 +104,13 @@ describe 'fields', ->
       f = model.child 'f'
       assert.strictEqual f.options.length, 1
       assert.strictEqual f.options[0].fileUrl, 'url 2'
+    it 'ensures field type is a select type', ->
+      model = fb.fromCoffee """
+        field 'f'
+        .option 'first'
+      """
+      f = model.child 'f'
+      assert.strictEqual f.type, 'select'
   describe '.cloneModel()', ->
     cloneAndCompareField = (foo) ->
       fooClone = foo.cloneModel()
@@ -134,4 +141,14 @@ describe 'fields', ->
         foo = model.child 'foo'
         foo.value = 'changed'
         cloneAndCompareField foo
+  describe 'optionsFrom', ->
+    it 'ensures field type is a select type, even if no options are found', ->
+      model = fb.fromCoffee """
+        field 'f', optionsFrom:
+          url: '/'
+          parseResults: -> []
+      """
+      f = model.child 'f'
+      assert.strictEqual f.type, 'select'
+
 

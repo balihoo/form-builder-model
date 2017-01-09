@@ -18,7 +18,7 @@ gulp.task 'compile', ['lint'], ->
     coffee({bare:true})
     .on 'error', console.log
   )
-  .pipe gulp.dest('./')
+  .pipe gulp.dest('lib')
 
 # runs all coffee tests in the test directory.
 # alternatively, specify --file <filename> to run a single file or alternate file pattern.

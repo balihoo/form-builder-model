@@ -1,13 +1,8 @@
 
 # Top-Level API
-Methods on the form-builder-model package that allow for building and interacting with a form model.
+Members on the form-builder-model package that allow for building and interacting with a form model.
 
-* mergeData(dataA, dataB)
-
-    Merges two data objects together, for example if a form's input data should be an amalgam of different sources.  Merging data then applying all at once works the same as building a model and calling applyData multiple times.
-
-
-* fromCoffee(code [,data [,element [,imports]]])
+* `fromCoffee(code [,data [,element [,imports]]])`
 
     Create a form builder model from the given the [model code](ModelCode.md) in CoffeeScript.
     
@@ -19,8 +14,7 @@ Methods on the form-builder-model package that allow for building and interactin
     
     The result of fromCoffee is a model object.    
 
-
-* fromPackage(pkg [,data [,element]])
+* `fromPackage(pkg [,data [,element]])`
 
     Also builds a model from model code, but the model and its imports are packaged up in one parameter.  The pkg object is usually obtained from the form builder getPackage path, and contains:
     
@@ -37,30 +31,78 @@ Methods on the form-builder-model package that allow for building and interactin
     
     A package contains a form as well as every imported form that it will require recursively.  In this way, all of the steps to create a fully built model can happen in one function call, rather than pre-building each model perhaps with several requests to form builder.
 
+* `fromCode(code [,data [,element [,imports]]])`
 
-* handleError(err)
+    Same as fromCoffee, but takes code as JavaScript.  fromCoffee simply compiles CoffeeScript to JavaScript then calls this function.
+    
+    If you will build the same model many times and you want to save the compilation step, you could compile CoffeeScript yourself then call this function instead.
+    
+* `mergeData(dataA, dataB)`
+
+    Merges two data objects together, for example if a form's input data should be an amalgam of different sources.  Merging data then applying all at once works the same as building a model and calling applyData multiple times.
+
+* `modelTests = []`
+
+    modelTests is an array of functions that the model code has defined for testing the built object.  The tests will not be run during build, they are only provided to those processes where testing the model would be appropriate.
+    
+    Tests that fail will call the error handler with a failure message result, which may be a string or error.
+    
+    The tests may modify the model as part of their test process, so the model should be rebuilt prior to every test.  This will also cause the modelTests array to be rebuilt!
+    
+    Testing procedure should then be something like this
+    ```coffeescript
+    formbuilder.fromCoffee modelCode #initial build to get the number of tests.
+    numTests = formbuilder.modelTests.length
+    for i in [0..numTests]
+        try
+            formbuilder.modelTests[i]() #call the test function
+            formbuilder.fromCoffee modelCode # rebuild model for next test
+        catch e
+            #do something with the error
+    ```
+ 
+* `setErrorHandler(f)`
+
+    Errors that occur when building, modifying, or testing a model will be passed to an error handler function.  The default function will ensure that the message is an Error object and then throw it.  This might not be desirable, for example if a runtime error could not be caught.  You can overwrite the default error handler by supplying a function to the setErrorHandler method.
+    
+    This function should take one parameter, which might be a string or Error object.
+    
+* `getChanges(modelAfter, beforeData)`
+    
+    The same as calling modelAfter.getChanges(beforeData).  See below.
+
+* `applyData(modelObject, inData, clear, purgeDefaults)`        
+
+    The same as calling modelObject.applyData(data [,clear] [,purgeDefaults]).  See below.
+
+* `buildOutputData(model)`
+
+    The same as calling model.buildOutputData().  See below
+
 
 # Model API
 Once built, a model object has some functions that will be useful to processes that use it.
 
-* clear()
+* `clear([purgeDefaults])`
 
     Clears out all values that have been set and restores all fields to their default values.  That is, any value that is specified in the model code as the default will be restored. Extra data supplied (as the second parameter to from* in the top level API) is the initial data, not the default value.
 
 
-* applyData(data [,clear])
+* `applyData(data [,clear] [,purgeDefaults])`
 
     Applies input data to the built model.  Any supplied values will completely overwrite matching fields in the model and fields not supplied in data will not be changed.
     
     To reset all fields to their default values prior to applying data, pass true as the clear parameter.  Default false.
+    
+    To reset all fields to blank, regardless of whether they had a default value, pass true as the purgeDefaults parameters.  Default false.
 
 
-* buildOutputData()
+* `buildOutputData()`
 
     Generates a JSON object that represents the total value of this form model.
 
 
-* getChanges(initialData)
+* `getChanges(initialData)`
 
     Compare the current state of the form with the initial state provided.
     

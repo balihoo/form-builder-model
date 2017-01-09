@@ -11,23 +11,15 @@ exports.fromCoffee = building.fromCoffee
 exports.fromPackage = building.fromPackage
 exports.getChanges = building.getChanges
 exports.mergeData = globals.mergeData
-exports.handleError = globals.handleError
+exports.modelTests = building.modelTests
 
-#exports.setErrorHandler
+#Overwrite the default error handler with the function provided.
+exports.setErrorHandler = (f) ->
+  globals.handleError = f
 
 # Apply initialization data to the model.
 exports.applyData = (modelObject, inData, clear, purgeDefaults) ->
   modelObject.applyData inData, clear, purgeDefaults
-
-# Merge data objects together.
-# Modifies and returns the first parameter
-exports.modelTests= []
-
-
-
-
-
-    
 
 
 

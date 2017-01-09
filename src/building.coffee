@@ -15,6 +15,14 @@ globals = require './globals'
 if alert?
   throttledAlert = _.throttle alert, 500
 
+###
+  An array of functions that can test a built model.
+  Model code may add tests to this array during build.  The tests themselves will not be run at the time, but are
+    made avaiable via this export so processes can run the tests when appropriate.
+  Tests may modify the model state, so the model should be rebuilt prior to running each test.
+###
+exports.modelTests = []
+
 # Creates a Model object from JS code.  The executed code will execute in a
 # root ModelGroup
 # code - model code

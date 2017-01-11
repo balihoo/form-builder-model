@@ -1,7 +1,7 @@
 # Version History
 
-# 3.0.0
-- Breaking change to the way handleError is overwritten.  Calling code should now call formbuilder.setErrorHandler
+# 2.0.4
+- Refactor by breaking up into multiple source files.
 
 # 2.0.3
 - Fix an issue where fields with optionsFrom that didn't find any options would remain a text field.  Now optionsFrom defaults a field's type to select regardless of whether any options are returned.

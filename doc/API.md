@@ -61,11 +61,19 @@ Members on the form-builder-model package that allow for building and interactin
             #do something with the error
     ```
  
-* `setErrorHandler(f)`
+* `errorHandler(err)`
 
-    Errors that occur when building, modifying, or testing a model will be passed to an error handler function.  The default function will ensure that the message is an Error object and then throw it.  This might not be desirable, for example if a runtime error could not be caught.  You can overwrite the default error handler by supplying a function to the setErrorHandler method.
+    Errors that occur when testing or running a model will be passed to an error handler function.  This default function will ensure that the message is an Error object and then throw it.  This might not be desirable, for example if a runtime error could not be caught.  You can overwrite the default error handler by setting it to a new function.
     
-    This function should take one parameter, which might be a string or Error object.
+    ```coffeescript
+    formbuilder = require 'balihoo-formbuilder-model'
+    formbuilder.errorHandler = (err) ->
+      msg = err.message or err
+      displayErrorMessage(msg)
+      disableSaveButtons()
+    ```
+    
+    This function should take one parameter, which might be a string or Error object.  Keep in mind that required modules are singletons, so this change will be global.
     
 * `getChanges(modelAfter, beforeData)`
     

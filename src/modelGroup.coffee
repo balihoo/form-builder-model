@@ -16,6 +16,7 @@ module.exports = class ModelGroup extends ModelBase
     @setDefault 'root', @
     @set 'isValid', true
     @set 'data', null
+    @setDefault 'beforeInput', (val) -> val
 
     super
 
@@ -117,6 +118,7 @@ module.exports = class ModelGroup extends ModelBase
 
   applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
+    finalInData = @beforeInput inData
     ###
     This section preserves a link to the initially applied data object and merges subsequent applies on top
       of it in-place.  This is necessary for two reasons.
@@ -125,12 +127,12 @@ module.exports = class ModelGroup extends ModelBase
     Second, templated fields use this data as the input to their Mustache evaluation. See @renderTemplate()
     ###
     if @data
-      globals.mergeData @data, inData
+      globals.mergeData @data, finalInData
       @trigger 'change'
     else
-      @data = inData
+      @data = finalInData
 
-    for key, value of inData
+    for key, value of finalInData
       @child(key)?.applyData value
 
 

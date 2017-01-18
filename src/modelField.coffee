@@ -26,6 +26,7 @@ module.exports = class ModelField extends ModelBase
     @setDefault 'template', null
     @setDefault 'autocomplete', null
     @setDefault 'disabled', false
+    @setDefault 'beforeInput', (val) -> val
 
     super
 
@@ -274,7 +275,7 @@ module.exports = class ModelField extends ModelBase
   applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
     if inData?
-      @value = inData
+      @value = @beforeInput inData
       @ensureValueInOptions()
 
   renderTemplate: () ->

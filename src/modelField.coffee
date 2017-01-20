@@ -27,6 +27,7 @@ module.exports = class ModelField extends ModelBase
     @setDefault 'autocomplete', null
     @setDefault 'disabled', false
     @setDefault 'beforeInput', (val) -> val
+    @setDefault 'beforeOutput', (val) -> val
 
     super
 
@@ -243,7 +244,7 @@ module.exports = class ModelField extends ModelBase
       val is @value
 
   buildOutputData: ->
-    switch @type
+    @beforeOutput switch @type
       when 'number'
         out = +@value
         if isNaN out then null else out

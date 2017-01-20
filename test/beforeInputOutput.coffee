@@ -1,7 +1,7 @@
 assert = require 'assert'
 fb = require '../formbuilder'
 
-describe.only 'beforeInput', ->
+describe 'beforeInput', ->
   context 'on a field', ->
     it 'modifies applied value prior to saving', ->
       model = fb.fromCoffee """
@@ -42,6 +42,7 @@ describe.only 'beforeInput', ->
       assert.strictEqual model.child('foo').value, 'bar'
       model.clear true #true purge defaults
       assert.strictEqual model.child('foo').value, ''
+    it 'can access instance attributes'
   context 'on a group', ->
     it 'modifies applied value prior to applying to children', ->
       model = fb.fromCoffee """
@@ -74,11 +75,14 @@ describe.only 'beforeInput', ->
       assert.strictEqual model.child('g.f2').value, 'original2'
     it "doesn't modify applied value outside of building scope", ->
       data = g:f:'bar'
-      fb.fromCoffee """
-        group 'g', beforeInput: (val) ->
+      model = fb.fromCoffee """
+        g = group 'g', beforeInput: (val) ->
           val.f = 'changed'
+          val
+        g.field 'f'
       """, data
-      assert.strictEqual data.g.f, 'bar'
+      assert.strictEqual model.child('g.f').value, 'changed' #make sure it applied
+      assert.strictEqual data.g.f, 'bar' #but didn't change the object
     it 'does NOT run when no data is applied to this', ->
       model = fb.fromCoffee """
         g = group 'g', beforeInput: (val) ->
@@ -100,6 +104,7 @@ describe.only 'beforeInput', ->
         g.field 'f', value:''
       """
       assert.strictEqual model.child('g.f').value, ''
+    it 'can access instance attributes'
   context 'on a repeating group', ->
     it 'modifies applied value by adding a new group', ->
       model = fb.fromCoffee """
@@ -140,14 +145,134 @@ describe.only 'beforeInput', ->
           val + 'mod'
       """, g:[{f:'one'},{f:'two'}]
       assert.strictEqual model.child('g').value[0].child('f').value, 'one1mod'
-    it "doesn't modify applied value outside of building scope"
-    it 'does NOT run when no data is applied to this'
-    it 'does NOT run for default value'
+    it "doesn't modify applied value outside of building scope", ->
+      data = g:[f:'bar']
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeInput: (val) ->
+          val[0].f = 'changed'
+          val
+        g.field 'f'
+      """, data
+      assert.strictEqual model.child('g').value[0].child('f').value, 'changed' #make sure it applied
+      assert.strictEqual data.g[0].f, 'bar' #but didn't change the object
+    it 'does NOT run when no data is applied to this', ->
+      model = fb.fromCoffee """
+        g = group 'g', beforeInput: (val) ->
+          val[0].f = 'modified'
+          val
+        g.field 'f', value:'default'
+      """
+      assert.strictEqual model.child('g').value[0].child('f').value, 'default'
+      model.clear false
+      assert.strictEqual model.child('g').value[0].child('f').value, 'default'
+      model.applyData a:'b'
+      assert.strictEqual model.child('g').value[0].child('f').value, 'default'
+    it 'does NOT run for default value', ->
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, value:[f:'first'], beforeInput: (val) ->
+          val[0].f = 'modified'
+          val
+        g.field 'f', value:'bar'
+      """
+      assert.strictEqual model.child('g').value[0].child('f').value, 'bar'
+      model.clear false #false to not purge defaults
+      assert.strictEqual model.child('g').value[0].child('f').value, 'bar'
+      model.clear true #true purge defaults
+      assert.strictEqual model.child('g').value[0].child('f').value, ''
+    it 'can access instance attributes'
 
 
 describe 'beforeOutput', ->
   context 'on a field', ->
-    it 'modifies value prior to output'
+    it 'substitutes value on output', ->
+      model = fb.fromCoffee """
+        field 'foo', value:'original', beforeOutput: -> 'modified'
+      """
+      assert.strictEqual model.child('foo').value, 'original'
+      assert.strictEqual model.buildOutputData().foo, 'modified'
+    it 'modifies value on output', ->
+      model = fb.fromCoffee """
+        field 'foo', value:'1', beforeOutput: (val) ->
+          val+2
+      """
+      assert.strictEqual model.buildOutputData().foo, '12'
+    it 'receives values converted to the correct data type', ->
+      model = fb.fromCoffee """
+        field 'foo', value:'1', type:'number', beforeOutput: (val) ->
+          val+2
+      """
+      assert.strictEqual model.buildOutputData().foo, 3
+    it 'undefined values are missing from the output data', ->
+      model = fb.fromCoffee """
+        field 'foo', value:'original foo', beforeOutput: -> undefined
+        field 'bar', value:'original bar'
+      """
+      assert.deepEqual model.buildOutputData(), bar:'original bar'
+    it 'can access instance attributes', ->
+      model = fb.fromCoffee """
+        field 'foo', beforeOutput: -> @name
+      """
+      assert.strictEqual model.buildOutputData().foo, 'foo'
+  context 'on a group', ->
+    it 'substitutes value on output', ->
+      model = fb.fromCoffee """
+        group 'g', beforeOutput: ->
+          "lets make the value a string"
+      """
+      assert.strictEqual model.buildOutputData().g, "lets make the value a string"
+    it 'modifies value on output', ->
+      model = fb.fromCoffee """
+        g = group 'g', beforeOutput: (val) ->
+          val.extra = 'additional value'
+          val
+        g.field 'f', value:'f initial'
+      """
+      assert.deepEqual model.buildOutputData(), g:{
+        f: 'f initial'
+        extra: 'additional value'
+      }
+    it 'receives default value as parameter'
+    it 'undefined values are missing from the output data'
+    it 'can access instance attributes'
+  context 'on a repeating group', ->
+    it.only 'substitutes value on output', ->
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeOutput: ->
+          'lets make the value a string'
+        g.field 'f'
+      """, g:[f:'initial']
+      
+      g = model.child('g')
+      f = g.value[0].child('f')
+      
+      console.log 'done build model', f.value
+      console.log g.value[0].buildOutputData()
+      console.log 'done build output data'
+      
+      
+      # so here g's value is an array of ModelGroups, as expected
+      assert.deepEqual model.buildOutputData(), g:'lets make the value a string'
+    it 'modifies value on output', ->
+      # impetus for this feature.  We want to display a repeating group whose value is an array of objects
+      # but transform that value into a single object in the output data
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeOutput: (val) ->
+          o = {}
+          for item in val
+            p[item.key] = item.value
+          o
+        g.field 'key'
+        g.field 'value'
+      """, g:[{key:'first', value:'one'},{key:'second', value:'two'}]
+      assert.deepEqual model.buildOutputData(), g:{
+        first:'one'
+        second:'two'
+      }
+    it 'receives default value as parameter'
+    it 'undefined values are missing from the output data'
+    it 'can access instance attributes'
+      
+
 
 
 

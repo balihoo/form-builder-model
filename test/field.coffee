@@ -141,6 +141,8 @@ describe 'fields', ->
         foo = model.child 'foo'
         foo.value = 'changed'
         cloneAndCompareField foo
+    it 'can exclude certain attributes', ->
+      assert.fail
   describe 'optionsFrom', ->
     it 'ensures field type is a select type, even if no options are found', ->
       model = fb.fromCoffee """

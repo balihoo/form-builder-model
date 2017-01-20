@@ -232,8 +232,15 @@ module.exports = class ModelBase extends Backbone.Model
 
   #Deep copy this backbone model by creating a new one with the same attributes.
   #Overwrite each root attribute with the new root in the cloning form.
-  cloneModel: (newRoot = @root, constructor = @constructor) ->
+  cloneModel: (newRoot = @root, constructor = @constructor, excludeAttributes=[]) ->
+    # first filter out undesired attributes from the clone
+#    filteredAttributes = {}
+#    for key,val of @attributes when key not in excludeAttributes
+#      filteredAttributes[key] = val
+      
+    # now call the constructor with the desired attributes
     myClone = new constructor(@attributes)
+#    myClone = new constructor(filteredAttributes)
 
     #some attributes need to be deep copied
     for key,val of myClone.attributes

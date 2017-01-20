@@ -173,18 +173,25 @@ class RepeatingModelGroup extends ModelGroup
     @value = []
 
     unless purgeDefaults
-      @applyData @defaultValue if @defaultValue
+      # we do NOT want to run beforeInput when resetting to the default, so just convert each to a ModelGroup
+      @addEachSimpleObject @defaultValue if @defaultValue
 
+  # applyData performs and clearing and transformations, then adds each simple object and a value ModelGroup
   applyData: (inData, clear=false, purgeDefaults=false) ->
+    finalInData = @beforeInput inData
+
     # always clear out and replace the model value when data is supplied
-    if inData
+    if finalInData
       @value = []
     else
       @clear purgeDefaults if clear
 
+    @addEachSimpleObject finalInData, clear, purgeDefaults
+
+  addEachSimpleObject: (o, clear=false, purgeDefaults=false) ->
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data
     #add a new repeating group to value for each in data, and apply data like with a model group
-    for obj in inData
+    for obj in o
       added = @add()
       for key,value of obj
         added.child(key)?.applyData value, clear, purgeDefaults

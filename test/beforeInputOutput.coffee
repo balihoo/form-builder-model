@@ -9,14 +9,39 @@ describe.only 'beforeInput', ->
           val + ' modified'
         field 'bar'
       """, foo:'original', bar:'original'
-      assert.strictEqual model.child('foo').value, 'original modified', 'beforeInput used during build'
-      assert.strictEqual model.child('bar').value, 'original',
-        'field without beforeInput uses unmodified value on build'
+      assert.strictEqual model.child('foo').value, 'original modified'
+      assert.strictEqual model.child('bar').value, 'original'
       model.clear()
       model.applyData {foo:'original2', bar:'original2'}
-      assert.strictEqual model.child('foo').value, 'original2 modified', 'beforeInput used during applyData'
-      assert.strictEqual model.child('bar').value, 'original2',
-        'field witout beforeInput uses unmodified value on applyData'
+      assert.strictEqual model.child('foo').value, 'original2 modified'
+      assert.strictEqual model.child('bar').value, 'original2'
+    it "doesn't modify applied object outside of building scope", ->
+      data = foo:'bar'
+      fb.fromCoffee """
+        field 'foo', beforeInput: (val) ->
+          val + 't'
+      """, data
+      assert.strictEqual data.foo, 'bar'
+    it 'does NOT run when no data is applied to this', -> #todo:correct? plus below
+      model = fb.fromCoffee """
+        field 'foo', beforeInput: (val) ->
+          'not bar'
+      """
+      assert.strictEqual model.child('foo').value, ''
+      model.clear false
+      assert.strictEqual model.child('foo').value, ''
+      model.applyData thing:'not a field'
+      assert.strictEqual model.child('foo').value, ''
+    it 'does NOT run for default value', -> #todo:correct? Else doc that val might be nothing. plus below
+      model = fb.fromCoffee """
+        field 'foo', value:'bar', beforeInput: (val) ->
+          'not bar'
+      """
+      assert.strictEqual model.child('foo').value, 'bar'
+      model.clear false #false to not purge defaults
+      assert.strictEqual model.child('foo').value, 'bar'
+      model.clear true #true purge defaults
+      assert.strictEqual model.child('foo').value, ''
   context 'on a group', ->
     it 'modifies applied value prior to applying to children', ->
       model = fb.fromCoffee """
@@ -26,14 +51,12 @@ describe.only 'beforeInput', ->
         g.field 'f1'
         g.field 'f2'
       """, g:{f1:'original',f2:'original'}
-      assert.strictEqual model.child('g.f1').value, 'original+g', 'beforeInput used during build'
-      assert.strictEqual model.child('g.f2').value, 'original',
-        'field without beforeInput uses unmodified value on build'
+      assert.strictEqual model.child('g.f1').value, 'original+g'
+      assert.strictEqual model.child('g.f2').value, 'original'
       model.clear()
       model.applyData g:{f1:'original2',f2:'original2'}
-      assert.strictEqual model.child('g.f1').value, 'original2+g', 'beforeInput used during applyData'
-      assert.strictEqual model.child('g.f2').value, 'original2',
-        'field without beforeInput uses unmodified value on applyData'
+      assert.strictEqual model.child('g.f1').value, 'original2+g'
+      assert.strictEqual model.child('g.f2').value, 'original2'
     it 'allows children to further modify value prior to input', ->
       model = fb.fromCoffee """
         g = group 'g', beforeInput: (val) ->
@@ -43,19 +66,90 @@ describe.only 'beforeInput', ->
           val + '+f1'
         g.field 'f2'
       """, g:{f1:'original', f2:'original'}
-      assert.strictEqual model.child('g.f1').value, 'original+g+f1', 'beforeInput used during build'
-      assert.strictEqual model.child('g.f2').value, 'original',
-        'field without beforeInput uses unmodified value on build'
+      assert.strictEqual model.child('g.f1').value, 'original+g+f1'
+      assert.strictEqual model.child('g.f2').value, 'original'
       model.clear()
       model.applyData g:{f1:'original2',f2:'original2'}
-      assert.strictEqual model.child('g.f1').value, 'original2+g+f1', 'beforeInput used during applyData'
-      assert.strictEqual model.child('g.f2').value, 'original2',
-        'field without beforeInput uses unmodified value on applyData'
+      assert.strictEqual model.child('g.f1').value, 'original2+g+f1'
+      assert.strictEqual model.child('g.f2').value, 'original2'
+    it "doesn't modify applied value outside of building scope", ->
+      data = g:f:'bar'
+      fb.fromCoffee """
+        group 'g', beforeInput: (val) ->
+          val.f = 'changed'
+      """, data
+      assert.strictEqual data.g.f, 'bar'
+    it 'does NOT run when no data is applied to this', ->
+      model = fb.fromCoffee """
+        g = group 'g', beforeInput: (val) ->
+          val.f = 'modified'
+          val
+        g.field 'f', value:'default'
+      """
+      assert.strictEqual model.child('g.f').value, 'default'
+      model.clear false
+      assert.strictEqual model.child('g.f').value, 'default'
+      model.applyData a:'b'
+      assert.strictEqual model.child('g.f').value, 'default'
+    it 'does NOT run for default value', ->
+      # groups do not have value or default value, but will initially have fields with empty values.
+      model = fb.fromCoffee """
+        g = group 'g', beforeInput: (val) ->
+          val.f = 'group beforeInput'
+          val
+        g.field 'f', value:''
+      """
+      assert.strictEqual model.child('g.f').value, ''
+  context 'on a repeating group', ->
+    it 'modifies applied value by adding a new group', ->
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeInput: (val) ->
+          val.push f:'additional'
+          val
+        g.field 'f'
+      """, g:[f:'original']
+      assert.strictEqual model.child('g').value.length, 2
+      assert.strictEqual model.child('g').value[0].child('f').value, 'original'
+      assert.strictEqual model.child('g').value[1].child('f').value, 'additional'
+      model.clear()
+      model.applyData g:[f:'original']
+      assert.strictEqual model.child('g').value.length, 2
+      assert.strictEqual model.child('g').value[0].child('f').value, 'original'
+      assert.strictEqual model.child('g').value[1].child('f').value, 'additional'
+    it 'modifies applied value by modifying a value in each group', ->
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeInput: (val) ->
+          for v,i in val
+            v.f += i+1 #add index to each value
+          val
+        g.field 'f'
+      """, g:[{f:'one'},{f:'two'}]
+      assert.strictEqual model.child('g').value[0].child('f').value, 'one1'
+      assert.strictEqual model.child('g').value[1].child('f').value, 'two2'
+      model.clear()
+      model.applyData g:[{f:'first'},{f:'second'}]
+      assert.strictEqual model.child('g').value[0].child('f').value, 'first1'
+      assert.strictEqual model.child('g').value[1].child('f').value, 'second2'
+    it 'allows children to further modify value', ->
+      model = fb.fromCoffee """
+        g = group 'g', repeating:true, beforeInput: (val) ->
+          for v,i in val
+            v.f += i+1 #add index to each value
+          val
+        g.field 'f', beforeInput: (val) ->
+          val + 'mod'
+      """, g:[{f:'one'},{f:'two'}]
+      assert.strictEqual model.child('g').value[0].child('f').value, 'one1mod'
+    it "doesn't modify applied value outside of building scope"
+    it 'does NOT run when no data is applied to this'
+    it 'does NOT run for default value'
 
-#  context 'on a repeating group'
 
-#describe 'beforeOutput', ->
-  
-#todo:? make sure reciprocal.  Would we want to warn/error if not true?
-# maybe default add a test.  build output data, then apply and build again, make sure the same.
-# If I dont care about reciprocal, then split into different files.
+describe 'beforeOutput', ->
+  context 'on a field', ->
+    it 'modifies value prior to output'
+
+
+
+
+

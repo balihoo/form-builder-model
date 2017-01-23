@@ -197,9 +197,12 @@ class RepeatingModelGroup extends ModelGroup
       added = @add()
       for key,value of obj
         added.child(key)?.applyData value, clear, purgeDefaults
+        
+  cloneModel: (root, constructor) ->
+    super root, constructor, ['title','value','beforeInput','beforeOutput']
 
   add: ->
-    clone = @cloneModel @root, ModelGroup, ['title','value','beforeInput','beforeOutput']
+    clone = @cloneModel @root, ModelGroup
     @value.push clone
     @trigger 'change'
     clone

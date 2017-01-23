@@ -40,4 +40,11 @@ describe 'group.repeating', ->
     firstFoo = model.child('g').value[0].child('foo')
     assert.strictEqual firstFoo.value, 'bar'
     assert.strictEqual firstFoo.defaultValue, 'bar'
+  it 'group default overrides field defaults', ->
+    model = fb.fromCoffee '''
+      group 'g', repeating:true, value:[f:'group default']
+      .field 'f', value:'field default'
+    '''
+    assert.strictEqual model.child('g').value.length, 1
+    assert.strictEqual model.child('g').value[0].child('f').value, 'group default'
   

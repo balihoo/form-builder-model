@@ -101,15 +101,12 @@ module.exports = class ModelGroup extends ModelBase
     @isValid = newValid
 
   buildOutputData: (group = @) ->
-    console.log 'mg.buildOutputData()', @constructor.name, @beforeOutput
-    if @constructor.name is 'Object'
-      console.log @
     obj = {}
     group.children.forEach (child) ->
       childData = child.buildOutputData()
       unless childData is undefined # undefined values do not appear in output, but nulls do
         obj[child.name] = childData
-    @beforeOutput obj
+    group.beforeOutput obj
 
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
@@ -172,7 +169,6 @@ class RepeatingModelGroup extends ModelGroup
   buildOutputData: ->
     tempOut = @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
-    console.log 'tempOut', tempOut
     @beforeOutput tempOut
 
   clear: (purgeDefaults=false) ->
@@ -203,12 +199,7 @@ class RepeatingModelGroup extends ModelGroup
         added.child(key)?.applyData value, clear, purgeDefaults
 
   add: ->
-    clone = @cloneModel @root, ModelGroup
-    clone.title = '' #don't display group name on every repeated group
-    clone.value = []
-    clone.beforeInput = (val) -> val
-    clone.beforeOutput = (val) -> val
-    #todo: done clone other stuff too. add to base clonemodel
+    clone = @cloneModel @root, ModelGroup, ['title','value','beforeInput','beforeOutput']
     @value.push clone
     @trigger 'change'
     clone

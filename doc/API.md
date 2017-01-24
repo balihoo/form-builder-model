@@ -79,11 +79,11 @@ Members on the form-builder-model package that allow for building and interactin
     
     The same as calling modelAfter.getChanges(beforeData).  See below.
 
-* `applyData(modelObject, inData, clear, purgeDefaults)`        
+* `applyData(modelObject, inData, clear, purgeDefaults)`<a name='applyData'></a>        
 
     The same as calling modelObject.applyData(data [,clear] [,purgeDefaults]).  See below.
 
-* `buildOutputData(model)`
+* `buildOutputData(model)`<a name='buildOutputData'></a> 
 
     The same as calling model.buildOutputData().  See below
 
@@ -122,3 +122,11 @@ Once built, a model object has some functions that will be useful to processes t
         * before: The initial value of the field
         * after: The final value of the field
     * patch: the raw [JSON patch](https://tools.ietf.org/html/rfc6902) (via [jiff](https://www.npmjs.com/package/jiff#diff)) between total before and after data.  Does not include test operations.
+    
+* `cloneModel(newRoot = @root, constructor = @constructor, excludeAttributes=[])`
+
+    Because our models are built in backbone with several triggers on various changes, it can be difficult to create a copy of your form model.  This method will perform a deep copy and update any references as necessary.
+    
+    Model changes will fire events in the root element.  If you want these events to go elsewhere, you may supply a different root element.
+    
+    Finally, you may NOT want to copy certain attributes.  Supply an array of those by name to exclude them from the clone, in which case each will receive the default value.

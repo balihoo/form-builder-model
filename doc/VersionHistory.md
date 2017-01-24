@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.0
+- beforeInput and beforeOutput property functions.
+
 # 2.0.4
 - Refactor by breaking up into multiple source files.
 

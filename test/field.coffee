@@ -142,7 +142,11 @@ describe 'fields', ->
         foo.value = 'changed'
         cloneAndCompareField foo
     it 'can exclude certain attributes', ->
-      assert.fail
+      model = fb.fromCoffee "field 'foo', value:'bar'"
+      foo = model.child 'foo'
+      fooClone = foo.cloneModel null, null, ['value', 'defaultValue']
+      assert.strictEqual foo.value, 'bar'
+      assert.strictEqual fooClone.value, ''
   describe 'optionsFrom', ->
     it 'ensures field type is a select type, even if no options are found', ->
       model = fb.fromCoffee """

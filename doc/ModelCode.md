@@ -122,7 +122,44 @@ field 'a', autocomplete: list:
 * **disabled** *bool* - Fields may be disabled and not editable by setting disabled:true.  Default is false.  Unlike [visible](#fieldVisible) property, these uneditable fields will still appear on the page, letting the user review current values, but the inputs cannot be changed.
 
   Note: this property does NOT work on [field type](#fieldtypes) 'tree'.  Support is forthcoming.
- 
+  
+* **beforeInput** *function* - When building or calling [applyData](API.md#applyData), you may need to transform that saved data into a different format to be used by the form.  This function takes in the applied value and should return the value to apply to the field.
+
+* **beforeOutput** *function* - When calling [buildOutputData](API.md#buildOutputData), you may need to transform the value into a different format to be saved.  This function takes in the current value as would be output without this transformation and should return the value to output.
+
+  <a name='beforeInputOutput'></a>`beforeInput` and `beforeOutput` allow form authors to use whichever field types are best for user interaction without having to worry if the outputs are in the desired format.  For example, we may receive input data in a format that is inconvenient for editing using existing field types.
+  
+  Because our forms are meant to output data and be able to receive that data back to reinitialize the form, `beforeInput` and `beforeOutput` should be reciprocal.  That is, the transformation on the input data should be the opposite of the transformation on the output data.
+  
+  ```coffeescript
+  ###
+    Suppose data for myBool were supplied as an object, with a key of 'meetsApproval' and a value of either 'yes' or 'no'.
+    {
+      "myBool": {
+        "meetsApproval":"yes"
+      }
+    }
+    We want to display that as a bool so that the user sees a simple checkbox.
+  ###
+  field 'myBool', type:'bool'
+    beforeInput: (val) ->
+      val.meetsApproval is 'yes' #returns true if 'yes', else false
+    beforeOutput: (val) ->
+      meetsApproval: if val then 'yes' else 'no' #convert the bool back into the original object format with string value
+  ```
+  
+  These functions have full access to instance properties (using `@`).  However, you should almost certainly used the val parameter instead of accessing the `@value` directly.  val will have any standard transformations applied first (eg: ensuring the correct data type), so only access `@value` if you don't want these.
+  
+  Any field with an output value of `undefined` will not be present in the output data at all.  This is a convenient way of having a field for display meant to help the user, but that should not be saved.
+   
+   ```coffeescript
+   fn = field 'first name'
+   ln = field 'last name'
+   field 'display name',
+     dynamicValue: ->
+       "Your display name will be #{fn} #{ln}"
+     beforeOutput: -> undefined
+   ```
 
 # Field Functions
 Call these functions to alter a current field in some way.
@@ -177,7 +214,7 @@ field 'choices'
 ## Field Types<a name='fieldtypes'></a>
 There are many types of fields that can be created.  If a certain type allows extra properties, those are displayed under that type.
 
-Certain field types imply a data type, such as 'number'. The internally stored value may not be in this same data type, and only converted on buildOutputData(). This would matter if you have a function that checks another field's value in a way where data type would matter.
+Certain field types imply a data type, such as 'number'. The internally stored value may not be in this same data type, and only converted on [buildOutputData()](API.md#buildOutputData). This would matter if you have a function that checks another field's value in a way where data type would matter.
 
 * **text** - A simple, one-line input box for text.  This is the default type.
 * **textarea** - Multi-line text entry.
@@ -247,6 +284,10 @@ As with fields, do not create two groups with the same name in the same place.
 * **visible** *bool or function* - Works the same as [on a field](#fieldVisible)
 * **display** *string* - The only possible value to set is "inline", which displays all of its fields in a row instead of one on each row.
 * **repeating** *bool* - Makes this group a [Repeating Group](#repeatingGroups), see that section for details.  Default:false
+* **beforeInput** *function* - Apply transformations to applied data prior to applying it to the group's children.
+* **beforeOutput** *function* - Apply transformations to the group's output after it is collected from all children.
+  
+  See related `beforeInput` and `beforeOutput` documentation in the [field section](#beforeInputOutput) for additional usage and examples.
 
 ## Group Functions
 The main purpose of groups is to contain other groups and fields.  Groups and fields are created as children of a given group by calling the respective function on that group.  The group and field functions are the same as on the root of the form except they are preceeded by a dot to show which the parent group should be.
@@ -257,6 +298,7 @@ group 'A Group'
 .field 'b'
 field 'c'
 ```
+
 In this example, b is nested beneath 'A Group', while a and c are at the root level.
 * **field()** - Add a field beneath this group.  See the [field specs](#fields).
 * **group()** - Add a group beneath this group.  See the [group specs](#groups).
@@ -266,13 +308,31 @@ In this example, b is nested beneath 'A Group', while a and c are at the root le
 Repeating groups are like a cross between Groups and Fields.  Like a group, they contain children which can be any combination of fields and subgroups.  Unlike a group however, these children only serve as a template for each section that should be added when the plus button is pressed.  Repeating groups, like Fields, have a value, which is an array of all the repeated sections added to the group and their values.
    
 ## Repeating Group Properties
-The only difference between creating a regular group and a repeating group is the presence of the repeating property, which is set to true.
+* **repeating** *bool* - The property that makes a group repeating is `repeating`, which is set to true.
 
 ```coffeescript
 group 'repeater', repeating:true
   .field 'first', value:1
   .field 'second', value:2
 ```
+
+* **value** *array of object* - Like a field, you can also set the `value` property to establish the default value.  This group default will take prescendence over any field defaults.
+
+```coffeescript
+r = group 'repeater', repeating:true, value:[{first:'group default'}]
+    .field 'first', value:'field default'
+
+r.buildOutputData()         # [{first:'group default'}]
+```
+
+* **beforeInput** *function* - Apply transformations to applied data prior to setting this repeating group's value.
+* **beforeOutput** *function* - Apply transformations to the repeating group's output after it transformed into an simple array of objects.
+  
+  See related `beforeInput` and `beforeOutput` documentation in the [field section](#beforeInputOutput) for additional usage and examples.
+  
+  Like with regular groups, the `beforeInput` and `beforeOutput` functions on a repeating group are called prior to passing the modified value to any children, which might have their own `beforeInput` and `beforeOutput` functions to modify it further.  However, each instance of a repeating group value is a clone of the repeating group itself, and would therefore ordinarily have copies of the same functions.  This would not work because the formats of a group and repeating group are different.  Therefore, each instance of a repeating group value will not have any before* functions called.  If you need to do some transformations for each instance, you can perform that at the repeating model group level.
+  
+
 ## Repeating Group Functions
 * **add** - Adds a new copy of the repeating group prototype to this value.
 * **delete(index)** - Deletes an instance of the repeating group from the value.

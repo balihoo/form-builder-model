@@ -1,5 +1,11 @@
 # Version History
 
+# 2.1.0
+- beforeInput and beforeOutput property functions.
+
+# 2.0.4
+- Refactor by breaking up into multiple source files.
+
 # 2.0.3
 - Fix an issue where fields with optionsFrom that didn't find any options would remain a text field.  Now optionsFrom defaults a field's type to select regardless of whether any options are returned.
 

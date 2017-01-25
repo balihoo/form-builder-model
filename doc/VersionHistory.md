@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.1
+- Minor doc updates and add a test.
+
 # 2.1.0
 - beforeInput and beforeOutput property functions.
 

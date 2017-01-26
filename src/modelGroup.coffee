@@ -199,7 +199,7 @@ class RepeatingModelGroup extends ModelGroup
         added.child(key)?.applyData value, clear, purgeDefaults
         
   cloneModel: (root, constructor) ->
-    super root, constructor, ['title','value','beforeInput','beforeOutput']
+    super root, constructor, ['title','name','value','beforeInput','beforeOutput']
 
   add: ->
     clone = @cloneModel @root, ModelGroup

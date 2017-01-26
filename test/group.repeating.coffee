@@ -47,4 +47,23 @@ describe 'group.repeating', ->
     '''
     assert.strictEqual model.child('g').value.length, 1
     assert.strictEqual model.child('g').value[0].child('f').value, 'group default'
-  
+  it 'value instances are type ModelGroup', ->
+    model = fb.fromCoffee '''
+      group 'g', repeating:true, value:[f:'group default']
+      .field 'f'
+    '''
+    assert.strictEqual model.child('g').value[0].constructor.name, 'ModelGroup'
+  it 'value instances do not have attributes that should be excluded', ->
+    model = fb.fromCoffee '''
+      g = group name:'g', title:'Group Title', repeating:true, value:[f:'group default'],
+        beforeInput: -> [f:'group beforeInput']
+        beforeOutput: -> [f:'group beforeOutput']
+      g.field 'f'
+    '''
+    instance = model.child('g').value[0]
+    assert.strictEqual instance.name, undefined
+    assert.strictEqual instance.title, undefined
+    testIn = f:'test before input'
+    assert.deepEqual instance.beforeInput(testIn), testIn
+    testOut = f:'test output'
+    assert.deepEqual instance.beforeOutput(testOut), testOut

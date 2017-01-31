@@ -60,9 +60,10 @@ describe 'group.repeating', ->
         beforeOutput: -> [f:'group beforeOutput']
       g.field 'f'
     '''
-    instance = model.child('g').value[0]
-    assert.strictEqual instance.name, undefined
-    assert.strictEqual instance.title, undefined
+    g = model.child 'g'
+    instance = g.value[0]
+    assert.strictEqual instance.name, g.name
+    assert.strictEqual instance.title, ''
     testIn = f:'test before input'
     assert.deepEqual instance.beforeInput(testIn), testIn
     testOut = f:'test output'

@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.3
+- Fix a bug where buildOutputData on repeating groups failed.  This was introduced in 2.1.2.
+
 # 2.1.2
 - Remove the name attribute from repeating group value instances so that it won't appear in rendered forms.  This restores an old behavior that was accidentally changed.
 

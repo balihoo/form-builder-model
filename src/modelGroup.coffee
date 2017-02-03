@@ -207,7 +207,7 @@ class RepeatingModelGroup extends ModelGroup
     clone
 
   add: ->
-    clone = @cloneModel @root, ModelGroup, true
+    clone = @cloneModel @root, ModelGroup
     @value.push clone
     @trigger 'change'
     clone

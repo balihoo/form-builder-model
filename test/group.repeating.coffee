@@ -68,3 +68,27 @@ describe 'group.repeating', ->
     assert.deepEqual instance.beforeInput(testIn), testIn
     testOut = f:'test output'
     assert.deepEqual instance.beforeOutput(testOut), testOut
+
+  it 'clones beforeInput properly', ->
+    model = fb.fromCoffee """group 'g',
+      repeating:true
+      beforeInput: -> @cid
+    """
+    assert.deepEqual model.child('g').beforeInput(), model.child('g').cid
+
+    clone = model.cloneModel()
+    assert.deepEqual clone.child('g').beforeInput(), clone.child('g').cid
+
+    assert.notEqual model.child('g').cid, clone.child('g').cid
+
+  it 'clones beforeOutput properly', ->
+    model = fb.fromCoffee """group 'g',
+      repeating:true
+      beforeOutput: -> @cid
+    """
+    assert.deepEqual model.child('g').beforeOutput(), model.child('g').cid
+
+    clone = model.cloneModel()
+    assert.deepEqual clone.child('g').beforeOutput(), clone.child('g').cid
+
+    assert.notEqual model.child('g').cid, clone.child('g').cid

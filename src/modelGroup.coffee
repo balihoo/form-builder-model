@@ -199,8 +199,8 @@ class RepeatingModelGroup extends ModelGroup
         added.child(key)?.applyData value, clear, purgeDefaults
         
   cloneModel: (root, constructor) ->
-    # When cloning to a ModelGroup don't clone the beforeInput and beforeOutput functions
-    excludeAttributes = if constructor is ModelGroup then ['value','beforeInput','beforeOutput'] else ['value']
+    # When cloning to a ModelGroup exclude items not intended for subordinate clones
+    excludeAttributes = if constructor is ModelGroup then ['value','beforeInput','beforeOutput'] else []
     clone = super root, constructor, excludeAttributes
     # need name but not title.  Can't exclude in above clone because default to each other.
     clone.title = ''

@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.4
+- A bug when cloning repeating groups would not clone child elements correctly.
+
 # 2.1.3
 - Fix a bug where buildOutputData on repeating groups failed.  This was introduced in 2.1.2.
 

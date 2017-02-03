@@ -155,9 +155,18 @@ exports.getChanges = (modelAfter, beforeData) ->
   modelBefore = modelAfter.cloneModel()
   modelBefore.applyData(beforeData, true)
 
-  patch = jiff.diff modelBefore.buildOutputData(), modelAfter.buildOutputData(), invertible:false
+  # This patch is parsed and used to generate the changes
+  internalPatch = jiff.diff(
+    modelBefore.buildOutputData(undefined, true)
+    modelAfter.buildOutputData(undefined, true)
+    invertible:false
+  )
+
+  # This is the actual patch
+  outputPatch = jiff.diff modelBefore.buildOutputData(), modelAfter.buildOutputData(), invertible:false
+
   #array paths end in an index #. We only want the field, not the index of the value
-  changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in patch)
+  changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in internalPatch)
   #get distinct field names. Arrays for example might appear multiple times
   changedPathsUniqObject = {}
   changedPathsUniqObject[val] = val for val in changedPaths
@@ -175,6 +184,6 @@ exports.getChanges = (modelAfter, beforeData) ->
         before:before.buildOutputData()
         after:after.buildOutputData()
   {
-  changes:changes
-  patch: patch
+  changes: changes
+  patch: outputPatch
   }

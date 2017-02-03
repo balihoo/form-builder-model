@@ -1,5 +1,5 @@
 assert = require 'assert'
-fb = require '../formbuilder'
+fb = require '../src/formbuilder'
 jiff = require 'jiff'
 
 describe 'getChanges', ->
@@ -73,7 +73,7 @@ describe 'getChanges', ->
       }
     ].sort(sortChangeFunc)
     done()
-    
+
   it 'shows no changes with initial data is empty and no changes are made', (done) ->
     model = fb.fromCoffee "field name:'foo', title:'foo title'"
     result = fb.getChanges model, {}
@@ -285,3 +285,54 @@ describe 'getChanges', ->
     model = fb.fromCoffee "field 'a', value: 'def'"
     assert.deepEqual model.getChanges(b:'ignored').changes, []
     done()
+  it 'works for repeating field groups with beforeInput/beforeOutput functions', ->
+    expected = {
+      changes: [
+        {
+          name: "/g",
+          title: "g",
+          before: {
+            a: {
+              f: "initial value"
+            }
+          },
+          after: {
+            a: {
+              f: "new value"
+            }
+          }
+        }
+      ],
+      patch: [
+        {
+          op: "replace",
+          path: "/g/a/f",
+          value: "new value"
+        }
+      ]
+    }
+
+    model = fb.fromCoffee """
+      group 'g',
+        repeating: true
+        beforeInput: (value) ->
+          results = []
+          for k,v of value
+            v.id = k
+            results.push v
+          results
+
+        beforeOutput: (values) ->
+          results = {}
+          for value in values
+            results[value.id] = value
+            delete value.id
+          results
+      .field 'id'
+      .field 'f'
+"""
+    intialData = g: a: f: "initial value"
+    editedData = g: a: f: "new value"
+    model.applyData jiff.clone intialData
+    model.applyData jiff.clone editedData
+    assert.deepEqual model.getChanges(intialData), expected

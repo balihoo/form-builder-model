@@ -252,8 +252,7 @@ module.exports = class ModelField extends ModelBase
       when 'bool' then not not @value
       else @value
 
-    return value if skipBeforeOutput
-    @beforeOutput value
+    if skipBeforeOutput then value else @beforeOutput value
 
   clear: (purgeDefaults=false) ->
     if purgeDefaults

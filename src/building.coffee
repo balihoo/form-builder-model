@@ -164,14 +164,12 @@ exports.getChanges = (modelAfter, beforeData) ->
 
   # This is the actual patch
   outputPatch = jiff.diff modelBefore.buildOutputData(), modelAfter.buildOutputData(), invertible:false
-
   #array paths end in an index #. We only want the field, not the index of the value
   changedPaths = (p.path.replace(/\/[0-9]+$/, '') for p in internalPatch)
   #get distinct field names. Arrays for example might appear multiple times
   changedPathsUniqObject = {}
   changedPathsUniqObject[val] = val for val in changedPaths
   changedPathsUnique = (key for key of changedPathsUniqObject)
-
   changes = []
   for changedPath in changedPathsUnique
     path = changedPath[1..-1] #don't need that initial separator
@@ -181,8 +179,8 @@ exports.getChanges = (modelAfter, beforeData) ->
       changes.push
         name:changedPath
         title:after.title
-        before:before.buildOutputData()
-        after:after.buildOutputData()
+        before:before.buildOutputData undefined, true
+        after:after.buildOutputData undefined, true
   {
   changes: changes
   patch: outputPatch

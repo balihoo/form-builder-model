@@ -285,22 +285,44 @@ describe 'getChanges', ->
     model = fb.fromCoffee "field 'a', value: 'def'"
     assert.deepEqual model.getChanges(b:'ignored').changes, []
     done()
+  it 'works for fields with beforeInput/beforeOutput functions', ->
+    model =fb.fromCoffee '''
+      field 'f',
+        beforeOutput: (val) ->
+          "beforeOutput #{val}"
+    ''', f:'built value'
+    changes = model.getChanges f:'before value'
+    # changes shows model values, patch shows output data values
+    assert.strictEqual changes.changes[0].after, 'built value', 'changes shows model value'
+    assert.strictEqual changes.patch[0].value, 'beforeOutput built value', 'patch shows beforeOutput value'
+  it 'works for group with beforeInput/beforeOutput functions', ->
+    model = fb.fromCoffee '''
+      group 'g',
+        beforeOutput: (val) ->
+          b: val.a
+        beforeInput: (val) ->
+          a: val.b
+      .field 'a'
+    ''', g:b:'b build'
+    changes = model.getChanges g:b:'b before'
+    #changes shows model values, patch shows output data values
+    #and before data references are transformed by beforeInput
+    assert.strictEqual changes.changes[0].name, '/g/a', 'changes shows original model path'
+    assert.strictEqual changes.patch[0].path, '/g/b', 'patch shows beforeOutput path'
   it 'works for repeating field groups with beforeInput/beforeOutput functions', ->
     expected = {
       changes: [
         {
           name: "/g",
           title: "g",
-          before: {
-            a: {
-              f: "initial value"
-            }
-          },
-          after: {
-            a: {
-              f: "new value"
-            }
-          }
+          before: [{
+            id: 'a'
+            f: "initial value"
+          }],
+          after: [{
+            id: 'a'
+            f: "new value"
+          }]
         }
       ],
       patch: [
@@ -312,6 +334,8 @@ describe 'getChanges', ->
       ]
     }
 
+    initialData = g: a: f: "initial value"
+    editedData = g: a: f: "new value"
     model = fb.fromCoffee """
       group 'g',
         repeating: true
@@ -330,9 +354,5 @@ describe 'getChanges', ->
           results
       .field 'id'
       .field 'f'
-"""
-    intialData = g: a: f: "initial value"
-    editedData = g: a: f: "new value"
-    model.applyData jiff.clone intialData
-    model.applyData jiff.clone editedData
-    assert.deepEqual model.getChanges(intialData), expected
+    """, editedData
+    assert.deepEqual model.getChanges(initialData), expected

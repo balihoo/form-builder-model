@@ -116,12 +116,12 @@ Once built, a model object has some functions that will be useful to processes t
     
     Returns an object with two keys.
     
-    * changes: an array of objects representing changes to the model object itself _without_ any transformations from [beforeOutput](ModelCode.md#beforeInputOutput) or [buildOutputData](#buildOutputData).  This is useful for communicating to the user which fields have changed using structure and title that they are familiar with.  Each object contains
+    * changes: an array of objects representing changes to the model object itself _without_ any transformations from [buildOutputData](#buildOutputData).  This is useful for communicating to the user which fields have changed using structure and title that they are familiar with.  Each object contains
         * name: The path to the changed field, in the same format as the patch path (below)
         * title: The [title](ModelCode.md#title) of the field
         * before: The initial value of the field
         * after: The final value of the field
-    * patch: the raw [JSON patch](https://tools.ietf.org/html/rfc6902) (via [jiff](https://www.npmjs.com/package/jiff#diff)) between the current built output data and that from a previous state.  Does not include test operations.  This _does_ include any transformations performed by [beforeOutput](ModelCode.md#beforeInputOutput) and [buildOutputData](#buildOutputData).  This will be an array of objects each containing
+    * patch: the raw [JSON patch](https://tools.ietf.org/html/rfc6902) (via [jiff](https://www.npmjs.com/package/jiff#diff)) between the current built output data and that from a previous state.  Does not include test operations.  This _does_ include any transformations performed by [beforeOutput](ModelCode.md#beforeInputOutput).  This will be an array of objects each containing
         * op: Operation (replace, etc)
         * path: The path to the json element that changed
         * value: The new value

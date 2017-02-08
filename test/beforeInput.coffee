@@ -20,7 +20,7 @@ describe 'beforeInput', ->
       data = foo:'bar'
       model = fb.fromCoffee '''
         field 'foo', beforeInput: (val) ->
-          val + 't'
+          val += 't'
       ''', data
       #test not modified during build
       assert.strictEqual data.foo, 'bar'

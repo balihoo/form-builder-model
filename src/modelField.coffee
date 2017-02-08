@@ -243,14 +243,16 @@ module.exports = class ModelField extends ModelBase
     else
       val is @value
 
-  buildOutputData: ->
-    @beforeOutput switch @type
+  buildOutputData: (_, skipBeforeOutput) ->
+    value = switch @type
       when 'number'
         out = +@value
         if isNaN out then null else out
       when 'info', 'button' then undefined
       when 'bool' then not not @value
       else @value
+
+    if skipBeforeOutput then value else @beforeOutput value
 
   clear: (purgeDefaults=false) ->
     if purgeDefaults

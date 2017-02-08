@@ -48,7 +48,7 @@ group 'bar'
     .field 'foo' #okay, different spot in JSON
 ```
 ## Field Properties
-* **title** *string* - Text to display next to this field. Default: same as name.
+* **title** *string*<a name="title"></a> - Text to display next to this field. Default: same as name.
 * **name** *string* - The name of this field as it will appear in the input and output JSON.
 * **type** *string* - The display type of the field.  Default is 'text'.  See [field types](#fieldtypes).
 * **value** - The current value of the field which will appear in the form output.  Setting this when creating a field will set its default value.  The data type depends on the field type.

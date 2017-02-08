@@ -1,4 +1,3 @@
-
 ModelBase = require './modelBase'
 ModelFieldImage = require './modelFieldImage'
 ModelFieldTree = require './modelFieldTree'
@@ -74,7 +73,6 @@ module.exports = class ModelGroup extends ModelBase
       path = path.split /[./]/
     name = path.shift()
     child = c for c in @children when c.name is name
-
     if path.length is 0
       child
     else
@@ -101,13 +99,14 @@ module.exports = class ModelGroup extends ModelBase
       newValid &&= child.isValid
     @isValid = newValid
 
-  buildOutputData: (group = @) ->
+  buildOutputData: (group = @, skipBeforeOutput) ->
     obj = {}
     group.children.forEach (child) ->
-      childData = child.buildOutputData()
+      childData = child.buildOutputData(undefined, skipBeforeOutput)
       unless childData is undefined # undefined values do not appear in output, but nulls do
         obj[child.name] = childData
-    group.beforeOutput obj
+
+    if skipBeforeOutput then obj else group.beforeOutput obj
 
   buildOutputDataString: ->
     JSON.stringify @buildOutputData()
@@ -167,10 +166,11 @@ class RepeatingModelGroup extends ModelGroup
     #ignore validity/visibility of children, only value instances
     super @value
 
-  buildOutputData: ->
+  buildOutputData: (_, skipBeforeOutput) ->
     tempOut = @value.map (instance) ->
       super instance #build output data of each value as a group, not repeating group
-    @beforeOutput tempOut
+
+    if skipBeforeOutput then tempOut else @beforeOutput tempOut
 
   clear: (purgeDefaults=false) ->
     @value = []
@@ -198,7 +198,7 @@ class RepeatingModelGroup extends ModelGroup
       added = @add()
       for key,value of obj
         added.child(key)?.applyData value, clear, purgeDefaults
-        
+
   cloneModel: (root, constructor) ->
     # When cloning to a ModelGroup exclude items not intended for subordinate clones
     excludeAttributes = if constructor?.name is 'ModelGroup' then ['value','beforeInput','beforeOutput'] else []

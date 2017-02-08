@@ -1,5 +1,5 @@
 assert = require 'assert'
-fb = require '../formbuilder'
+fb = require '../src/formbuilder'
 jiff = require 'jiff'
 
 describe 'getChanges', ->
@@ -73,7 +73,7 @@ describe 'getChanges', ->
       }
     ].sort(sortChangeFunc)
     done()
-    
+
   it 'shows no changes with initial data is empty and no changes are made', (done) ->
     model = fb.fromCoffee "field name:'foo', title:'foo title'"
     result = fb.getChanges model, {}
@@ -285,3 +285,74 @@ describe 'getChanges', ->
     model = fb.fromCoffee "field 'a', value: 'def'"
     assert.deepEqual model.getChanges(b:'ignored').changes, []
     done()
+  it 'works for fields with beforeInput/beforeOutput functions', ->
+    model =fb.fromCoffee '''
+      field 'f',
+        beforeOutput: (val) ->
+          "beforeOutput #{val}"
+    ''', f:'built value'
+    changes = model.getChanges f:'before value'
+    # changes shows model values, patch shows output data values
+    assert.strictEqual changes.changes[0].after, 'built value', 'changes shows model value'
+    assert.strictEqual changes.patch[0].value, 'beforeOutput built value', 'patch shows beforeOutput value'
+  it 'works for group with beforeInput/beforeOutput functions', ->
+    model = fb.fromCoffee '''
+      group 'g',
+        beforeOutput: (val) ->
+          b: val.a
+        beforeInput: (val) ->
+          a: val.b
+      .field 'a'
+    ''', g:b:'b build'
+    changes = model.getChanges g:b:'b before'
+    #changes shows model values, patch shows output data values
+    #and before data references are transformed by beforeInput
+    assert.strictEqual changes.changes[0].name, '/g/a', 'changes shows original model path'
+    assert.strictEqual changes.patch[0].path, '/g/b', 'patch shows beforeOutput path'
+  it 'works for repeating field groups with beforeInput/beforeOutput functions', ->
+    expected = {
+      changes: [
+        {
+          name: "/g",
+          title: "g",
+          before: [{
+            id: 'a'
+            f: "initial value"
+          }],
+          after: [{
+            id: 'a'
+            f: "new value"
+          }]
+        }
+      ],
+      patch: [
+        {
+          op: "replace",
+          path: "/g/a/f",
+          value: "new value"
+        }
+      ]
+    }
+
+    initialData = g: a: f: "initial value"
+    editedData = g: a: f: "new value"
+    model = fb.fromCoffee """
+      group 'g',
+        repeating: true
+        beforeInput: (value) ->
+          results = []
+          for k,v of value
+            v.id = k
+            results.push v
+          results
+
+        beforeOutput: (values) ->
+          results = {}
+          for value in values
+            results[value.id] = value
+            delete value.id
+          results
+      .field 'id'
+      .field 'f'
+    """, editedData
+    assert.deepEqual model.getChanges(initialData), expected

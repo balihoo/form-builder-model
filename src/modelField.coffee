@@ -3,6 +3,7 @@ ModelBase = require './modelBase'
 ModelOption = require './modelOption'
 globals = require './globals'
 Mustache = require 'mustache'
+jiff = require 'jiff'
 
 ###
   A ModelField represents a model object that render as a DOM field
@@ -278,7 +279,7 @@ module.exports = class ModelField extends ModelBase
   applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
     if inData?
-      @value = @beforeInput inData
+      @value = @beforeInput jiff.clone inData
       @ensureValueInOptions()
 
   renderTemplate: () ->

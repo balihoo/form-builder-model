@@ -321,3 +321,14 @@ describe 'applyData', ->
     model.applyData inData, true, true
     assert.deepEqual model.buildOutputData(), a:'', b:'b new'
     assert.deepEqual inData, b:'b new'
+  it 'clones data', ->
+    #use a non-primitive to assign reference
+    model = fb.fromCoffee 'field "f", type:"multiselect"'
+    data = f:['orig']
+    model.applyData data
+    data.f.push 'added to data'
+    assert.strictEqual model.child('f').value.length, 1, "changes to data don't affect model"
+    assert.strictEqual data.f.length, 2 #we added one for a previous test
+    model.child('f').value.push 'added to model'
+    assert.strictEqual data.f.length, 2, "changes to model don't affect data"
+    

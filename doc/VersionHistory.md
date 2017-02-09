@@ -1,7 +1,10 @@
 # Version History
 
+# 2.1.6
+- It was possible for a data object to be modified when passed to `applyData`.  We now clone the parameter to prevent this.
+
 # 2.1.5
-- The introduction of `beforeOutput` allows forms to output data in a format that breaks `getChanges`.  This fix formally defines that the `changes` section of the `getChanges` result shall not include any transformations from beforeOutput.
+- The introduction of `beforeOutput` allows forms to output data in a format that breaks `getChanges`.  This fix formally defines that the `changes` section of the `getChanges` result shall not include any transformations from `beforeOutput`.
 
 # 2.1.4
 - A bug when cloning repeating groups would not clone child elements correctly.

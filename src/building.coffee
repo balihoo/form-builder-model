@@ -31,7 +31,7 @@ exports.modelTests = []
 # imports - object mapping {varname : model object}. May be referenced in form code
 exports.fromCode = (code, data, element, imports, isImport)->
   data = switch typeof data
-    when 'object' then JSON.parse JSON.stringify data #copy it
+    when 'object' then jiff.clone data #copy it
     when 'string' then JSON.parse data
     else {} # 'undefined', 'null', and other unsupported types
   globals.runtime = false

@@ -18,11 +18,15 @@ describe 'beforeInput', ->
       assert.strictEqual model.child('bar').value, 'original2'
     it "doesn't modify applied object outside of building scope", ->
       data = foo:'bar'
-      fb.fromCoffee '''
+      model = fb.fromCoffee '''
         field 'foo', beforeInput: (val) ->
-          val + 't'
+          val += 't'
       ''', data
+      #test not modified during build
       assert.strictEqual data.foo, 'bar'
+      #test not modified during applyData
+      model.applyData data, true
+      assert.strictEqual data.foo, 'bar'      
     it 'does NOT run when no data is applied to this', ->
       model = fb.fromCoffee '''
         field 'foo', beforeInput: (val) ->
@@ -87,6 +91,11 @@ describe 'beforeInput', ->
           val
         g.field 'f'
       ''', data
+      #test not modified during build
+      assert.strictEqual model.child('g.f').value, 'changed' #make sure it applied
+      assert.strictEqual data.g.f, 'bar' #but didn't change the object
+      #test not modified during applyData
+      model.applyData data, true
       assert.strictEqual model.child('g.f').value, 'changed' #make sure it applied
       assert.strictEqual data.g.f, 'bar' #but didn't change the object
     it 'does NOT run when no data is applied to this', ->
@@ -166,6 +175,11 @@ describe 'beforeInput', ->
           val
         g.field 'f'
       ''', data
+      #test not modified during build
+      assert.strictEqual model.child('g').value[0].child('f').value, 'changed' #make sure it applied
+      assert.strictEqual data.g[0].f, 'bar' #but didn't change the object
+      #test not modified during applyData
+      model.applyData data, true
       assert.strictEqual model.child('g').value[0].child('f').value, 'changed' #make sure it applied
       assert.strictEqual data.g[0].f, 'bar' #but didn't change the object
     it 'does NOT run when no data is applied to this', ->

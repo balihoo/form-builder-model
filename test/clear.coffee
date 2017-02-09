@@ -125,3 +125,12 @@ describe 'clear', ->
     assert.deepEqual model.buildOutputData(), d:'bar'
     model.clear()
     assert.strictEqual model.child('d').dynamicValue(), undefined
+  it "doesn't clear applied data outside of model scope", ->
+    model = fb.fromCoffee "field 'f', dynamicValue: -> data.foo"
+    data = foo:'bar'
+    model.applyData data
+    f = model.child 'f'
+    assert.strictEqual f.dynamicValue(), 'bar'
+    model.clear()
+    assert.strictEqual f.dynamicValue(), undefined
+    assert.deepEqual data, foo:'bar'

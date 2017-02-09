@@ -4,6 +4,7 @@ ModelFieldTree = require './modelFieldTree'
 ModelFieldDate = require './modelFieldDate'
 ModelField = require './modelField'
 globals = require './globals'
+jiff = require 'jiff'
 
 ###
   A ModelGroup is a model object that can contain any number of other groups and fields
@@ -118,7 +119,7 @@ module.exports = class ModelGroup extends ModelBase
 
   applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear
-    finalInData = @beforeInput inData
+    finalInData = @beforeInput jiff.clone inData
     ###
     This section preserves a link to the initially applied data object and merges subsequent applies on top
       of it in-place.  This is necessary for two reasons.
@@ -127,10 +128,10 @@ module.exports = class ModelGroup extends ModelBase
     Second, templated fields use this data as the input to their Mustache evaluation. See @renderTemplate()
     ###
     if @data
-      globals.mergeData @data, finalInData
+      globals.mergeData @data, inData
       @trigger 'change'
     else
-      @data = finalInData
+      @data = inData
 
     for key, value of finalInData
       @child(key)?.applyData value
@@ -180,7 +181,7 @@ class RepeatingModelGroup extends ModelGroup
 
   # applyData performs and clearing and transformations, then adds each simple object and a value ModelGroup
   applyData: (inData, clear=false, purgeDefaults=false) ->
-    finalInData = @beforeInput inData
+    finalInData = @beforeInput jiff.clone inData
 
     # always clear out and replace the model value when data is supplied
     if finalInData

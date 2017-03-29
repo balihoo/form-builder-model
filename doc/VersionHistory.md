@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.7
+- Fix a bug where `getChanges` always showed data types of object or array as changed.
+
 # 2.1.6
 - It was possible for a data object to be modified when passed to `applyData`.  We now clone the parameter to prevent this.
 

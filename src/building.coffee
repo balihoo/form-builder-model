@@ -175,7 +175,7 @@ exports.getChanges = (modelAfter, beforeData) ->
     path = changedPath[1..-1] #don't need that initial separator
     before = modelBefore.child path
     after = modelAfter.child path
-    if before?.value isnt after?.value
+    unless _.isEqual before?.value, after?.value #deep equality for non-primitives
       changes.push
         name:changedPath
         title:after.title

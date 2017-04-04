@@ -104,6 +104,8 @@ exports.fromCode = (code, data, element, imports, isImport)->
       emit 'change'
   newRoot.trigger 'change:isValid'
   newRoot.trigger 'recalculate'
+  
+  newRoot.styles = false #don't render with well, etc.
 
 
   return newRoot

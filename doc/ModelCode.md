@@ -279,6 +279,8 @@ As with fields, do not create two groups with the same name in the same place.
 * **visible** *bool or function* - Works the same as [on a field](#fieldVisible)
 * **display** *string* - The only possible value to set is "inline", which displays all of its fields in a row instead of one on each row.
 * **repeating** *bool* - Makes this group a [Repeating Group](#repeatingGroups), see that section for details.  Default:false
+* **styles** *bool* - Groups will be rendered in a grey well.  Set styles to false to disable this.
+* **limitColumns** *bool* - Groups that `display inline` will render with 6 children per inline row. If you'd rather render everything on one row, set limitColumns to false.
 * **beforeInput** *function* - Apply transformations to applied data prior to applying it to the group's children.
 * **beforeOutput** *function* - Apply transformations to the group's output after it is collected from all children.
   

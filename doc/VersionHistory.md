@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.8
+- A few minor fixes that affect rendering of groups.
+
 # 2.1.7
 - Fix a bug where `getChanges` always showed data types of object or array as changed.
 

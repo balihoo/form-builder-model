@@ -1,5 +1,8 @@
 # Version History
 
+# 2.1.9
+- Fix a bug when applying a value to a field with options when that value isn't one of the choices.  It would correctly set the field's value and add that value as an option, but the option object was not initially set as `selected`.
+
 # 2.1.8
 - A few minor fixes that affect rendering of groups.
 

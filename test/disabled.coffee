@@ -98,3 +98,16 @@ describe 'disabled', ->
       """, g:[{g1:{f1:'one', f2:'two'}}]
       assert model.child('g').value[0].child('g1.f1').isDisabled
       assert !model.child('g').value[0].child('g1.f2').isDisabled
+  context 'when option', ->
+    it 'can be a function', ->
+      model = fb.fromCoffee """
+        field 'dep'
+        field 'foo'
+        .option 'a'
+        .option 'b', disabled: -> root.child('dep').value is 'dis'
+      """
+      assert !model.child('foo.a').isDisabled
+      assert !model.child('foo.b').isDisabled
+      model.child('dep').value = 'dis'
+      assert !model.child('foo.a').isDisabled
+      assert model.child('foo.b').isDisabled

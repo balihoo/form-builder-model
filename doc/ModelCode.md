@@ -120,7 +120,7 @@ field 'a', autocomplete: list:
   State: "{{document.address.state}}"
 ```
 
-* **disabled** *bool* - Fields may be disabled and not editable by setting disabled:true.  Default is false.  Unlike [visible](#fieldVisible) property, these uneditable fields will still appear on the page, letting the user review current values, but the inputs cannot be changed.
+* **disabled** *bool or function* - <a name="fieldDisabled"></a>Fields may be disabled and not editable by setting disabled:true or to a function that return something truthy.  Default is false.  Unlike [visible](#fieldVisible) property, these uneditable fields will still appear on the page, letting the user review current values, but the inputs cannot be changed.
 
   Note: this property does NOT work on [field type](#fieldtypes) 'tree'.  Support is forthcoming.
   
@@ -277,6 +277,7 @@ As with fields, do not create two groups with the same name in the same place.
 * **title** *string* - Text to display for this group. Default: same as name.
 * **name** *string* - The name of this group as it will appear in the input and output JSON.  This will be the key whose value is an object containing all of its children.
 * **visible** *bool or function* - Works the same as [on a field](#fieldVisible)
+* **disabled** *bool or function* - Allow a group of items to be disabled at once.  Child elements may override this setting with their own disabled value. See [field behavior](#fieldDisabled).
 * **display** *string* - The only possible value to set is "inline", which displays all of its fields in a row instead of one on each row.
 * **repeating** *bool* - Makes this group a [Repeating Group](#repeatingGroups), see that section for details.  Default:false
 * **styles** *bool* - Groups will be rendered in a grey well.  Set styles to false to disable this.
@@ -363,6 +364,7 @@ It is important to note that these functions are run very often, usually when an
 Any property that is possible to set on a field or group can be referenced later by dynamic functions.  There are also some properties that cannot be directly set, but might be useful to read later.
 
 * **isVisible** *bool* - true if the object is currently visible, false if invisible
+* **isDisabled** *bool* - true if the object is currently disabled, false if enabled.
 * **parent** *Group or Field* - link to the form object that contains this one.  Every object has a parent except for the root.
 * **defaultValue** - Fields will know what the default value was, even if changed later.
 * **options** *array of Option objects* - Contains all options on the current field.  Note this is an Option object, not a simple string.

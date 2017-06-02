@@ -95,7 +95,7 @@ describe 'fields', ->
       f = model.child 'f'
       assert.strictEqual f.options.length, 1
       assert.strictEqual f.options[0].value, 'f value 2'
-    it 'duplicate options on image fields replace earler', ->
+    it 'duplicate options on image fields replace earlier', ->
       model = fb.fromCoffee """
         field 'f', type:'image'
         .option fileID: 'fid', fileUrl:'url 1'

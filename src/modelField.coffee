@@ -26,7 +26,6 @@ module.exports = class ModelField extends ModelBase
     @setDefault 'dynamicValue', null
     @setDefault 'template', null
     @setDefault 'autocomplete', null
-    @setDefault 'disabled', false
     @setDefault 'beforeInput', (val) -> val
     @setDefault 'beforeOutput', (val) -> val
 

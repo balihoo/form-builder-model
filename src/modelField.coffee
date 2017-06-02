@@ -224,6 +224,8 @@ module.exports = class ModelField extends ModelBase
 
   addOptionValue: (val) ->
     if @type in ['multiselect','tree']
+      unless Array.isArray @value
+        @value = [@value]
       if not (val in @value)
         @value.push val
     else #single-select
@@ -268,12 +270,12 @@ module.exports = class ModelField extends ModelBase
     if typeof @value is 'string'
       existingOption = o for o in @options when o.value is @value
       unless existingOption
-        @option @value
+        @option @value, selected:true
     else if Array.isArray @value
       for v in @value
         existingOption = o for o in @options when o.value is v
         unless existingOption
-          @option v
+          @option v, selected:true
 
   applyData: (inData, clear=false, purgeDefaults=false) ->
     @clear purgeDefaults if clear

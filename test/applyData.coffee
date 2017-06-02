@@ -232,30 +232,56 @@ describe 'applyData', ->
     done()
 
   describe "ensure that any field with options contains it's value in those options", ->
-    it 'adds when missing in select field', ->
-      model = fb.fromCoffee """
-        field 'f'
-        .option 'first'
-      """, {f:'second'}
-      assert.strictEqual model.child('f').options.length, 2
-    it 'doesnt add when not missing in select field', ->
-      model = fb.fromCoffee """
-        field 'f'
-        .option 'first'
-      """, {f:'first'}
-      assert.strictEqual model.child('f').options.length, 1
-    it 'adds when missing in multiselect fields', ->
-      model = fb.fromCoffee """
-        field 'f', type:'multiselect'
-        .option 'first'
-      """, {f:'second'}
-      assert.strictEqual model.child('f').options.length, 2
-    it 'doesnt add when not missing in multiselect field', ->
-      model = fb.fromCoffee """
-        field 'f', type:'multiselect'
-        .option 'first'
-      """, {f:'first'}
-      assert.strictEqual model.child('f').options.length, 1
+    context 'when type is select', ->
+      it 'adds when missing in select field', ->
+        model = fb.fromCoffee """
+          field 'f'
+          .option 'first'
+        """, {f:'second'}
+        assert.strictEqual model.child('f').options.length, 2
+      it 'added options from the value are selected', ->
+        model = fb.fromCoffee """
+          field 'f'
+          .option 'first'
+        """, f:'second'
+        assert model.child('f.second').selected
+      it 'doesnt add when not missing in select field', ->
+        model = fb.fromCoffee """
+          field 'f'
+          .option 'first'
+        """, {f:'first'}
+        assert.strictEqual model.child('f').options.length, 1
+    context 'when type is multiselect', ->
+      it 'adds when missing in multiselect fields, as a string', ->
+        model = fb.fromCoffee """
+          field 'f', type:'multiselect'
+          .option 'first'
+        """, {f:'second'}
+        assert.strictEqual model.child('f').options.length, 2
+      it 'adds when missing in multiselect fields, as an array', ->
+        model = fb.fromCoffee """
+          field 'f', type:'multiselect'
+          .option 'first'
+        """, {f:['second']}
+        assert.strictEqual model.child('f').options.length, 2
+      it 'added options from the value are selected, as a string', ->
+        model = fb.fromCoffee """
+          field 'f', type:'multiselect'
+          .option 'first'
+        """, f:'second'
+        assert model.child('f.second').selected
+      it 'added options from the value are selected, as an array', ->
+        model = fb.fromCoffee """
+          field 'f', type:'multiselect'
+          .option 'first'
+        """, f:['second']
+        assert model.child('f.second').selected
+      it 'doesnt add when not missing in multiselect field', ->
+        model = fb.fromCoffee """
+          field 'f', type:'multiselect'
+          .option 'first'
+        """, {f:['first']}
+        assert.strictEqual model.child('f').options.length, 1
     it 'adds the value as an option to image fields', ->
       model = fb.fromCoffee """
         field 'f', type:'image'

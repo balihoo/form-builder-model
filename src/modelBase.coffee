@@ -154,7 +154,7 @@ module.exports = class ModelBase extends Backbone.Model
       
     # disabled status
     if @shouldCallTriggerFunctionFor dirty, 'isDisabled'
-      @isDisabled = getBoolOrFunctionResult @disabled
+      @isDisabled = getBoolOrFunctionResult @disabled, false
 
     @trigger 'recalculate'
 

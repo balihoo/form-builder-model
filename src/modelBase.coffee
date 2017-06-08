@@ -17,19 +17,25 @@ newid = (->
     "fbid_#{incId}"
 )()
 
-
-getVisible = (visible) ->
-  if typeof visible is 'function'
-    return not not visible()
-  if visible is undefined
-    return true
-  return not not visible
+### Some properties may be booleans or functions that return booleans
+  Use this function to determine final boolean value.
+  prop - the property to evaluate, which may be something primitive or a function
+  deflt - the value to return if the property is undefined
+###
+getBoolOrFunctionResult = (prop, deflt=true) ->
+  if typeof prop is 'function'
+    return not not prop()
+  if prop is undefined
+    return deflt
+  return not not prop
 
 module.exports = class ModelBase extends Backbone.Model
   modelClassName: 'ModelBase'
   initialize: ->
     @setDefault 'visible', true
     @set 'isVisible', true
+    @setDefault 'disabled', false
+    @set 'isDisabled', false
     @setDefault 'onChangePropertiesHandlers', []
     @set 'id', newid()
     @setDefault 'parent', undefined
@@ -49,6 +55,7 @@ module.exports = class ModelBase extends Backbone.Model
         }
 
     @bindPropFunctions 'visible'
+    @bindPropFunctions 'disabled'
     @makePropArray 'onChangePropertiesHandlers'
     @bindPropFunctions 'onChangePropertiesHandlers'
 
@@ -143,7 +150,11 @@ module.exports = class ModelBase extends Backbone.Model
 
     # visibility
     if @shouldCallTriggerFunctionFor dirty, 'isVisible'
-      @isVisible = getVisible @visible
+      @isVisible = getBoolOrFunctionResult @visible
+      
+    # disabled status
+    if @shouldCallTriggerFunctionFor dirty, 'isDisabled'
+      @isDisabled = getBoolOrFunctionResult @disabled, false
 
     @trigger 'recalculate'
 

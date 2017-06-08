@@ -1,5 +1,8 @@
 # Version History
 
+# 2.2.1
+- Fix a bug where applying a value to a multiselect field where some of those values aren't options would sometimes not add all new values as options.
+
 # 2.2.0
 - Add the ability for the `disabled` property be a function, and to appear on groups.  Added property `isDisabled`, which provides current disabled status as a boolean.
 

@@ -274,6 +274,7 @@ module.exports = class ModelField extends ModelBase
         @option @value, selected:true
     else if Array.isArray @value
       for v in @value
+        existingOption = null #required to clear out previously found values
         existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true

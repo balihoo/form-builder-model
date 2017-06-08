@@ -27,6 +27,7 @@ module.exports = class ModelGroup extends ModelBase
   field: (fieldParams...) ->
     fieldObject = @buildParamObject fieldParams, ['title', 'name', 'type', 'value']
 
+    fieldObject.disabled ?= @disabled
     #Could move this to a factory, but fields should only be created here so probably not necessary.
     fld = switch fieldObject.type
       when 'image'
@@ -55,6 +56,7 @@ module.exports = class ModelGroup extends ModelBase
         grp.set(key, val)
     else
       groupObject = @buildParamObject groupParams, ['title', 'name', 'description']
+      groupObject.disabled ?= @disabled
       if groupObject.repeating
         grp = new RepeatingModelGroup groupObject
       else
@@ -148,7 +150,7 @@ class RepeatingModelGroup extends ModelGroup
     @set 'value', []
 
     super
-
+    
   postBuild: ->
     c.postBuild() for c in @children
     @clear() # Apply the defaultValue for the repeating model group after it has been built

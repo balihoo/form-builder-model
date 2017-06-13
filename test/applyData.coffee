@@ -149,7 +149,7 @@ describe 'applyData', ->
     model.applyData {g:[{first: 'newer'}]}
     assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
     done()
-  it 'applies data over the intiial value in a repeating model group when clear=true', (done) ->
+  it 'applies data over the initial value in a repeating model group when clear=true', (done) ->
     model = fb.fromCoffee """
       group 'g', repeating: true, value:[{first:'default'}]
       .field 'first'
@@ -158,7 +158,7 @@ describe 'applyData', ->
     model.applyData {g:[{first: 'newer'}]}, true
     assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
     done()
-  it 'applies data over the intiial value in a repeating model group when purgeDefaults=true', (done) ->
+  it 'applies data over the initial value in a repeating model group when purgeDefaults=true', (done) ->
     model = fb.fromCoffee """
       group 'g', repeating: true, value:[{first:'default'}]
       .field 'first'
@@ -167,7 +167,7 @@ describe 'applyData', ->
     model.applyData {g:[{first: 'newer'}]}, false, true
     assert.deepEqual model.buildOutputData(), {g:[{first:'newer'}]}
     done()
-  it 'applies data over the intiial value in a repeating model group when both clear and purgeDefaults=true', (done) ->
+  it 'applies data over the initial value in a repeating model group when both clear and purgeDefaults=true', (done) ->
     model = fb.fromCoffee """
       group 'g', repeating: true, value:[{first:'default'}]
       .field 'first'
@@ -185,7 +185,7 @@ describe 'applyData', ->
     model.applyData {}
     assert.deepEqual model.buildOutputData(), {g:[{first:'default'}]}
     done()
-  it 'restores intiial value in a repeating model group if no data is supplied and clear=true', (done) ->
+  it 'restores initial value in a repeating model group if no data is supplied and clear=true', (done) ->
     model = fb.fromCoffee """
       group 'g', repeating: true, value:[{first:'default'}]
       .field 'first'
@@ -282,6 +282,20 @@ describe 'applyData', ->
           .option 'first'
         """, {f:['first']}
         assert.strictEqual model.child('f').options.length, 1
+      it 'adds multiple values, found then not found', ->
+        model = fb.fromCoffee """
+          field 'f', type: 'multiselect'
+            .option 'a'
+            .option 'b'
+        """, f:['a','c']
+        assert.strictEqual model.child('f').options.length, 3
+      it 'adds multiple values, not found then found', ->
+        model = fb.fromCoffee """
+          field 'f', type: 'multiselect'
+            .option 'a'
+            .option 'b'
+        """, f:['c','a']
+        assert.strictEqual model.child('f').options.length, 3
     it 'adds the value as an option to image fields', ->
       model = fb.fromCoffee """
         field 'f', type:'image'

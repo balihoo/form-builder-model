@@ -27,8 +27,23 @@ describe 'field.tree', ->
       field 'mytree', type:'tree'
       .option path:['firstOpt'], value:'first'
     """, mytree:['first']
-    assert.deepEqual model.buildOutputData(), mytree:['first']  
-
+    assert.deepEqual model.buildOutputData(), mytree:['first']
+  it 'accepts input data that is not among options and adds it', ->
+    model = fb.fromCoffee """
+      field 'f', type:'tree'
+      .option ['a']
+      .option ['b']
+    """, f:['c']
+    assert.deepEqual model.buildOutputData(), f:['c']
+    assert.strictEqual model.child('f').options.length, 3
+  it 'accepts input data where some values dont exist among options, but others do', ->
+    model = fb.fromCoffee """
+      field 'f', type:'tree'
+      .option ['a']
+      .option ['b']
+    """, f:['b','c']
+    assert.deepEqual model.buildOutputData(), f:['b','c']
+    assert.strictEqual model.child('f').options.length, 3
   describe 'options', ->
     it 'allows selected', ->
       model = fb.fromCoffee """
@@ -96,6 +111,14 @@ describe 'field.tree', ->
       assert.deepEqual opt.path, ['first','second']
       assert.strictEqual opt.value, 'optValue'
       assert.strictEqual opt.selected, true
+    it 'allows path as string', ->
+      model = fb.fromCoffee """
+        field 'f', type:'tree'
+        .option 'a'
+      """
+      assert.strictEqual model.child('f').options.length, 1
+      assert.strictEqual model.child('f').options[0].path.length, 1
+      
       
     
 

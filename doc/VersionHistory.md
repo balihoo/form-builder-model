@@ -1,5 +1,8 @@
 # Version History
 
+# 2.2.2
+- Fix a bug where applying a value to a tree field that isn't among its options will error.  Also now allows option path to be a string, which is converted to an array of just that string.
+
 # 2.2.1
 - Fix a bug where applying a value to a multiselect field where some of those values aren't options would sometimes not add all new values as options.
 

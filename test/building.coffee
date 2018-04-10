@@ -96,6 +96,53 @@ describe 'fromCoffee', ->
     }
     done()
 
+  # https://docs.google.com/document/d/10jTfbBJt9rQ7wPqyh9ClEd0lQCaERYry5h3aV-ZREXM/edit
+  it 'can apply data to mustache sections input using array iterator', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData cities: ["SF","Chicago"]
+    model.applyData a:'{{#cities}}I like {{{.}}},{{/cities}}'
+    assert.deepEqual model.buildOutputData(), {
+      a:'{{#cities}}I like {{{.}}},{{/cities}}'
+      b:'I like SF,I like Chicago,'
+    }
+    done()
+
+  it.only 'can apply data to mustache sections input using object iterator', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData cities: [
+      {"city":"SF",      "state":"CA"}
+      {"city":"Chicago", "state":"IL"}
+    ]
+    model.applyData a:'{{#cities}}I like {{{city}}},{{/cities}}'
+    assert.deepEqual model.buildOutputData(), {
+      a:'{{#cities}}I like {{{city}}},{{/cities}}'
+      b:'I like SF,I like Chicago,'
+    }
+    done()
+
+  # adding a negative test to document that this can't be done. 
+  it 'can NOT apply data to mustache sections input using object iterator as array', (done) ->
+    model = fb.fromCoffee """
+      field 'a'
+      field 'b', visible: false, template:'a' """
+    #data is applied in more than one stage and merged together.
+    model.applyData cities: {
+      0:"SF"
+      1:"Chicago"
+    }
+    model.applyData a:'{{#cities}}I like {{{.}}},{{/cities}}'
+    assert.deepEqual model.buildOutputData(), {
+      a:'{{#cities}}I like {{{.}}},{{/cities}}'
+      b:'I like [object Object],'
+    }
+    done()
+
   it 'can build a model that contains groups', (done) ->
     model = fb.fromCoffee """
       group 'g'
@@ -177,6 +224,7 @@ describe 'fromPackage', ->
       gpa: 'Abe'
     }
     done()
+
   it 'can take data in package', (done) ->
     pkg =
       formid: 123
@@ -185,6 +233,7 @@ describe 'fromPackage', ->
     model = fb.fromPackage pkg
     assert.deepEqual model.buildOutputData(), {foo: 'tball'}
     done()
+
   it 'can take data as second parameter', (done) ->
     pkg =
       formid: 1

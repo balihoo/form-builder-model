@@ -267,6 +267,12 @@ g.field 'Select an Ad', 'ad_selection', type: 'select'
   .option 'Ad 1'
   .option 'Ad 2'
 
+g.field 'Ad Title', 'ad_title', value: "Default title"
+
+g.field 'Change Ad title to default', 'changeValue', type: 'button', tooltip: 'Click here to change ad title to default',
+  onClick: ->
+    g.child('ad_title').value = "Milk Duds 2019"
+
 g.field 'Edit', 'edit', type: 'button', tooltip: 'Click here to edit the selected ad',
   onClick: ->
     emit 'edit_ad', value: g.child('ad_selection').value

@@ -267,7 +267,7 @@ g.field 'Select an Ad', 'ad_selection', type: 'select'
   .option 'Ad 1'
   .option 'Ad 2'
 
-g.field 'Ad Title', 'ad_title', value: "Default title
+g.field 'Ad Title', 'ad_title', value: "Default title"
 
 g.field 'Change Ad title to default', 'changeValue', type: 'button', tooltip: 'Click here to change ad title to default',
   onClick: ->

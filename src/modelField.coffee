@@ -222,26 +222,33 @@ module.exports = class ModelField extends ModelBase
     for opt in @options
       opt.recalculateRelativeProperties()
 
-  addOptionValue: (val) ->
+  addOptionValue: (val, bidAdj) ->
     if @type in ['multiselect','tree']
       unless Array.isArray @value
         @value = [@value]
-      if not (val in @value)
-        @value.push val
+      findMatch = @value.findIndex (e) -> val.search(e) != -1
+      if findMatch !== -1
+        @value[findMatch] = (val + "/" + bidAdj)
+      else
+        @value.push (val + "/" + bidAdj)
     else #single-select
       @value = val
 
   removeOptionValue: (val) ->
     if @type in ['multiselect','tree']
-      if val in @value
-        @value = @value.filter (v) -> v isnt val
+        @value = @value.filter (v) -> val.search(v) == -1
     else if @value is val #single-select
       @value = ''
 
   #determine if the value is or contains the provided value.
-  hasValue: (val) ->
+  hasValue: (val, bidAdj) ->
     if @type in ['multiselect','tree']
-      val in @value
+      findMatch = @value.findIndex (e) -> e.search(val) != -1
+      if findMatch !== -1
+        @value[findMatch] = (val + "/" + bidAdj)
+        return true
+      else
+          return false
     else
       val is @value
 

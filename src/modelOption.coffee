@@ -9,7 +9,6 @@ module.exports = class ModelOption extends ModelBase
     # selected is used to set default value and also to store current value.
     @setDefault 'selected', false
     # set default bid adjustment
-    @setDefault 'bidAdj', 0
     @setDefault 'path', [] #for tree. Might should move to subclass
     super
 

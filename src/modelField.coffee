@@ -116,7 +116,7 @@ module.exports = class ModelField extends ModelBase
     @parent.group obj...
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
+    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected', 'bidAdj']
 
     # when adding an option to a field, make sure it is a *select type
     @ensureSelectType()
@@ -129,6 +129,9 @@ module.exports = class ModelField extends ModelBase
 
     #if new option has selected:true, set this field's value to that
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
+    # Pass in bid Adjustment from string
+    
+
     if newOption.selected
       @addOptionValue newOption.value
     @ #return the field so we can chain .option calls
@@ -141,7 +144,15 @@ module.exports = class ModelField extends ModelBase
 
   updateOptionsSelected: ->
     for opt in @options
-      opt.selected = @hasValue opt.value
+      
+      console.log(bidAdj)
+      if @type in ['multiselect','tree']
+        bidValue = this.hasValue(opt.value)
+        bidAdj = bidValue.bidAdjValue.lastIndexOf('/') !== -1 ? bidValue.bidAdjValue.split('/')[1] : "+0%";
+        opt.selected = bidValue.selectStatus
+        opt.bidAdj = bidAdj != -1 ? bidAdj : "0%"
+      else
+        opt.selected = this.hasValue(opt.value)
 
   # returns true if this type is one where a value is selected. Otherwise false
   isSelectType: ->
@@ -227,10 +238,13 @@ module.exports = class ModelField extends ModelBase
       unless Array.isArray @value
         @value = [@value]
       findMatch = @value.findIndex (e) -> val.search(e) != -1
-      if findMatch !== -1
-        @value[findMatch] = (val + "/" + bidAdj)
+      if findMatch !== -1 and bidAdj?
+          @value[findMatch] = (val + "/" + bidAdj)
       else
-        @value.push (val + "/" + bidAdj)
+        if bidAdj?
+          @value.push (val + "/" + bidAdj)
+        else 
+          @value.push val
     else #single-select
       @value = val
 
@@ -241,14 +255,14 @@ module.exports = class ModelField extends ModelBase
       @value = ''
 
   #determine if the value is or contains the provided value.
-  hasValue: (val, bidAdj) ->
+  hasValue: (val) ->
     if @type in ['multiselect','tree']
       findMatch = @value.findIndex (e) -> e.search(val) != -1
-      if findMatch !== -1
-        @value[findMatch] = (val + "/" + bidAdj)
-        return true
+      if findMatch != -1
+        return {"bidAdjValue": this.value[findMatch],
+              "selectStatus": true }
       else
-          return false
+        return {"selectStatus": false }
     else
       val is @value
 

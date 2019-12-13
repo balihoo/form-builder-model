@@ -148,9 +148,9 @@ module.exports = class ModelField extends ModelBase
       console.log(bidAdj)
       if @type in ['multiselect','tree']
         bidValue = this.hasValue(opt.value)
-        bidAdj = bidValue.bidAdjValue.lastIndexOf('/') !== -1 ? bidValue.bidAdjValue.split('/')[1] : "+0%";
+        bidAdj = if idValue.bidAdjValue.lastIndexOf('/') !== -1 then bidValue.bidAdjValue.split('/')[1] else "+0%";
         opt.selected = bidValue.selectStatus
-        opt.bidAdj = bidAdj != -1 ? bidAdj : "0%"
+        opt.bidAdj = if bidAdj != -1 then bidAdj else "0%"
       else
         opt.selected = this.hasValue(opt.value)
 
@@ -259,7 +259,7 @@ module.exports = class ModelField extends ModelBase
     if @type in ['multiselect','tree']
       findMatch = @value.findIndex (e) -> e.search(val) != -1
       if findMatch != -1
-        return {"bidAdjValue": this.value[findMatch],
+        return {"bidAdjValue": this.value[findMatch]
               "selectStatus": true }
       else
         return {"selectStatus": false }

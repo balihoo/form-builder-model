@@ -237,7 +237,7 @@ module.exports = class ModelField extends ModelBase
     if @type in ['multiselect','tree']
       unless Array.isArray @value
         @value = [@value]
-      findMatch = @value.findIndex (e) -> val.search(e) != -1
+      findMatch = @value.findIndex (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
       if findMatch != -1 and bidAdj?
           @value[findMatch] = (val + "/" + bidAdj)
       else
@@ -250,14 +250,14 @@ module.exports = class ModelField extends ModelBase
 
   removeOptionValue: (val) ->
     if @type in ['multiselect','tree']
-        @value = @value.filter (v) -> val.search(v) == -1
+        @value = @value.filter (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
     else if @value is val #single-select
       @value = ''
 
   #determine if the value is or contains the provided value.
   hasValue: (val) ->
     if @type in ['multiselect','tree']
-      findMatch = @value.findIndex (e) -> e.search(val) != -1
+      findMatch = @value.findIndex (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
       if findMatch != -1
         return {"bidAdjValue": this.value[findMatch]
               "selectStatus": true }

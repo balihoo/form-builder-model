@@ -245,16 +245,16 @@ module.exports = class ModelField extends ModelBase
           @value.push (val + "/" + bidAdj)
         else 
           @value.push val
-    else #single-select
+    else 
       @value = val
 
   removeOptionValue: (val) ->
     if @type in ['multiselect','tree']
         @value = @value.filter (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
-    else if @value is val #single-select
+    else if @value is val 
       @value = ''
 
-  #determine if the value is or contains the provided value.
+  
   hasValue: (val) ->
     if @type in ['multiselect','tree']
       findMatch = @value.findIndex (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
@@ -294,7 +294,7 @@ module.exports = class ModelField extends ModelBase
         @option @value, selected:true
     else if Array.isArray @value
       for v in @value
-        existingOption = null #required to clear out previously found values
+        existingOption = null 
         existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true
@@ -312,5 +312,5 @@ module.exports = class ModelField extends ModelBase
       template = @parent.child(@template).value
     try
       @value = Mustache.render template, @root.data
-    catch #just don't crash. Validator will display error later.
+    catch 
 

@@ -91,7 +91,7 @@ module.exports = class ModelField extends ModelBase
         @optionsFrom.url()
       else
         @optionsFrom.url
-    if @prevUrl is url
+    if @prevUrl is urlçç
       return
     @prevUrl = url
 
@@ -148,7 +148,7 @@ module.exports = class ModelField extends ModelBase
       console.log(bidAdj)
       if @type in ['multiselect','tree']
         bidValue = this.hasValue(opt.value)
-        bidAdj = if idValue.bidAdjValue.lastIndexOf('/') !== -1 then bidValue.bidAdjValue.split('/')[1] else "+0%";
+        bidAdj = if idValue.bidAdjValue.lastIndexOf('/') != -1 then bidValue.bidAdjValue.split('/')[1] else "+0%";
         opt.selected = bidValue.selectStatus
         opt.bidAdj = if bidAdj != -1 then bidAdj else "0%"
       else
@@ -238,7 +238,7 @@ module.exports = class ModelField extends ModelBase
       unless Array.isArray @value
         @value = [@value]
       findMatch = @value.findIndex (e) -> val.search(e) != -1
-      if findMatch !== -1 and bidAdj?
+      if findMatch != -1 and bidAdj?
           @value[findMatch] = (val + "/" + bidAdj)
       else
         if bidAdj?

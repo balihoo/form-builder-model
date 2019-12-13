@@ -91,7 +91,7 @@ module.exports = class ModelField extends ModelBase
         @optionsFrom.url()
       else
         @optionsFrom.url
-    if @prevUrl is urlçç
+    if @prevUrl is url
       return
     @prevUrl = url
 

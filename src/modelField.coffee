@@ -116,7 +116,7 @@ module.exports = class ModelField extends ModelBase
     @parent.group obj...
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected', 'bidAdj']
+    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected', 'bidAdj', 'bidAdjFlag']
 
     # when adding an option to a field, make sure it is a *select type
     @ensureSelectType()
@@ -129,9 +129,6 @@ module.exports = class ModelField extends ModelBase
 
     #if new option has selected:true, set this field's value to that
     #don't remove from parent value if not selected. Might be supplied by field value during creation.
-    # Pass in bid Adjustment from string
-    
-
     if newOption.selected
       @addOptionValue newOption.value
     @ #return the field so we can chain .option calls
@@ -143,16 +140,21 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    for opt in @options
-      
-      console.log(bidAdj)
-      if @type in ['multiselect','tree']
-        bidValue = this.hasValue(opt.value)
-        bidAdj = if idValue.bidAdjValue.lastIndexOf('/') != -1 then bidValue.bidAdjValue.split('/')[1] else "+0%";
-        opt.selected = bidValue.selectStatus
-        opt.bidAdj = if bidAdj != -1 then bidAdj else "0%"
+    ref = @options
+    results = []
+    i = 0
+    len = ref.length
+    while i < len
+      opt = ref[i]
+      if (ref1 = @type) == 'multiselect' or ref1 == 'tree'
+        bid = @hasValue(opt.value)
+        if bid.bidValue
+          opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split('/')[1] else @bidAdj
+        results.push opt.selected = bid.selectStatus
       else
-        opt.selected = this.hasValue(opt.value)
+        results.push opt.selected = @hasValue(opt.value)
+      i++
+    results
 
   # returns true if this type is one where a value is selected. Otherwise false
   isSelectType: ->
@@ -234,37 +236,60 @@ module.exports = class ModelField extends ModelBase
       opt.recalculateRelativeProperties()
 
   addOptionValue: (val, bidAdj) ->
-    if @type in ['multiselect','tree']
-      unless Array.isArray @value
-        @value = [@value]
-      findMatch = @value.findIndex (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
-      if findMatch != -1 and bidAdj?
-          @value[findMatch] = (val + "/" + bidAdj)
+    findMatch = undefined
+    ref = undefined
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      if !Array.isArray(@value)
+        @value = [ @value ]
+      findMatch = @value.findIndex((e) ->
+        if typeof e == 'string'
+          e.search(val) != -1
+        else
+          e == val
+      )
+      if findMatch != -1
+        if bidAdj
+          return @value[findMatch] = val + '/' + bidAdj
       else
-        if bidAdj?
-          @value.push (val + "/" + bidAdj)
-        else 
-          @value.push val
-    else 
-      @value = val
+        if bidAdj
+          return @value.push(val + '/' + bidAdj)
+        else
+          return @value.push(val)
+    else
+      return @value = val
+    return
 
   removeOptionValue: (val) ->
-    if @type in ['multiselect','tree']
-        @value = @value.filter (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
-    else if @value is val 
-      @value = ''
-
-  
+    ref = undefined
+      if (ref = @type) == 'multiselect' or ref == 'tree'
+        return @value = @value.filter((e) ->
+          if typeof e == 'string'
+            e.search(val) == -1
+          else
+            e != val
+        )
+      else if @value == val
+        return @value = ''
+      return
   hasValue: (val) ->
-    if @type in ['multiselect','tree']
-      findMatch = @value.findIndex (e) -> ( e == val ||e.search(val) != -1 || e.match(val) )
+    findMatch = undefined
+    ref = undefined
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      findMatch = @value.findIndex((e) ->
+        if typeof e == 'string'
+          e.search(val) != -1
+        else
+          e == val
+      )
       if findMatch != -1
-        return {"bidAdjValue": this.value[findMatch]
-              "selectStatus": true }
+        {
+          'bidValue': @value[findMatch]
+          'selectStatus': true
+        }
       else
-        return {"selectStatus": false }
+        { 'selectStatus': false }
     else
-      val is @value
+      val == @value
 
   buildOutputData: (_, skipBeforeOutput) ->
     value = switch @type
@@ -303,7 +328,8 @@ module.exports = class ModelField extends ModelBase
     @clear purgeDefaults if clear
     if inData?
       @value = @beforeInput jiff.clone inData
-      @ensureValueInOptions()
+      #HUB-2766 this is no longer necessary as we now have biding changing option
+      #@ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'

@@ -6,7 +6,7 @@ module.exports = class ModelFieldTree extends ModelField
     super
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['path', 'value', 'selected', 'bidAdj']
+    optionObject = @buildParamObject optionParams, ['path', 'value', 'selected', 'bidAdj', 'bidAdjFlag']
     optionObject.value ?= optionObject.id
     optionObject.value ?= optionObject.path.join ' > '
     optionObject.title = optionObject.path.join '>' #use path as the key since that is what is rendered.

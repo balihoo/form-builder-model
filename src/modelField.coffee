@@ -261,16 +261,16 @@ module.exports = class ModelField extends ModelBase
 
   removeOptionValue: (val) ->
     ref = undefined
-      if (ref = @type) == 'multiselect' or ref == 'tree'
-        return @value = @value.filter((e) ->
-          if typeof e == 'string'
-            e.search(val) == -1
-          else
-            e != val
-        )
-      else if @value == val
-        return @value = ''
-      return
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      return @value = @value.filter((e) ->
+        if typeof e == 'string'
+          e.search(val) == -1
+        else
+          e != val
+      )
+    else if @value == val
+      return @value = ''
+    return
   hasValue: (val) ->
     findMatch = undefined
     ref = undefined
@@ -319,7 +319,7 @@ module.exports = class ModelField extends ModelBase
         @option @value, selected:true
     else if Array.isArray @value
       for v in @value
-        existingOption = null 
+        existingOption = null
         existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true
@@ -338,5 +338,4 @@ module.exports = class ModelField extends ModelBase
       template = @parent.child(@template).value
     try
       @value = Mustache.render template, @root.data
-    catch 
-
+    catch

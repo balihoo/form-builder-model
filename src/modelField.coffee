@@ -144,6 +144,7 @@ module.exports = class ModelField extends ModelBase
     results = []
     i = 0
     len = ref.length
+    
     while i < len
       opt = ref[i]
       if (ref1 = @type) == 'multiselect' or ref1 == 'tree'

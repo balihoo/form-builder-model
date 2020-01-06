@@ -144,8 +144,6 @@ module.exports = class ModelField extends ModelBase
 
   updateOptionsSelected: ->
     for opt in @options
-      
-      console.log(bidAdj)
       if @type in ['multiselect','tree']
         bidValue = this.hasValue(opt.value)
         bidAdj = if idValue.bidAdjValue.lastIndexOf('/') != -1 then bidValue.bidAdjValue.split('/')[1] else "+0%";

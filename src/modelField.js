@@ -175,7 +175,7 @@
           opt = ref[i];
           if ((ref1 = this.type) === 'multiselect' || ref1 === 'tree') {
             bidValue = this.hasValue(opt.value);
-            bidAdj = bidValue.bidAdjValue.lastIndexOf('/') !== -1 ? bidValue.bidAdjValue.split('/')[1] : "+0%";
+            bidAdj = bidValue.bidAdjValue.lastIndexOf('/') !== -1 ? bidValue.bidAdjValue.split('/').pop(): "+0%";
             opt.selected = bidValue.selectStatus;
             results.push(opt.bidAdj = bidAdj !== -1 ? bidAdj : "0%");
           } else {

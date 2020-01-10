@@ -4,8 +4,8 @@
 
 ## Requirements
 
-* npm - tested with npm v6.8.  Different versions can store packages in very different ways, so be aware of that if you use something different.
-* node - 0.10.26, tested up to v12.14.  Note that the package in the apt repos is much older, and there are much newer ones available.  Newer 10.x versions are probably ok.
+* npm - tested with npm v6.4.1 -  Different versions can store packages in very different ways, so be aware of that if you use something different.
+* node - 0.10.26, tested up to v10.14.1 - Note that the package in the apt repos is much older, and there are much newer ones available.  Newer 10.x versions are probably ok.
 * gulp - Part of the required packages, but is useful to have a global version too. `npm install -g gulp`
 
 ## Git and npm

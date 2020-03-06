@@ -226,12 +226,15 @@ Certain field types imply a data type, such as 'number'. The internally stored v
     * **maxHeight** *int* - Maximum height of uploaded images. Default 0 for no limitation.
     * **minSize** *int* - Minimum file size in bytes of uploaded images. Default 0 for no limitation.
     * **maxSize** *int* - Maxumum file size in bytes of uploaded images. Default 0 for no limitation.
-    
+
+    * **.option fileUrl:** *string* You can add option to allow users to select a predefined images. Add onefor each desired image to be availible. String should be image url.
+
     The options of an image field are not a simple title and value, but rather an object containing image properties.
-    
+    * **selected** *bool* - Sets this image as pre-selected. Very useful if using with options since you can set the existing url in blip to be automatically selected even if it's not one of the predefined options. Without this, the blip value must match an existing defined option value or none will be selected prior.
     * **fileID** *int* - The file ID, usually used to reference the file ID in Marketer.  This property is not required.
     * **fileUrl** *string* - The hosted location of the full sized image, which will be used when fulfilling this form.
     * **thumbnailUrl** *string* - Optional thumbnail to speed up the image picker control. Default: same as fileUrl.  This url must be accessible by those viewing the form!
+    
     
     Options on an image field must always be visible; you can't set visible:false or visible:function that returns false like on other field types.
     

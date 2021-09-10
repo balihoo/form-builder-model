@@ -1,6 +1,6 @@
 
 
-CoffeeScript = require 'coffeescript'
+CoffeeScript = require 'coffee-script'
 Mustache     = require 'mustache'
 _            = require 'underscore'
 vm           = require 'vm'

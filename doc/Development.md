@@ -4,15 +4,15 @@
 
 ## Requirements
 
-* npm - I use v1.4.3.  Different versions can store packages in very different ways, so be aware of that if you use something different.
-* node - 0.10.26.  Note that the package in the apt repos is much older, and there are much newer ones available.  Newer 10.x versions are probably ok.
+* npm - tested with npm v6.4.1 -  Different versions can store packages in very different ways, so be aware of that if you use something different.
+* node - 0.10.26, tested up to v10.14.1 - Note that the package in the apt repos is much older, and there are much newer ones available.  Newer 10.x versions are probably ok.
 * gulp - Part of the required packages, but is useful to have a global version too. `npm install -g gulp`
 
 ## Git and npm
 
 Use the standard git-branch-merge workflow to update master, then `npm publish`
 
-This package is published to the public npm repositories, then referenced from other places by version there.  So follow (semver)[http://semver.org/] policies with the package name, then npm publish when you have something working.
+This package is published to the public npm repositories, then referenced from other places by version there.  So follow [semver](http://semver.org/) policies with the package name, then npm publish when you have something working.
 
 Depending on the features added, you may need to then update the reference in these places:
 

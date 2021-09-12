@@ -1,5 +1,8 @@
 # Version History
 
+# 2.2.x 
+- Testing support for bid adjustments
+
 # 2.2.1
 - Fix a bug where applying a value to a multiselect field where some of those values aren't options would sometimes not add all new values as options.
 

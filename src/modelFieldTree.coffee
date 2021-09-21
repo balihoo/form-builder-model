@@ -4,7 +4,7 @@ module.exports = class ModelFieldTree extends ModelField
   initialize: ->
     @setDefault 'value', []
     super
-
+      objectMode: true
   option: (optionParams...) ->
     optionObject = @buildParamObject optionParams, ['path', 'value', 'selected']
     optionObject.value ?= optionObject.id

@@ -30,10 +30,10 @@ module.exports = class ModelField extends ModelBase
     @setDefault 'beforeOutput', (val) -> val
 
     super
-
+      objectMode: true
     #difficult to catch bad types at render time.  error here instead
-    if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
-                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'button', 'number']
+    if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea','bool', 'tree',
+    'color', 'select', 'multiselect','image', 'button', 'number']
       return globals.handleError "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
@@ -190,13 +190,14 @@ module.exports = class ModelField extends ModelBase
 
   setClean: (all) ->
     super
+      objectMode: true
     if all
       opt.setClean all for opt in @options
 
   recalculateRelativeProperties: ->
     dirty = @dirty
     super
-
+      objectMode: true
     # validity
     # only fire if isValid changes.  If isValid stays false but message changes, don't need to re-fire.
     if @shouldCallTriggerFunctionFor dirty, 'isValid'

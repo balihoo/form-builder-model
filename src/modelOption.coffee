@@ -11,7 +11,7 @@ module.exports = class ModelOption extends ModelBase
     # set default bid adjustment
     @setDefault 'path', [] #for tree. Might should move to subclass
     super
-
+      objectMode: true
     # if selected is changed, make sure parent matches
     # this change likely comes from parent value changing, so be careful not to infinitely recurse.
     @on 'change:selected', ->

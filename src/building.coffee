@@ -1,6 +1,6 @@
 
 
-CoffeeScript = require 'coffee-script'
+CoffeeScript = require('coffeescript').register()
 Mustache     = require 'mustache'
 _            = require 'underscore'
 vm           = require 'vm'

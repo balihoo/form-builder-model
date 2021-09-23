@@ -6,7 +6,6 @@
   "main": "./formbuilder.js",
   "dependencies": {
     "backbone": "1.4.0",
-    "coffee-script": "1.12.7",
     "jiff": "0.7.3",
     "moment": "^2.14.1",
     "mustache": "4.2.0",
@@ -14,6 +13,7 @@
   },
   "devDependencies": {
     "coffeelint": "2.1.0",
+    "coffeescript": "^2.6.0",
     "gulp": "4.0.2",
     "gulp-coffee": "3.0.3",
     "gulp-coffeelint": "0.6.0",
@@ -22,7 +22,7 @@
     "istanbul": "0.4.5",
     "mocha": "9.1.1",
     "sinon": "11.1.2",
-    "yargs": "17.1.1"
+    "yargs": "^17.2.0"
   },
   "repository": {
     "type": "git",

@@ -6,6 +6,7 @@
   "main": "./formbuilder.js",
   "dependencies": {
     "backbone": "1.4.0",
+    "coffeescript": "^2.6.0",
     "jiff": "0.7.3",
     "moment": "^2.14.1",
     "mustache": "4.2.0",
@@ -13,7 +14,6 @@
   },
   "devDependencies": {
     "coffeelint": "2.1.0",
-    "coffeescript": "^2.6.0",
     "gulp": "4.0.2",
     "gulp-coffee": "3.0.3",
     "gulp-coffeelint": "0.6.0",

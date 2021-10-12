@@ -174,7 +174,8 @@ class RepeatingModelGroup extends ModelGroup
 
   buildOutputData: (_, skipBeforeOutput) ->
     tempOut = @value.map (instance) ->
-      super instance #build output data of each value as a group, not repeating group
+      ModelGroup.prototype.buildOutputData.apply instance
+      #super.buildOutputData instance #build output data of each value as a group, not repeating group
 
     if skipBeforeOutput then tempOut else @beforeOutput tempOut
 

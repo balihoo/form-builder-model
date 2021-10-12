@@ -105,6 +105,7 @@ module.exports = class ModelGroup extends ModelBase
 
   buildOutputData: (group = @, skipBeforeOutput) ->
     obj = {}
+    console.log "buildOutputData======"
     group.children.forEach (child) ->
       childData = child.buildOutputData(undefined, skipBeforeOutput)
       unless childData is undefined # undefined values do not appear in output, but nulls do

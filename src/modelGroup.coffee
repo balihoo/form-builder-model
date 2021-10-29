@@ -20,7 +20,7 @@ module.exports = class ModelGroup extends ModelBase
     @setDefault 'beforeOutput', (val) -> val
 
     super
-    
+      objectMode: true
   postBuild: ->
     child.postBuild() for child in @children
 
@@ -87,12 +87,14 @@ module.exports = class ModelGroup extends ModelBase
 
   setClean: (all) ->
     super
+      objectMode: true
     if all
       child.setClean all for child in @children
 
   recalculateRelativeProperties: (collection = @children) ->
     dirty = @dirty
     super
+      objectMode: true
     #group is valid if all children are valid
     #might not need to check validy, but always need to recalculate all children anyway.
     newValid = true
@@ -103,6 +105,7 @@ module.exports = class ModelGroup extends ModelBase
 
   buildOutputData: (group = @, skipBeforeOutput) ->
     obj = {}
+    console.log "buildOutputData======"
     group.children.forEach (child) ->
       childData = child.buildOutputData(undefined, skipBeforeOutput)
       unless childData is undefined # undefined values do not appear in output, but nulls do
@@ -150,7 +153,7 @@ class RepeatingModelGroup extends ModelGroup
     @set 'value', []
 
     super
-    
+      objectMode: true
   postBuild: ->
     c.postBuild() for c in @children
     @clear() # Apply the defaultValue for the repeating model group after it has been built
@@ -161,6 +164,7 @@ class RepeatingModelGroup extends ModelGroup
 
   setClean: (all) ->
     super
+      objectMode: true
     if all
       val.setClean all for val in @value
 
@@ -170,7 +174,8 @@ class RepeatingModelGroup extends ModelGroup
 
   buildOutputData: (_, skipBeforeOutput) ->
     tempOut = @value.map (instance) ->
-      super instance #build output data of each value as a group, not repeating group
+      ModelGroup.prototype.buildOutputData.apply instance
+      #super.buildOutputData instance #build output data of each value as a group, not repeating group
 
     if skipBeforeOutput then tempOut else @beforeOutput tempOut
 

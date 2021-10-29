@@ -30,10 +30,10 @@ module.exports = class ModelField extends ModelBase
     @setDefault 'beforeOutput', (val) -> val
 
     super
-
+      objectMode: true
     #difficult to catch bad types at render time.  error here instead
-    if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea',
-                     'bool', 'tree', 'color', 'select', 'multiselect', 'image', 'button', 'number']
+    if @type not in ['info', 'text', 'url', 'email', 'tel', 'time', 'date', 'textarea','bool', 'tree',
+    'color', 'select', 'multiselect','image', 'button', 'number']
       return globals.handleError "Bad field type: #{@type}"
 
     @bindPropFunctions 'dynamicValue'
@@ -116,7 +116,7 @@ module.exports = class ModelField extends ModelBase
     @parent.group obj...
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
+    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected', 'bidAdj', 'bidAdjFlag']
 
     # when adding an option to a field, make sure it is a *select type
     @ensureSelectType()
@@ -140,8 +140,22 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    for opt in @options
-      opt.selected = @hasValue opt.value
+    ref = @options
+    results = []
+    i = 0
+    len = ref.length
+    
+    while i < len
+      opt = ref[i]
+      if (ref1 = @type) == 'multiselect' or ref1 == 'tree'
+        bid = @hasValue(opt.value)
+        if bid.bidValue
+          opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
+        results.push opt.selected = bid.selectStatus
+      else
+        results.push opt.selected = @hasValue(opt.value)
+      i++
+    results
 
   # returns true if this type is one where a value is selected. Otherwise false
   isSelectType: ->
@@ -176,13 +190,14 @@ module.exports = class ModelField extends ModelBase
 
   setClean: (all) ->
     super
+      objectMode: true
     if all
       opt.setClean all for opt in @options
 
   recalculateRelativeProperties: ->
     dirty = @dirty
     super
-
+      objectMode: true
     # validity
     # only fire if isValid changes.  If isValid stays false but message changes, don't need to re-fire.
     if @shouldCallTriggerFunctionFor dirty, 'isValid'
@@ -222,28 +237,61 @@ module.exports = class ModelField extends ModelBase
     for opt in @options
       opt.recalculateRelativeProperties()
 
-  addOptionValue: (val) ->
-    if @type in ['multiselect','tree']
-      unless Array.isArray @value
-        @value = [@value]
-      if not (val in @value)
-        @value.push val
-    else #single-select
-      @value = val
+  addOptionValue: (val, bidAdj) ->
+    findMatch = undefined
+    ref = undefined
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      if !Array.isArray(@value)
+        @value = [ @value ]
+      findMatch = @value.findIndex((e) ->
+        if typeof e == 'string'
+          e.search(val) != -1
+        else
+          e == val
+      )
+      if findMatch != -1
+        if bidAdj
+          return @value[findMatch] = val + '/' + bidAdj
+      else
+        if bidAdj
+          return @value.push(val + '/' + bidAdj)
+        else
+          return @value.push(val)
+    else
+      return @value = val
+    return
 
   removeOptionValue: (val) ->
-    if @type in ['multiselect','tree']
-      if val in @value
-        @value = @value.filter (v) -> v isnt val
-    else if @value is val #single-select
-      @value = ''
-
-  #determine if the value is or contains the provided value.
+    ref = undefined
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      return @value = @value.filter((e) ->
+        if typeof e == 'string'
+          e.search(val) == -1
+        else
+          e != val
+      )
+    else if @value == val
+      return @value = ''
+    return
   hasValue: (val) ->
-    if @type in ['multiselect','tree']
-      val in @value
+    findMatch = undefined
+    ref = undefined
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      findMatch = @value.findIndex((e) ->
+        if typeof e == 'string'
+          e.search(val) != -1
+        else
+          e == val
+      )
+      if findMatch != -1
+        {
+          'bidValue': @value[findMatch]
+          'selectStatus': true
+        }
+      else
+        { 'selectStatus': false }
     else
-      val is @value
+      val == @value
 
   buildOutputData: (_, skipBeforeOutput) ->
     value = switch @type
@@ -273,7 +321,7 @@ module.exports = class ModelField extends ModelBase
         @option @value, selected:true
     else if Array.isArray @value
       for v in @value
-        existingOption = null #required to clear out previously found values
+        existingOption = null
         existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true
@@ -282,7 +330,8 @@ module.exports = class ModelField extends ModelBase
     @clear purgeDefaults if clear
     if inData?
       @value = @beforeInput jiff.clone inData
-      @ensureValueInOptions()
+      #HUB-2766 this is no longer necessary as we now have biding changing option
+      #@ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'
@@ -291,5 +340,4 @@ module.exports = class ModelField extends ModelBase
       template = @parent.child(@template).value
     try
       @value = Mustache.render template, @root.data
-    catch #just don't crash. Validator will display error later.
-
+    catch

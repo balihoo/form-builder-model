@@ -15,7 +15,7 @@ module.exports = class ModelFieldImage extends ModelField
     @set 'optionsChanged', false #React needs to know if the number of options changed,
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super
-
+      objectMode: true
   # Override behaviors different from other fields.
 
   option: (optionParams...) ->

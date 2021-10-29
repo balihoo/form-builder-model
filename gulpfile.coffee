@@ -12,19 +12,21 @@ gulp.task 'lint', ->
   .pipe(coffeelint('./coffeelint.json'))
   .pipe(coffeelint.reporter())
 
-gulp.task 'compile', ['lint'], ->
+gulp.task 'compile', gulp.series('lint', ->
   gulp.src(src)
   .pipe(
     coffee({bare:true})
     .on 'error', console.log
   )
   .pipe gulp.dest('lib')
+)  
 
 # runs all coffee tests in the test directory.
 # alternatively, specify --file <filename> to run a single file or alternate file pattern.
-gulp.task 'test', ['compile'], ->
+gulp.task 'test', gulp.series('compile', ->
   src = argv.file or 'test/**/*.coffee'
   gulp.src src
     .pipe mocha()
-  
-gulp.task 'default', ['test']
+)
+
+gulp.task 'default', gulp.series('test')

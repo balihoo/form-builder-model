@@ -1,28 +1,28 @@
 {
   "name": "balihoo-form-builder-model",
-  "version": "2.2.1",
+  "version": "2.2.3",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",
   "dependencies": {
-    "backbone": "1.2.1",
-    "coffee-script": "1.9.3",
-    "jiff": "0.7.2",
+    "backbone": "1.4.0",
+    "coffeescript": "2.5.1",
+    "jiff": "0.7.3",
     "moment": "^2.14.1",
-    "mustache": "balihoo-anewman/mustache.js",
-    "underscore": "1.8.3"
+    "mustache": "4.1.0",
+    "underscore": "1.13.1"
   },
   "devDependencies": {
-    "coffeelint": "1.11.1",
-    "gulp": "^3.8.10",
-    "gulp-coffee": "^2.2.0",
-    "gulp-coffeelint": "^0.5.0",
-    "gulp-istanbul": "^0.5.0",
-    "gulp-mocha": "^2.0.0",
-    "istanbul": "^0.3.5",
-    "mocha": "^2.0.1",
-    "sinon": "^1.17.7",
-    "yargs": "^3.15.0"
+    "coffeelint": "2.1.0",
+    "gulp": "4.0.2",
+    "gulp-coffee": "3.0.3",
+    "gulp-coffeelint": "0.6.0",
+    "gulp-istanbul": "1.1.3",
+    "gulp-mocha": "7.0.2",
+    "istanbul": "0.4.5",
+    "mocha": "8.2.1",
+    "sinon": "1.17.7",
+    "yargs": "16.1.0"
   },
   "repository": {
     "type": "git",

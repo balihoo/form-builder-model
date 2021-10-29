@@ -5,6 +5,7 @@ module.exports = class ModelFieldDate extends ModelField
   initialize: ->
     @setDefault 'format', 'M/D/YYYY'
     super
+      objectMode: true
     @validator @validate.date
 
   # Convert date to string according to this format

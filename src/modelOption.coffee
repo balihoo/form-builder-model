@@ -8,13 +8,14 @@ module.exports = class ModelOption extends ModelBase
     @setDefault 'title', @get 'value'
     # selected is used to set default value and also to store current value.
     @setDefault 'selected', false
+    # set default bid adjustment
     @setDefault 'path', [] #for tree. Might should move to subclass
     super
-
+      objectMode: true
     # if selected is changed, make sure parent matches
     # this change likely comes from parent value changing, so be careful not to infinitely recurse.
     @on 'change:selected', ->
       if @selected
-        @parent.addOptionValue @value
+        @parent.addOptionValue @value, @bidAdj
       else # not selected
         @parent.removeOptionValue @value

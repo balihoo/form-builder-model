@@ -239,14 +239,14 @@ module.exports = class ModelField extends ModelBase
   addOptionValue: (val, bidAdj) ->
     findMatch = undefined
     ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if (ref = @type) == 'multiselect'
       if !Array.isArray(@value)
         @value = [ @value ]
       findMatch = @value.findIndex((e) ->
-        if typeof e == 'string'
-          e.search(val) != -1
-        else
-          e == val
+        # if typeof e == 'string'
+        #   e.search(val) != -1
+        # else
+        e == val
       )
       if findMatch != -1
         if bidAdj
@@ -262,12 +262,12 @@ module.exports = class ModelField extends ModelBase
 
   removeOptionValue: (val) ->
     ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if (ref = @type) == 'multiselect'
       return @value = @value.filter((e) ->
-        if typeof e == 'string'
-          e.search(val) == -1
-        else
-          e != val
+        # if typeof e == 'string'
+        #   e.search(val) == -1
+        # else
+        e != val
       )
     else if @value == val
       return @value = ''
@@ -275,12 +275,12 @@ module.exports = class ModelField extends ModelBase
   hasValue: (val) ->
     findMatch = undefined
     ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if (ref = @type) == 'multiselect'
       findMatch = @value.findIndex((e) ->
-        if typeof e == 'string'
-          e.search(val) != -1
-        else
-          e == val
+        # if typeof e == 'string'
+        #   e.search(val) != -1
+        # else
+        e == val
       )
       if findMatch != -1
         {
@@ -290,7 +290,7 @@ module.exports = class ModelField extends ModelBase
       else
         { 'selectStatus': false }
     else
-      val == @value
+      val is @value
 
   buildOutputData: (_, skipBeforeOutput) ->
     value = switch @type
@@ -330,7 +330,7 @@ module.exports = class ModelField extends ModelBase
     if inData?
       @value = @beforeInput jiff.clone inData
       #HUB-2766 this is no longer necessary as we now have biding changing option
-      #@ensureValueInOptions()
+      @ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'

@@ -149,7 +149,7 @@ module.exports = class ModelField extends ModelBase
       opt = ref[i]
       if (ref1 = @type) == 'multiselect' or ref1 == 'tree'
         bid = @hasValue(opt.value)
-        if bid.bidValue
+        if bid.bidValue and typeof bid.bidValue == 'string'
           opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
         results.push opt.selected = bid.selectStatus
       else

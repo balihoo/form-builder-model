@@ -291,7 +291,7 @@ module.exports = class ModelField extends ModelBase
       else
         { 'selectStatus': false }
     else
-      val is @value
+      val == @value
 
   buildOutputData: (_, skipBeforeOutput) ->
     value = switch @type
@@ -331,7 +331,7 @@ module.exports = class ModelField extends ModelBase
     if inData?
       @value = @beforeInput jiff.clone inData
       #HUB-2766 this is no longer necessary as we now have biding changing option
-      @ensureValueInOptions()
+      #@ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'

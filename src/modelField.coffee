@@ -140,26 +140,22 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    if (ref1 = @type) == 'multiselect'
-      ref = @options
-      results = []
-      i = 0
-      len = ref.length
-      
-      while i < len
-        opt = ref[i]
-        if (ref1 = @type) == 'multiselect'
-          bid = @hasValue(opt.value)
-          if bid.bidValue and typeof bid.bidValue == 'string'
-            opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
-          results.push opt.selected = bid.selectStatus
-        else
-          results.push opt.selected = @hasValue(opt.value)
-        i++
-      results
-    else if (ref1 = @type) == 'tree'
-      for opt in @options
-        opt.selected = @hasValue opt.value
+    ref = @options
+    results = []
+    i = 0
+    len = ref.length
+    
+    while i < len
+      opt = ref[i]
+      if (ref1 = @type) == 'multiselect' or ref1 == 'tree'
+        bid = @hasValue(opt.value)
+        if bid.bidValue and typeof bid.bidValue == 'string'
+          opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
+        results.push opt.selected = bid.selectStatus
+      else
+        results.push opt.selected = @hasValue(opt.value)
+      i++
+    results
 
   # returns true if this type is one where a value is selected. Otherwise false
   isSelectType: ->
@@ -260,11 +256,6 @@ module.exports = class ModelField extends ModelBase
           return @value.push(val + '/' + bidAdj)
         else
           return @value.push(val)
-    else if (ref = @type) == 'tree'
-      unless Array.isArray @value
-        @value = [@value]
-      if not (val in @value)
-        @value.push val
     else
       return @value = val
     return
@@ -277,9 +268,6 @@ module.exports = class ModelField extends ModelBase
           e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
         e != val
       )
-    else if (ref = @type) == 'tree'
-      if val in @value
-        @value = @value.filter (v) -> v isnt val
     else if @value == val
       return @value = ''
     return
@@ -302,8 +290,6 @@ module.exports = class ModelField extends ModelBase
         }
       else
         { 'selectStatus': false }
-    else if (ref = @type) == 'tree'
-      val in @value
     else
       val is @value
 

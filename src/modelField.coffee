@@ -267,6 +267,8 @@ module.exports = class ModelField extends ModelBase
         # if typeof e == 'string'
         #   e.search(val) == -1
         # else
+
+        e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e 
         e != val
       )
     else if @value == val
@@ -280,6 +282,7 @@ module.exports = class ModelField extends ModelBase
         # if typeof e == 'string'
         #   e.search(val) != -1
         # else
+        e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
         e == val
       )
       if findMatch != -1

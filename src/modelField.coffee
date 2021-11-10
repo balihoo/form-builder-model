@@ -264,11 +264,7 @@ module.exports = class ModelField extends ModelBase
     ref = undefined
     if (ref = @type) == 'multiselect'
       return @value = @value.filter((e) ->
-        # if typeof e == 'string'
-        #   e.search(val) == -1
-        # else
-
-        e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e 
+        e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
         e != val
       )
     else if @value == val

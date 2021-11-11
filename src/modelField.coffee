@@ -148,13 +148,13 @@ module.exports = class ModelField extends ModelBase
       
       while i < len
         opt = ref[i]
-        bid = @hasValue(opt.value)
+        bid = @hasValue(opt.value, opt.bidAdjFlag)
         if opt.bidAdjFlag
           if bid.bidValue and typeof bid.bidValue == 'string'
             opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
           results.push opt.selected = bid.selectStatus
         else
-          results.push opt.selected = bid        
+          results.push opt.selected = bid
         i++
       results
     else if (ref1 = @type) == 'tree'
@@ -247,17 +247,17 @@ module.exports = class ModelField extends ModelBase
       if bidAdjFlag
         if !Array.isArray(@value)
           @value = [ @value ]
-          findMatch = @value.findIndex((e) ->
-            e == val
-          )
-          if findMatch != -1
-            if bidAdj
-              return @value[findMatch] = val + '/' + bidAdj
-          else
-            if bidAdj
-              return @value.push(val + '/' + bidAdj)
+        findMatch = @value.findIndex((e) ->
+          e == val
+        )
+        if findMatch != -1
+          if bidAdj
+            return @value[findMatch] = val + '/' + bidAdj
         else
-          return @value.push(val)
+          if bidAdj
+            return @value.push(val + '/' + bidAdj)
+          else
+            return @value.push(val)
       else
         unless Array.isArray @value
           @value = [@value]

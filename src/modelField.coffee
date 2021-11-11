@@ -244,9 +244,9 @@ module.exports = class ModelField extends ModelBase
     findMatch = undefined
     ref = undefined
     if (ref = @type) == 'multiselect' or ref == 'tree'
+      unless Array.isArray @value
+          @value = [@value]
       if bidAdjFlag
-        if !Array.isArray(@value)
-          @value = [ @value ]
         findMatch = @value.findIndex((e) ->
           if typeof e == 'string'
             e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
@@ -261,8 +261,6 @@ module.exports = class ModelField extends ModelBase
           else
             return @value.push(val)
       else
-        unless Array.isArray @value
-          @value = [@value]
         if not (val in @value)
           @value.push val
     else

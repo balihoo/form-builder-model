@@ -248,6 +248,8 @@ module.exports = class ModelField extends ModelBase
         if !Array.isArray(@value)
           @value = [ @value ]
         findMatch = @value.findIndex((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
           e == val
         )
         if findMatch != -1

@@ -16,6 +16,6 @@ module.exports = class ModelOption extends ModelBase
     # this change likely comes from parent value changing, so be careful not to infinitely recurse.
     @on 'change:selected', ->
       if @selected
-        @parent.addOptionValue @value, @bidAdj
+        @parent.addOptionValue @value, @bidAdj, @bidAdjFlag
       else # not selected
-        @parent.removeOptionValue @value
+        @parent.removeOptionValue @value, @bidAdjFlag

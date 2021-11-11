@@ -149,10 +149,12 @@ module.exports = class ModelField extends ModelBase
       while i < len
         opt = ref[i]
         bid = @hasValue(opt.value)
-        if bid.bidValue and typeof bid.bidValue == 'string'
-          opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
-        results.push opt.selected = bid.selectStatus
-        
+        if opt.bidAdjFlag
+          if bid.bidValue and typeof bid.bidValue == 'string'
+            opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
+          results.push opt.selected = bid.selectStatus
+        else
+          results.push opt.selected = bid        
         i++
       results
     else if (ref1 = @type) == 'tree'
@@ -238,70 +240,67 @@ module.exports = class ModelField extends ModelBase
     for opt in @options
       opt.recalculateRelativeProperties()
 
-  addOptionValue: (val, bidAdj) ->
+  addOptionValue: (val, bidAdj, bidAdjFlag) ->
     findMatch = undefined
     ref = undefined
-    if (ref = @type) == 'multiselect'
-      if !Array.isArray(@value)
-        @value = [ @value ]
-      findMatch = @value.findIndex((e) ->
-        # if typeof e == 'string'
-        #   e.search(val) != -1
-        # else
-        e == val
-      )
-      if findMatch != -1
-        if bidAdj
-          return @value[findMatch] = val + '/' + bidAdj
-      else
-        if bidAdj
-          return @value.push(val + '/' + bidAdj)
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      if bidAdjFlag
+        if !Array.isArray(@value)
+          @value = [ @value ]
+          findMatch = @value.findIndex((e) ->
+            e == val
+          )
+          if findMatch != -1
+            if bidAdj
+              return @value[findMatch] = val + '/' + bidAdj
+          else
+            if bidAdj
+              return @value.push(val + '/' + bidAdj)
         else
           return @value.push(val)
-    else if (ref = @type) == 'tree'
-      unless Array.isArray @value
-        @value = [@value]
-      if not (val in @value)
-        @value.push val
+      else
+        unless Array.isArray @value
+          @value = [@value]
+        if not (val in @value)
+          @value.push val
     else
       return @value = val
     return
 
-  removeOptionValue: (val) ->
+  removeOptionValue: (val, bidAdjFlag) ->
     ref = undefined
-    if (ref = @type) == 'multiselect'
-      return @value = @value.filter((e) ->
-        if typeof e == 'string'
-          e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
-        e != val
-      )
-    else if (ref = @type) == 'tree'
-      if val in @value
-        @value = @value.filter (v) -> v isnt val
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      if bidAdjFlag
+        return @value = @value.filter((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
+          e != val
+        )
+      else
+        if val in @value
+          @value = @value.filter (v) -> v isnt val
     else if @value == val
       return @value = ''
     return
-  hasValue: (val) ->
+  hasValue: (val, bidAdjFlag) ->
     findMatch = undefined
     ref = undefined
-    if (ref = @type) == 'multiselect'
-      findMatch = @value.findIndex((e) ->
-        # if typeof e == 'string'
-        #   e.search(val) != -1
-        # else
-        if typeof e == 'string'
-          e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
-        e == val
-      )
-      if findMatch != -1
-        {
-          'bidValue': @value[findMatch]
-          'selectStatus': true
-        }
+    if (ref = @type) == 'multiselect' or ref == 'tree'
+      if bidAdjFlag
+        findMatch = @value.findIndex((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
+          e == val
+        )
+        if findMatch != -1
+          {
+            'bidValue': @value[findMatch]
+            'selectStatus': true
+          }
+        else
+          { 'selectStatus': false }
       else
-        { 'selectStatus': false }
-    else if (ref = @type) == 'tree'
-      val in @value
+        val in @value
     else
       val is @value
 
@@ -334,7 +333,14 @@ module.exports = class ModelField extends ModelBase
     else if Array.isArray @value
       for v in @value
         existingOption = null
-        existingOption = o for o in @options when o.value is v
+        for o in @options
+          optValue = v
+          if o.bidAdjFlag
+            optValue = if v.lastIndexOf('/') != -1 then v.split("/").shift() else v
+          if o.value == optValue
+            existingOption = o
+
+        #existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true
 
@@ -343,7 +349,7 @@ module.exports = class ModelField extends ModelBase
     if inData?
       @value = @beforeInput jiff.clone inData
       #HUB-2766 this is no longer necessary as we now have biding changing option
-      #@ensureValueInOptions()
+      @ensureValueInOptions()
 
   renderTemplate: () ->
     if typeof @template is 'object'

@@ -157,7 +157,7 @@ module.exports = class ModelField extends ModelBase
           results.push opt.selected = bid
         i++
       results
-    else if (ref1 = @type) == 'tree'
+    else
       for opt in @options
         opt.selected = @hasValue opt.value
 

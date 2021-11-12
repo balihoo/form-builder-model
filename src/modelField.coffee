@@ -140,7 +140,7 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    if (ref1 = @type) == 'multiselect'
+    if @type == 'multiselect'
       ref = @options
       results = []
       i = 0
@@ -241,11 +241,9 @@ module.exports = class ModelField extends ModelBase
       opt.recalculateRelativeProperties()
 
   addOptionValue: (val, bidAdj, bidAdjFlag) ->
-    findMatch = undefined
-    ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if @type in ['multiselect','tree']
       unless Array.isArray @value
-          @value = [@value]
+        @value = [@value]
       if bidAdjFlag
         findMatch = @value.findIndex((e) ->
           if typeof e == 'string'
@@ -254,24 +252,23 @@ module.exports = class ModelField extends ModelBase
         )
         if findMatch != -1
           if bidAdj
-            return @value[findMatch] = val + '/' + bidAdj
+            @value[findMatch] = val + '/' + bidAdj
         else
           if bidAdj
-            return @value.push(val + '/' + bidAdj)
+            @value.push(val + '/' + bidAdj)
           else
-            return @value.push(val)
+            @value.push(val)
       else
         if not (val in @value)
           @value.push val
     else
-      return @value = val
-    return
+      @value = val
+    
 
   removeOptionValue: (val, bidAdjFlag) ->
-    ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if @type in ['multiselect','tree']
       if bidAdjFlag
-        return @value = @value.filter((e) ->
+        @value = @value.filter((e) ->
           if typeof e == 'string'
             e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
           e != val
@@ -280,12 +277,10 @@ module.exports = class ModelField extends ModelBase
         if val in @value
           @value = @value.filter (v) -> v isnt val
     else if @value == val
-      return @value = ''
-    return
+      @value = ''
+    
   hasValue: (val, bidAdjFlag) ->
-    findMatch = undefined
-    ref = undefined
-    if (ref = @type) == 'multiselect' or ref == 'tree'
+    if @type in ['multiselect','tree']
       if bidAdjFlag
         findMatch = @value.findIndex((e) ->
           if typeof e == 'string'

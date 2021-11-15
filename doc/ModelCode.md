@@ -173,6 +173,10 @@ Call these functions to alter a current field in some way.
     * **value** - The value the field should have if this option is selected. Default: same as title. At least one of title or value is required.  Do not create two options on the same field with the same value.
     * **selected** *bool* - Set to true for an option to be selected by default.  Default:false
     * **visible** *bool or function* - Works mostly the same as [on a field](#fieldVisible), except that options on fields of type image or tree may not be set to invisible.  This is due their complex rendering which makes it difficult for options to come and go.
+
+    Allow a optional field for each listed, visible selected option in multiselect type.
+    * **bidAdjFlag** *bool* - Set to true for an option to be selected by default.  Default:false
+    * **bidAdj** - If bidAdjFlag value is true so that the user sees a simple textbox and may allow user to add value in textbox. Value must be an integer or decimal number.
     
     Image options have different properties, see below.
 * **validator()** - Appends a new validation function to the field.

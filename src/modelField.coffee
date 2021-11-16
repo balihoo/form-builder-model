@@ -343,7 +343,6 @@ module.exports = class ModelField extends ModelBase
     @clear purgeDefaults if clear
     if inData?
       @value = @beforeInput jiff.clone inData
-      #HUB-2766 this is no longer necessary as we now have biding changing option
       @ensureValueInOptions()
 
   renderTemplate: () ->

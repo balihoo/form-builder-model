@@ -116,7 +116,7 @@ module.exports = class ModelField extends ModelBase
     @parent.group obj...
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected']
+    optionObject = @buildParamObject optionParams, ['title', 'value', 'selected', 'bidAdj', 'bidAdjFlag']
 
     # when adding an option to a field, make sure it is a *select type
     @ensureSelectType()
@@ -140,8 +140,26 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    for opt in @options
-      opt.selected = @hasValue opt.value
+    if @type == 'multiselect'
+      ref = @options
+      results = []
+      i = 0
+      len = ref.length
+      
+      while i < len
+        opt = ref[i]
+        bid = @hasValue(opt.value, opt.bidAdjFlag)
+        if opt.bidAdjFlag
+          if bid.bidValue and typeof bid.bidValue == 'string'
+            opt.bidAdj = if bid.bidValue.lastIndexOf('/') != -1 then bid.bidValue.split("/").pop() else @bidAdj
+          results.push opt.selected = bid.selectStatus
+        else
+          results.push opt.selected = bid
+        i++
+      results
+    else
+      for opt in @options
+        opt.selected = @hasValue opt.value
 
   # returns true if this type is one where a value is selected. Otherwise false
   isSelectType: ->
@@ -222,26 +240,62 @@ module.exports = class ModelField extends ModelBase
     for opt in @options
       opt.recalculateRelativeProperties()
 
-  addOptionValue: (val) ->
+  addOptionValue: (val, bidAdj, bidAdjFlag) ->
     if @type in ['multiselect','tree']
       unless Array.isArray @value
         @value = [@value]
-      if not (val in @value)
-        @value.push val
-    else #single-select
+      if bidAdjFlag
+        findMatch = @value.findIndex((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
+          e == val
+        )
+        if findMatch != -1
+          if bidAdj
+            @value[findMatch] = val + '/' + bidAdj
+        else
+          if bidAdj
+            @value.push(val + '/' + bidAdj)
+          else
+            @value.push(val)
+      else
+        if not (val in @value)
+          @value.push val
+    else
       @value = val
+    
 
-  removeOptionValue: (val) ->
+  removeOptionValue: (val, bidAdjFlag) ->
     if @type in ['multiselect','tree']
-      if val in @value
-        @value = @value.filter (v) -> v isnt val
-    else if @value is val #single-select
+      if bidAdjFlag
+        @value = @value.filter((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
+          e != val
+        )
+      else
+        if val in @value
+          @value = @value.filter (v) -> v isnt val
+    else if @value == val
       @value = ''
-
-  #determine if the value is or contains the provided value.
-  hasValue: (val) ->
+    
+  hasValue: (val, bidAdjFlag) ->
     if @type in ['multiselect','tree']
-      val in @value
+      if bidAdjFlag
+        findMatch = @value.findIndex((e) ->
+          if typeof e == 'string'
+            e = if e.lastIndexOf('/') != -1 then e.split("/").shift() else e
+          e == val
+        )
+        if findMatch != -1
+          {
+            'bidValue': @value[findMatch]
+            'selectStatus': true
+          }
+        else
+          { 'selectStatus': false }
+      else
+        val in @value
     else
       val is @value
 
@@ -273,8 +327,15 @@ module.exports = class ModelField extends ModelBase
         @option @value, selected:true
     else if Array.isArray @value
       for v in @value
-        existingOption = null #required to clear out previously found values
-        existingOption = o for o in @options when o.value is v
+        existingOption = null
+        for o in @options
+          optValue = v
+          if o.bidAdjFlag
+            optValue = if v.lastIndexOf('/') != -1 then v.split("/").shift() else v
+          if o.value == optValue
+            existingOption = o
+
+        #existingOption = o for o in @options when o.value is v
         unless existingOption
           @option v, selected:true
 
@@ -291,5 +352,4 @@ module.exports = class ModelField extends ModelBase
       template = @parent.child(@template).value
     try
       @value = Mustache.render template, @root.data
-    catch #just don't crash. Validator will display error later.
-
+    catch

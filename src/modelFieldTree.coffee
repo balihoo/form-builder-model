@@ -10,6 +10,7 @@ module.exports = class ModelFieldTree extends ModelField
     optionObject.value ?= optionObject.id
     if optionObject.value == null && Array.isArray(optionObject.path)
       optionObject.value ?= optionObject.path.join ' > '
+    if Array.isArray(optionObject.path)
       optionObject.title = optionObject.path.join '>' #use path as the key since that is what is rendered.
     super optionObject
 

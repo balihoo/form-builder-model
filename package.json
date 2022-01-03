@@ -1,6 +1,6 @@
 {
   "name": "balihoo-form-builder-model-v2",
-  "version": "2.2.8",
+  "version": "2.2.6",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",
@@ -9,7 +9,7 @@
     "coffee-script": "1.9.3",
     "jiff": "0.7.2",
     "moment": "^2.14.1",
-    "mustache": "https://github.com/balihoo-anewman/mustache.js",
+    "mustache": "balihoo-anewman/mustache.js",
     "underscore": "1.8.3"
   },
   "devDependencies": {

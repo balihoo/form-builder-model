@@ -6,7 +6,7 @@
   "main": "./formbuilder.js",
   "dependencies": {
     "backbone": "1.2.1",
-    "coffee-script": "1.9.3",
+    "coffeescript": "2.5.1",
     "jiff": "0.7.2",
     "moment": "^2.14.1",
     "mustache": "https://github.com/balihoo-anewman/mustache.js",

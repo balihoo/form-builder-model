@@ -18,4 +18,6 @@ module.exports = class ModelOption extends ModelBase
       if @selected
         @parent.addOptionValue @value, @bidAdj, @bidAdjFlag
       else # not selected
+        if @attributes.parent.attributes.name == "affinity" || @attributes.parent.attributes.name == "in_market"
+          @parent.removeOptionValue @value, @selected
         @parent.removeOptionValue @value, @bidAdjFlag

@@ -189,7 +189,19 @@ module.exports = class ModelField extends ModelBase
     @
 
   setDirty: (id, whatChanged) ->
-    opt.setDirty id, whatChanged for opt in @options
+    #opt.setDirty id, whatChanged for opt in @options
+    for opt in @options
+      opt.setDirty id, whatChanged 
+      if id == opt.id and (opt.attributes.parent.attributes.name == 'affinity' or opt.attributes.parent.attributes.name == 'in_market')
+        if whatChanged.selected == false 
+          checkVal = opt.value+'/'+opt.bidAdj
+          @value.splice @value.indexOf(checkVal), 1
+          return @removeOptionValue opt.attributes.value, whatChanged.selected
+        else 
+          opt.bidAdj = whatChanged.bidAdj
+          opt.attributes.bidAdj = whatChanged.bidAdj  
+          return @addOptionValue opt.attributes.value, opt.attributes.bidAdj, opt.attributes.bidAdjFlag
+          
     super id, whatChanged
 
   setClean: (all) ->
@@ -276,6 +288,13 @@ module.exports = class ModelField extends ModelBase
       else
         if val in @value
           @value = @value.filter (v) -> v isnt val
+
+        if @attributes.parent.attributes.name == "affinity" || @attributes.parent.attributes.name == "in_market"
+            filteredVal = @value.filter((oneValue) ->
+              if typeof e == 'string'
+                oneValue = if oneValue.lastIndexOf('/') !== -1 then oneValue.split("/").shift() else oneValue
+                oneValue !== val 
+            )
     else if @value == val
       @value = ''
     

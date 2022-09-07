@@ -196,12 +196,12 @@ module.exports = class ModelField extends ModelBase
         if whatChanged.selected == false 
           checkVal = opt.value+'/'+opt.bidAdj
           @value.splice @value.indexOf(checkVal), 1
-          return @removeOptionValue opt.attributes.value, whatChanged.selected
+          @removeOptionValue opt.attributes.value, whatChanged.selected
         else 
           opt.bidAdj = whatChanged.bidAdj
           opt.attributes.bidAdj = whatChanged.bidAdj  
-          return @addOptionValue opt.attributes.value, opt.attributes.bidAdj, opt.attributes.bidAdjFlag
-          
+          @addOptionValue opt.attributes.value, opt.attributes.bidAdj, opt.attributes.bidAdjFlag
+
     super id, whatChanged
 
   setClean: (all) ->

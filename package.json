@@ -1,6 +1,6 @@
 {
   "name": "balihoo-form-builder-model-v2",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "description": "Standalone code for building form builder models",
   "author": "Balihoo",
   "main": "./formbuilder.js",

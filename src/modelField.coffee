@@ -140,7 +140,7 @@ module.exports = class ModelField extends ModelBase
     @updateOptionsSelected()
 
   updateOptionsSelected: ->
-    if @type == 'multiselect'
+    if @type in ['multiselect','tree']
       ref = @options
       results = []
       i = 0

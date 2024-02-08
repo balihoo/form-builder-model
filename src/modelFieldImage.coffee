@@ -19,13 +19,16 @@ module.exports = class ModelFieldImage extends ModelField
   # Override behaviors different from other fields.
 
   option: (optionParams...) ->
-    optionObject = @buildParamObject optionParams, ['fileID', 'fileUrl', 'thumbnailUrl']
+    optionObject = @buildParamObject optionParams, ['fileID', 'fileUrl', 'thumbnailUrl','fileContentype']
     optionObject.fileID ?= optionObject.fileUrl
     optionObject.thumbnailUrl ?= optionObject.fileUrl
+    optionObject.fileContentype ?= optionObject.fileContentype
+
     optionObject.value = {
       fileID: optionObject.fileID
       fileUrl: optionObject.fileUrl
       thumbnailUrl: optionObject.thumbnailUrl
+      fileContentype: optionObject.fileContentype
     }
     # use fileID as the key because this is how they are selected when rendered.
     optionObject.title ?= optionObject.fileID
@@ -47,7 +50,8 @@ module.exports = class ModelFieldImage extends ModelField
   hasValue: (val) ->
     val.fileID is @value.fileID and
         val.thumbnailUrl is @value.thumbnailUrl and
-        val.fileUrl is @value.fileUrl
+        val.fileUrl is @value.fileUrl and
+        val.fileContentype is @value.fileContentype
 
   clear: (purgeDefaults=false) ->
     @value = if purgeDefaults then {} else @defaultValue

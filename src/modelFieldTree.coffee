@@ -8,9 +8,9 @@ module.exports = class ModelFieldTree extends ModelField
   option: (optionParams...) ->
     optionObject = @buildParamObject optionParams, ['path', 'value', 'selected', 'bidAdj', 'bidAdjFlag']
     optionObject.value ?= optionObject.id
-    if Array.isArray(optionObject.path)  
+    if Array.isArray(optionObject.path)
       optionObject.value ?= optionObject.path.join ' > '
-      optionObject.title = optionObject.path.join '>' 
+      optionObject.title = optionObject.path.join '>'
       super optionObject
   
   clear: (purgeDefaults=false) ->

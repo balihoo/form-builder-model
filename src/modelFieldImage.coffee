@@ -22,8 +22,10 @@ module.exports = class ModelFieldImage extends ModelField
     optionObject = @buildParamObject optionParams, ['fileID', 'fileUrl', 'thumbnailUrl','fileContentype']
     optionObject.fileID ?= optionObject.fileUrl
     optionObject.thumbnailUrl ?= optionObject.fileUrl
-    optionObject.fileContentype ?= optionObject.fileContentype
 
+    if (optionObject.fileContentype is null or typeof optionObject.fileContentype  is "undefined" )
+      optionObject.fileContentype = null
+    
     optionObject.value = {
       fileID: optionObject.fileID
       fileUrl: optionObject.fileUrl

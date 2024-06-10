@@ -12,6 +12,7 @@ module.exports = class ModelFieldImage extends ModelField
     @setDefault 'maxHeight', 0
     @setDefault 'minSize', 0
     @setDefault 'maxSize', 0
+    @setDefault 'allowedAspectRatios', []
     @set 'optionsChanged', false #React needs to know if the number of options changed,
     # as this requires a full reinit of the plugin at render time that is not necessary for other changes.
     super

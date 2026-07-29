@@ -140,6 +140,24 @@ module.exports = class ModelBase extends Backbone.Model
   setClean: ->
     @dirty = ''
 
+  # Run fn as a single unit of change, with the root's recalculation deferred until it finishes.
+  # Applying data writes many fields in a row, and every write triggers a full recalculation of
+  # every relative property in the form (see the 'change' handler in @initialize), so the cost is
+  # quadratic in form size -- forms with large repeating groups spend minutes there.  Deferring and
+  # recalculating once at the end reaches the same fixed point, and is what fromCode() already does
+  # while it builds the model.  Nested calls run inline; only the outermost one recalculates.
+  batchRecalculation: (fn) ->
+    root = @root
+    return fn() if not root? or root.recalculating
+    root.recalculating = true
+    try
+      result = fn()
+    finally
+      root.recalculating = false
+      root.setDirty root.id, 'multiple'
+      root.recalculateCycle?()
+    result
+
   shouldCallTriggerFunctionFor: (dirty, attrName) ->
     dirty and dirty isnt "#{@id}:#{attrName}"
 

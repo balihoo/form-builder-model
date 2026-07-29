@@ -120,23 +120,24 @@ module.exports = class ModelGroup extends ModelBase
     child.clear purgeDefaults for child in @children
 
   applyData: (inData, clear=false, purgeDefaults=false) ->
-    @clear purgeDefaults if clear
-    finalInData = @beforeInput jiff.clone inData
-    ###
-    This section preserves a link to the initially applied data object and merges subsequent applies on top
-      of it in-place.  This is necessary for two reasons.
-    First, the scope of the running model code also references the applied data through the 'data' variable.
-      Every applied data must be available even though the runtime is not re-evaluated each time.
-    Second, templated fields use this data as the input to their Mustache evaluation. See @renderTemplate()
-    ###
-    if @data
-      globals.mergeData @data, inData
-      @trigger 'change'
-    else
-      @data = inData
+    @batchRecalculation =>
+      @clear purgeDefaults if clear
+      finalInData = @beforeInput jiff.clone inData
+      ###
+      This section preserves a link to the initially applied data object and merges subsequent applies on top
+        of it in-place.  This is necessary for two reasons.
+      First, the scope of the running model code also references the applied data through the 'data' variable.
+        Every applied data must be available even though the runtime is not re-evaluated each time.
+      Second, templated fields use this data as the input to their Mustache evaluation. See @renderTemplate()
+      ###
+      if @data
+        globals.mergeData @data, inData
+        @trigger 'change'
+      else
+        @data = inData
 
-    for key, value of finalInData
-      @child(key)?.applyData value
+      for key, value of finalInData
+        @child(key)?.applyData value
 
 
 
@@ -183,15 +184,16 @@ class RepeatingModelGroup extends ModelGroup
 
   # applyData performs and clearing and transformations, then adds each simple object and a value ModelGroup
   applyData: (inData, clear=false, purgeDefaults=false) ->
-    finalInData = @beforeInput jiff.clone inData
+    @batchRecalculation =>
+      finalInData = @beforeInput jiff.clone inData
 
-    # always clear out and replace the model value when data is supplied
-    if finalInData
-      @value = []
-    else
-      @clear purgeDefaults if clear
+      # always clear out and replace the model value when data is supplied
+      if finalInData
+        @value = []
+      else
+        @clear purgeDefaults if clear
 
-    @addEachSimpleObject finalInData, clear, purgeDefaults
+      @addEachSimpleObject finalInData, clear, purgeDefaults
 
   addEachSimpleObject: (o, clear=false, purgeDefaults=false) ->
     #each value in the repeating group needs to be a repeating group object, not just the anonymous object in data

@@ -263,10 +263,15 @@ module.exports = class ModelBase extends Backbone.Model
   #Overwrite each root attribute with the new root in the cloning form.
   cloneModel: (newRoot = @root, constructor = @constructor, excludeAttributes=[]) ->
     # first filter out undesired attributes from the clone
+    # Arrays are copied here rather than only in the deep-copy pass below, because the constructor
+    # call that follows runs initialize(), which mutates array attributes in place: ModelFieldDate
+    # pushes a validator into @validators, and bindPropFunctions re-wraps every entry.  Sharing the
+    # array with the template means each clone permanently appends one more validator to the
+    # template and deepens the wrapper nesting on the earlier ones, so cloning n rows costs O(n^3).
     filteredAttributes = {}
     for key,val of @attributes when key not in excludeAttributes
-      filteredAttributes[key] = val
-      
+      filteredAttributes[key] = if Array.isArray val then val.slice() else val
+
     # now call the constructor with the desired attributes
     myClone = new constructor(filteredAttributes)
 
